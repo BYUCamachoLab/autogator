@@ -1,14 +1,62 @@
 # The documentation for Instrumental-lib by Mabuchi Lab can be located at 
 # http://instrumental-lib.readthedocs.io/en/stable/index.html
-# The library can be installed via pip or by cloning the github package, 
-# see the above site.
 
-# import matplotlib to be able to display the captured image.
-from instrumental import instrument
-from matplotlib import pyplot
-from instrumental.drivers.cameras import uc480
-import cv2
 import time
+from enum import IntEnum
+
+import cv2
+import numpy as np
+from instrumental import instrument
+from instrumental.drivers.cameras import uc480
+from matplotlib import pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+plt.rcParams['toolbar'] = 'None'
+
+class Camera(object):
+    def __init__(self):
+        pass
+
+def grab_frame():
+    # return np.random.normal(size=(100,150))
+    return camera.snapshot()
+
+def on_click(event):
+    if event.button == MouseBtn.RIGHT_BTN:
+        print("Setting point at:", event.xdata, event.ydata)
+    if event.dblclick:
+        if event.inaxes is not None:
+            print(event.xdata, event.ydata)
+            camera.h0 += int(event.xdata - 150/2)
+            camera.v0 += int(event.ydata - 100/2)
+        else:
+            print("Not a valid location.")
+
+#create subplots
+fig, ax1 = plt.subplots()
+ax1.axes.get_xaxis().set_visible(False)
+ax1.axes.get_yaxis().set_visible(False)
+
+fig.canvas.set_window_title('Live Camera')
+fig.canvas.callbacks.connect('button_press_event', on_click)
+
+#create image plots
+im1 = ax1.imshow(grab_frame())
+
+def update(i):
+    im1.set_data(grab_frame())
+
+ani = FuncAnimation(plt.gcf(), update, interval=20)
+plt.tight_layout()
+plt.show()
+
+
+
+
+
+
+
+
 
 def detect():
     paramsets = uc480.list_instruments()
