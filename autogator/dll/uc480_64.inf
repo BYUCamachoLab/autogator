@@ -1,0 +1,668 @@
+;===============================================================
+; uc480_64.inf
+;
+; Windows Vista/Win7/Win8/Win8.1/Win10 Installation file (.inf) 
+; for the uc480 Camera family
+;
+; (c) Copyright 2004 - 2016
+;
+;===============================================================
+
+[Version]
+Signature   = $Windows NT$
+Class       = USB
+ClassGuid   = {36FC9E60-C465-11CF-8056-444553540000} 
+Provider    = %CompanyName%
+DriverVer   = 03/11/2016,4.80.5
+CatalogFile.ntamd64 = uc480_64.cat
+
+
+;==========================================
+; Source file information
+;==========================================
+
+[DestinationDirs]
+CAMERA.CopyFiles.sys      = 12     ; %windir%\system32\drivers
+CAMERA.CopyFiles.dll      = 11     ; %windir%\system32\drivers
+CAMERA_BOOT.CopyFiles.sys = 12     ; %windir%\system32\drivers
+CAMERA_BOOT.CopyFiles.dll = 11     ; %windir%\system32\drivers
+
+
+[SourceDisksNames]
+1 = %uc480InstallationMedia%,,,\drivers
+2 = %uc480InstallationMedia%,,,
+
+
+[SourceDisksFiles]
+uc480_64.sys       = 1
+uc480_boot_64.sys  = 1
+uc480_64.dll       = 2
+uc480_tools_64.dll = 2
+
+;==========================================
+; driver information
+;==========================================
+
+[Manufacturer]
+%CompanyName% = OEMINC, ntamd64
+
+[OEMINC.ntamd64]
+;
+%Model_start%      =CAMERA_BOOT.Dev, USB\VID_1409&PID_1000  ; boot device
+%ModelGroup_1_2%   =CAMERA.Dev, USB\VID_1409&PID_1410       ; cmos, 0640x0480, rolling, 1/3"
+%ModelGroup_3_4%   =CAMERA.Dev, USB\VID_1409&PID_1440       ; cmos, 1280x1024, rolling, 2/3"
+%ModelGroup_8%     =CAMERA.Dev, USB\VID_1409&PID_1450       ; cmos, 1600x1200, rolling, 1/2"
+%ModelGroup_a%     =CAMERA.Dev, USB\VID_1409&PID_1460       ; cmos, 2048x1536, rolling, 1/2"
+%ModelGroup_b_c%   =CAMERA.Dev, USB\VID_1409&PID_1480       ; cmos, 2592x1944, rolling, 1/2"
+%ModelGroup_10_11% =CAMERA.Dev, USB\VID_1409&PID_1210       ; cmos, 0640x0480, global,  1/2"
+%ModelGroup_12_13% =CAMERA.Dev, USB\VID_1409&PID_1220       ; cmos, 0752x0480, global,  1/3"
+%ModelGroup_15%    =CAMERA.Dev, USB\VID_1409&PID_1640       ; cmos, 1280x1024, rolling, 1/3"
+%ModelGroup_17%    =CAMERA.Dev, USB\VID_1409&PID_1550       ; cmos, 1600x1200, rolling, 1/3"
+%ModelGroup_18_19% =CAMERA.Dev, USB\VID_1409&PID_1223       ; cmos, 0752x0480, global,  1/3", single board
+%ModelGroup_22_23% =CAMERA.Dev, USB\VID_1409&PID_1225	    ; cmos, 0752x0480, global,  1/3", plastic housing
+%ModelGroup_25%    =CAMERA.Dev, USB\VID_1409&PID_1645       ; cmos, 1280x1024, rolling, 1/3", plastic housing
+%ModelGroup_27%    =CAMERA.Dev, USB\VID_1409&PID_1555       ; cmos, 1600x1200, rolling, 1/3", plastic housing
+%ModelGroup_28_29% =CAMERA.Dev, USB\VID_1409&PID_1545       ; cmos, 1280x1024, rolling, 1/2", single board
+%ModelGroup_2b%    =CAMERA.Dev, USB\VID_1409&PID_1455       ; cmos, 1600x1200, rolling, 1/2", plastic housing
+%ModelGroup_2d%    =CAMERA.Dev, USB\VID_1409&PID_1465       ; cmos, 2048x1536, rolling, 1/2", plastic housing
+%ModelGroup_2e_2f% =CAMERA.Dev, USB\VID_1409&PID_1485       ; cmos, 2592x1944, rolling, 1/2", plastic housing
+%ModelGroup_30_31% =CAMERA.Dev, USB\VID_1409&PID_1540       ; cmos, 1280x1024, rolling, 1/2"
+%ModelGroup_32_33% =CAMERA.Dev, USB\VID_1409&PID_1543       ; cmos, 1280x1024, rolling, 1/2", single board
+%ModelGroup_35%    =CAMERA.Dev, USB\VID_1409&PID_1453       ; cmos, 1600x1200, rolling, 1/2", single board
+%ModelGroup_37%    =CAMERA.Dev, USB\VID_1409&PID_1463       ; cmos, 2048x1536, rolling, 1/2", single board
+%ModelGroup_39%    =CAMERA.Dev, USB\VID_1409&PID_1483       ; cmos, 2592x1944, rolling, 1/2", single board
+%ModelGroup_3a_3b% =CAMERA.Dev, USB\VID_1409&PID_1544       ; cmos, 1280x1024, rolling, 1/2", single board
+%ModelGroup_3e_3f% =CAMERA.Dev, USB\VID_1409&PID_1490       ; cmos, 3840x2748, rolling, 1/2.5"
+%ModelGroup_40_41% =CAMERA.Dev, USB\VID_1409&PID_1495       ; cmos, 3840x2748, rolling, 1/2.5", plastic housing 
+%ModelGroup_50_51% =CAMERA.Dev, USB\VID_1409&PID_1240       ; cmos, 1280x1024, global,  1/2"
+%ModelGroup_52%    =CAMERA.Dev, USB\VID_1409&PID_C005       ; cmos, 0752x0480, global,  1/3", single board
+%ModelGroup_54_55% =CAMERA.Dev, USB\VID_1409&PID_1245       ; cmos, 1280x1024, global,  1/2", plastic housing
+%ModelGroup_4a%    =CAMERA.Dev, USB\VID_1409&PID_1120       ; cmos, 0768x0576, rolling, 1/2"
+%ModelGroup_4c_4d% =CAMERA.Dev, USB\VID_1409&PID_1008       ; cmos, 3264x2448, rolling, 1/3"
+%ModelGroup_5a_5b% =CAMERA.Dev, USB\VID_1409&PID_1580       ; cmos, 2592x1944, rolling, 1/2"
+%ModelGroup_60_61% =CAMERA.Dev, USB\VID_1409&PID_1585       ; cmos, 2592x1944, rolling, 1/2", plastic housing
+%ModelGroup_62%    =CAMERA.Dev, USB\VID_1409&PID_1240       ; cmos, 1280x1024, global,  1/2"
+%ModelGroup_64%    =CAMERA.Dev, USB\VID_1409&PID_1245       ; cmos, 1280x1024, global,  1/2"
+%ModelGroup_66_67% =CAMERA.Dev, USB\VID_1409&PID_1247       ; cmos, 1280x1024, global,  1/2"
+%ModelGroup_200%   =CAMERA.Dev, USB\VID_1409&PID_1247       ; cmos, 1280x1024, global,  1/2" 
+%ModelGroup_80_81% =CAMERA.Dev, USB\VID_1409&PID_2230       ; ccd, 1024x0768, global, 1/3"
+%ModelGroup_82_83% =CAMERA.Dev, USB\VID_1409&PID_2410       ; ccd, 0640x0480, global, 1/3"
+%ModelGroup_84_85% =CAMERA.Dev, USB\VID_1409&PID_2340       ; ccd, 1360x1024, global, 1/2"
+%ModelGroup_86_87% =CAMERA.Dev, USB\VID_1409&PID_2330       ; ccd, 1024x1024, global, 2/3"
+%ModelGroup_88_89% =CAMERA.Dev, USB\VID_1409&PID_2210       ; ccd, 0640x0480, global, 1/2"
+%ModelGroup_90_91% =CAMERA.Dev, USB\VID_1409&PID_2310       ; ccd, 0640x0480, global, 1/4"
+%ModelGroup_92_93% =CAMERA.Dev, USB\VID_1409&PID_2220       ; ccd, 0768x0582, global, 1/2"
+%ModelGroup_96_97% =CAMERA.Dev, USB\VID_1409&PID_2240       ; ccd, 1280x1024, global, 1/2"
+%ModelGroup_98_99% =CAMERA.Dev, USB\VID_1409&PID_2250       ; ccd, 1600x1200, global, 1/1.8"
+%ModelGroup_9a_9b% =CAMERA.Dev, USB\VID_1409&PID_2140       ; ccd, 1280x960,  global, 1/2"
+%ModelGroup_9c_9d% =CAMERA.Dev, USB\VID_1409&PID_2280       ; ccd, 2448x2048, global, 2/3"
+%ModelGroup_12_13_usb3% =CAMERA.Dev, USB\VID_1409&PID_3220  ; cmos, 0752x0480, global,  1/3", usb3
+%ModelGroup_50_51_usb3% =CAMERA.Dev, USB\VID_1409&PID_3240  ; cmos, 1280x1024, global,  1/2", usb3
+%ModelGroup_b_c_usb3%   =CAMERA.Dev, USB\VID_1409&PID_3480  ; cmos, 2592x1944, rolling, 1/2", usb3
+%ModelGroup_5a_5b_usb3% =CAMERA.Dev, USB\VID_1409&PID_3580  ; cmos, 2592x1944, rolling, 1/2", usb3
+%ModelGroup_62_usb3%    =CAMERA.Dev, USB\VID_1409&PID_3240  ; cmos, 1280x1024, global,  1/2", usb3
+%ModelGroup_6c_6e%      =CAMERA.Dev, USB\VID_1409&PID_1250  ; cmos, 1600x1200, global,  1/2"
+%ModelGroup_70_72%      =CAMERA.Dev, USB\VID_1409&PID_1255  ; cmos, 1600x1200, global,  1/2"
+%ModelGroup_74_75%      =CAMERA.Dev, USB\VID_1409&PID_1257  ; cmos, 1600x1200, global,  1/2"
+%ModelGroup_202%        =CAMERA.Dev, USB\VID_1409&PID_1257  ; cmos, 1600x1200, global,  1/2"
+%ModelGroup_6c_6e_usb3% =CAMERA.Dev, USB\VID_1409&PID_3250  ; cmos, 1600x1200, global,  1/2"
+%ModelGroup_6a_6b_usb3% =CAMERA.Dev, USB\VID_1409&PID_3370  ; cmos, 2048x2048, global,  1/1", usb3
+%ModelGroup_68_69_212_usb3% =CAMERA.Dev, USB\VID_1409&PID_3360  ; cmos, 2048x1088, global,  2/3", usb3
+%ModelGroup_20b%        =CAMERA.Dev, USB\VID_1409&PID_1005  ; cmos, 2592x1944, rolling,  1/4"
+%ModelGroup_21a_21b_usb3% =CAMERA.Dev, USB\VID_1409&PID_3060  ; cmos, 1920x1200, global,  1/1.2", usb3
+%ModelGroup_21d_usb3% =CAMERA.Dev, USB\VID_1409&PID_3013  ; cmos, 4216x3160, rolling,  1/2.45", usb3
+%ModelGroup_21e_221_usb3% =CAMERA.Dev, USB\VID_1409&PID_3140  ; cmos, 1280x1024, global,  1/2", usb3
+%ModelGroup_222_223_usb3% =CAMERA.Dev, USB\VID_1409&PID_3590  ; cmos, 4912x3684, rolling,  1/2.3", usb3
+%ModelGroup_226_227_usb3% =CAMERA.Dev, USB\VID_1409&PID_3260  ; cmos, 1936x1216, global,  1/1.2", usb3
+%ModelGroup_22A_22B_usb3% =CAMERA.Dev, USB\VID_1409&PID_3130  ; cmos, 800x600, global,  1/3.6", usb3
+%ModelGroup_22C_22D_usb3% =CAMERA.Dev, USB\VID_1409&PID_3160  ; cmos, 1920x1200, global,  2/3", usb3
+%ModelGroup_22E_22F_usb3% =CAMERA.Dev, USB\VID_1409&PID_3180  ; cmos, 2592x2048, global,  1", usb3
+
+;==========================================
+; General installation section
+;==========================================
+
+[CAMERA.Dev]
+AddReg      = CAMERA.AddReg
+CopyFiles   = CAMERA.CopyFiles.sys, CAMERA.CopyFiles.dll
+
+
+[CAMERA.Dev.NT]
+AddReg      = CAMERA.AddReg
+CopyFiles   = CAMERA.CopyFiles.sys, CAMERA.CopyFiles.dll
+
+
+[CAMERA.AddReg]
+
+HKR,,DevLoader,,*ntkern
+HKR,,NTMPDriver,,uc480_64.sys
+
+
+[CAMERA.CopyFiles.sys]
+uc480_64.sys,,,4
+uc480_boot_64.sys,,,4
+
+
+[CAMERA.CopyFiles.dll]
+uc480_64.dll,,,4
+uc480_tools_64.dll,,,4
+
+;==========================================
+; Service Installation
+;==========================================
+
+[CAMERA.DEV.Services]     
+Addservice = uc480,  0x00000002, CAMERA.AddService, CAMERA.EventLog.Inst
+
+
+[CAMERA.Dev.NT.Services]
+Addservice = uc480,  0x00000002, CAMERA.AddService, CAMERA.EventLog.Inst
+
+
+[CAMERA.AddService]
+DisplayName    = %CAMERA.SvcDesc%
+ServiceType    = 1                    ; SERVICE_KERNEL_DRIVER
+StartType      = 3                    ; SERVICE_DEMAND_START
+ErrorControl   = 1                    ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\uc480_64.sys    ; Path to SYS file
+LoadOrderGroup = Extended Base
+AddReg         = CAMERA_SERVICE.AddReg
+
+
+[CAMERA_SERVICE.AddReg]
+HKR,"Parameters", "Model_1",  %REG_SZ%, %Model_1%
+HKR,"Parameters", "Model_2",  %REG_SZ%, %Model_2%
+HKR,"Parameters", "Model_3",  %REG_SZ%, %Model_3%
+HKR,"Parameters", "Model_4",  %REG_SZ%, %Model_4%
+HKR,"Parameters", "Model_8",  %REG_SZ%, %Model_8%
+HKR,"Parameters", "Model_a",  %REG_SZ%, %Model_a%
+HKR,"Parameters", "Model_b",  %REG_SZ%, %Model_b%
+HKR,"Parameters", "Model_c",  %REG_SZ%, %Model_c%
+HKR,"Parameters", "Model_10", %REG_SZ%, %Model_10%
+HKR,"Parameters", "Model_11", %REG_SZ%, %Model_11%
+HKR,"Parameters", "Model_12", %REG_SZ%, %Model_12%
+HKR,"Parameters", "Model_13", %REG_SZ%, %Model_13%
+HKR,"Parameters", "Model_15", %REG_SZ%, %Model_15%
+HKR,"Parameters", "Model_17", %REG_SZ%, %Model_17%
+HKR,"Parameters", "Model_18", %REG_SZ%, %Model_18%
+HKR,"Parameters", "Model_19", %REG_SZ%, %Model_19%
+HKR,"Parameters", "Model_22", %REG_SZ%, %Model_22%
+HKR,"Parameters", "Model_23", %REG_SZ%, %Model_23%
+HKR,"Parameters", "Model_25", %REG_SZ%, %Model_25%
+HKR,"Parameters", "Model_27", %REG_SZ%, %Model_27%
+HKR,"Parameters", "Model_28", %REG_SZ%, %Model_28%
+HKR,"Parameters", "Model_29", %REG_SZ%, %Model_29%
+HKR,"Parameters", "Model_2b", %REG_SZ%, %Model_2b%
+HKR,"Parameters", "Model_2d", %REG_SZ%, %Model_2d%
+HKR,"Parameters", "Model_2e", %REG_SZ%, %Model_2e%
+HKR,"Parameters", "Model_2f", %REG_SZ%, %Model_2f%
+HKR,"Parameters", "Model_30", %REG_SZ%, %Model_30%
+HKR,"Parameters", "Model_31", %REG_SZ%, %Model_31%
+HKR,"Parameters", "Model_32", %REG_SZ%, %Model_32%
+HKR,"Parameters", "Model_33", %REG_SZ%, %Model_33%
+HKR,"Parameters", "Model_35", %REG_SZ%, %Model_35%
+HKR,"Parameters", "Model_37", %REG_SZ%, %Model_37%
+HKR,"Parameters", "Model_39", %REG_SZ%, %Model_39%
+HKR,"Parameters", "Model_3a", %REG_SZ%, %Model_3a%
+HKR,"Parameters", "Model_3b", %REG_SZ%, %Model_3b%
+HKR,"Parameters", "Model_3e", %REG_SZ%, %Model_3e%
+HKR,"Parameters", "Model_3f", %REG_SZ%, %Model_3f%
+HKR,"Parameters", "Model_40", %REG_SZ%, %Model_40%
+HKR,"Parameters", "Model_41", %REG_SZ%, %Model_41%
+HKR,"Parameters", "Model_4a", %REG_SZ%, %Model_4a%
+HKR,"Parameters", "Model_4c", %REG_SZ%, %Model_4c%
+HKR,"Parameters", "Model_4d", %REG_SZ%, %Model_4d%
+HKR,"Parameters", "Model_50", %REG_SZ%, %Model_50%
+HKR,"Parameters", "Model_51", %REG_SZ%, %Model_51%
+HKR,"Parameters", "Model_52", %REG_SZ%, %Model_52%
+HKR,"Parameters", "Model_54", %REG_SZ%, %Model_54%
+HKR,"Parameters", "Model_55", %REG_SZ%, %Model_55%
+HKR,"Parameters", "Model_80", %REG_SZ%, %Model_80%
+HKR,"Parameters", "Model_81", %REG_SZ%, %Model_81%
+HKR,"Parameters", "Model_82", %REG_SZ%, %Model_82%
+HKR,"Parameters", "Model_83", %REG_SZ%, %Model_83%
+HKR,"Parameters", "Model_84", %REG_SZ%, %Model_84%
+HKR,"Parameters", "Model_85", %REG_SZ%, %Model_85%
+HKR,"Parameters", "Model_86", %REG_SZ%, %Model_86%
+HKR,"Parameters", "Model_87", %REG_SZ%, %Model_87%
+HKR,"Parameters", "Model_88", %REG_SZ%, %Model_88%
+HKR,"Parameters", "Model_89", %REG_SZ%, %Model_89%
+HKR,"Parameters", "Model_90", %REG_SZ%, %Model_90%
+HKR,"Parameters", "Model_91", %REG_SZ%, %Model_91%
+HKR,"Parameters", "Model_92", %REG_SZ%, %Model_92%
+HKR,"Parameters", "Model_93", %REG_SZ%, %Model_93%
+HKR,"Parameters", "Model_96", %REG_SZ%, %Model_96%
+HKR,"Parameters", "Model_97", %REG_SZ%, %Model_97%
+HKR,"Parameters", "Model_98", %REG_SZ%, %Model_98%
+HKR,"Parameters", "Model_99", %REG_SZ%, %Model_99%
+HKR,"Parameters", "Model_9a", %REG_SZ%, %Model_9a%
+HKR,"Parameters", "Model_9b", %REG_SZ%, %Model_9b%
+HKR,"Parameters", "Model_9c", %REG_SZ%, %Model_9c%
+HKR,"Parameters", "Model_9d", %REG_SZ%, %Model_9d%
+HKR,"Parameters", "Model_5a", %REG_SZ%, %Model_5a%
+HKR,"Parameters", "Model_5b", %REG_SZ%, %Model_5b%
+HKR,"Parameters", "Model_60", %REG_SZ%, %Model_60%
+HKR,"Parameters", "Model_61", %REG_SZ%, %Model_61%
+HKR,"Parameters", "Model_62", %REG_SZ%, %Model_62%
+HKR,"Parameters", "Model_64", %REG_SZ%, %Model_64%
+HKR,"Parameters", "Model_66", %REG_SZ%, %Model_66%
+HKR,"Parameters", "Model_67", %REG_SZ%, %Model_67%
+HKR,"Parameters", "Model_200", %REG_SZ%, %Model_200%
+HKR,"Parameters", "Model_180", %REG_SZ%, %Model_180%
+HKR,"Parameters", "Model_181", %REG_SZ%, %Model_181%
+HKR,"Parameters", "Model_182", %REG_SZ%, %Model_182%
+HKR,"Parameters", "Model_183", %REG_SZ%, %Model_183%
+HKR,"Parameters", "Model_184", %REG_SZ%, %Model_184%
+HKR,"Parameters", "Model_185", %REG_SZ%, %Model_185%
+HKR,"Parameters", "Model_188", %REG_SZ%, %Model_188%
+HKR,"Parameters", "Model_189", %REG_SZ%, %Model_189%
+HKR,"Parameters", "Model_192", %REG_SZ%, %Model_192%
+HKR,"Parameters", "Model_193", %REG_SZ%, %Model_193%
+HKR,"Parameters", "Model_198", %REG_SZ%, %Model_198%
+HKR,"Parameters", "Model_199", %REG_SZ%, %Model_199%
+HKR,"Parameters", "Model_12_usb3", %REG_SZ%, %Model_12_usb3%
+HKR,"Parameters", "Model_13_usb3", %REG_SZ%, %Model_13_usb3%
+HKR,"Parameters", "Model_50_usb3", %REG_SZ%, %Model_50_usb3%
+HKR,"Parameters", "Model_50_usb3_le", %REG_SZ%, %Model_50_usb3_le%
+HKR,"Parameters", "Model_50_usb3_ml", %REG_SZ%, %Model_50_usb3_ml%
+HKR,"Parameters", "Model_51_usb3", %REG_SZ%, %Model_51_usb3%
+HKR,"Parameters", "Model_51_usb3_le", %REG_SZ%, %Model_51_usb3_le%
+HKR,"Parameters", "Model_51_usb3_ml", %REG_SZ%, %Model_51_usb3_ml%
+HKR,"Parameters", "Model_b_usb3",  %REG_SZ%, %Model_b_usb3%
+HKR,"Parameters", "Model_b_usb3_le",  %REG_SZ%, %Model_b_usb3_le%
+HKR,"Parameters", "Model_b_usb3_ml",  %REG_SZ%, %Model_b_usb3_ml%
+HKR,"Parameters", "Model_c_usb3",  %REG_SZ%, %Model_c_usb3%
+HKR,"Parameters", "Model_c_usb3_le",  %REG_SZ%, %Model_c_usb3_le%
+HKR,"Parameters", "Model_c_usb3_ml",  %REG_SZ%, %Model_c_usb3_ml%
+HKR,"Parameters", "Model_5a_usb3", %REG_SZ%, %Model_5a_usb3%
+HKR,"Parameters", "Model_5a_usb3_le", %REG_SZ%, %Model_5a_usb3_le%
+HKR,"Parameters", "Model_5a_usb3_ml", %REG_SZ%, %Model_5a_usb3_ml%
+HKR,"Parameters", "Model_5b_usb3", %REG_SZ%, %Model_5b_usb3%
+HKR,"Parameters", "Model_5b_usb3_le", %REG_SZ%, %Model_5b_usb3_le%
+HKR,"Parameters", "Model_5b_usb3_ml", %REG_SZ%, %Model_5b_usb3_ml%
+HKR,"Parameters", "Model_62_usb3", %REG_SZ%, %Model_62_usb3%
+HKR,"Parameters", "Model_62_usb3_le", %REG_SZ%, %Model_62_usb3_le%
+HKR,"Parameters", "Model_62_usb3_ml", %REG_SZ%, %Model_62_usb3_ml%
+HKR,"Parameters", "Model_6c", %REG_SZ%, %Model_6c%
+HKR,"Parameters", "Model_6d", %REG_SZ%, %Model_6d%
+HKR,"Parameters", "Model_6e", %REG_SZ%, %Model_6e%
+HKR,"Parameters", "Model_70", %REG_SZ%, %Model_70%
+HKR,"Parameters", "Model_71", %REG_SZ%, %Model_71%
+HKR,"Parameters", "Model_72", %REG_SZ%, %Model_72%
+HKR,"Parameters", "Model_74", %REG_SZ%, %Model_74%
+HKR,"Parameters", "Model_75", %REG_SZ%, %Model_75%
+HKR,"Parameters", "Model_202", %REG_SZ%, %Model_202%
+HKR,"Parameters", "Model_6c_usb3", %REG_SZ%, %Model_6c_usb3%
+HKR,"Parameters", "Model_6c_usb3_le", %REG_SZ%, %Model_6c_usb3_le%
+HKR,"Parameters", "Model_6c_usb3_ml", %REG_SZ%, %Model_6c_usb3_ml%
+HKR,"Parameters", "Model_6d_usb3", %REG_SZ%, %Model_6d_usb3%
+HKR,"Parameters", "Model_6d_usb3_le", %REG_SZ%, %Model_6d_usb3_le%
+HKR,"Parameters", "Model_6d_usb3_ml", %REG_SZ%, %Model_6d_usb3_ml%
+HKR,"Parameters", "Model_6e_usb3", %REG_SZ%, %Model_6e_usb3%
+HKR,"Parameters", "Model_6e_usb3_le", %REG_SZ%, %Model_6e_usb3_le%
+HKR,"Parameters", "Model_6e_usb3_ml", %REG_SZ%, %Model_6e_usb3_ml%
+HKR,"Parameters", "Model_6a_usb3", %REG_SZ%, %Model_6a_usb3%
+HKR,"Parameters", "Model_6b_usb3", %REG_SZ%, %Model_6b_usb3%
+HKR,"Parameters", "Model_214_usb3", %REG_SZ%, %Model_214_usb3%
+HKR,"Parameters", "Model_20b", %REG_SZ%, %Model_20b%
+HKR,"Parameters", "Model_68_usb3", %REG_SZ%, %Model_68_usb3%
+HKR,"Parameters", "Model_69_usb3", %REG_SZ%, %Model_69_usb3%
+HKR,"Parameters", "Model_212_usb3", %REG_SZ%, %Model_212_usb3%
+HKR,"Parameters", "Model_21a_usb3", %REG_SZ%, %Model_21a_usb3%
+HKR,"Parameters", "Model_21b_usb3", %REG_SZ%, %Model_21b_usb3%
+HKR,"Parameters", "Model_21d_usb3", %REG_SZ%, %Model_21d_usb3%
+HKR,"Parameters", "Model_21e_usb3", %REG_SZ%, %Model_21e_usb3%
+HKR,"Parameters", "Model_21f_usb3", %REG_SZ%, %Model_21f_usb3%
+HKR,"Parameters", "Model_220_usb3", %REG_SZ%, %Model_220_usb3%
+HKR,"Parameters", "Model_222_usb3", %REG_SZ%, %Model_222_usb3%
+HKR,"Parameters", "Model_222_usb3_le", %REG_SZ%, %Model_222_usb3_le%
+HKR,"Parameters", "Model_223_usb3", %REG_SZ%, %Model_223_usb3%
+HKR,"Parameters", "Model_223_usb3_le", %REG_SZ%, %Model_223_usb3_le%
+HKR,"Parameters", "Model_226_usb3", %REG_SZ%, %Model_226_usb3%
+HKR,"Parameters", "Model_227_usb3", %REG_SZ%, %Model_227_usb3%
+HKR,"Parameters", "Model_22A_usb3", %REG_SZ%, %Model_22A_usb3%
+HKR,"Parameters", "Model_22B_usb3", %REG_SZ%, %Model_22B_usb3%
+HKR,"Parameters", "Model_22C_usb3", %REG_SZ%, %Model_22C_usb3%
+HKR,"Parameters", "Model_22D_usb3", %REG_SZ%, %Model_22D_usb3%
+HKR,"Parameters", "Model_22E_usb3", %REG_SZ%, %Model_22E_usb3%
+HKR,"Parameters", "Model_22F_usb3", %REG_SZ%, %Model_22F_usb3%
+HKR,"Parameters", "Manufacturer", %REG_SZ%, %CompanyName%
+
+HKR,"Parameters","Devices",%REG_DWORD%,0
+HKR,"Parameters","EventLogLevel",%REG_DWORD%, 2
+
+
+[CAMERA.EventLog.Inst]
+AddReg = CAMERA.EventLog.AddReg
+
+
+[CAMERA.EventLog.AddReg]
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\uc480_64.sys"
+HKR,,TypesSupported,0x00010001,7
+
+
+;==========================================
+; Strings
+;==========================================
+
+[Strings]
+
+;------------ Non-Localizable Strings begin ----------
+;------------ DO NOT EDIT !! -------------------------
+;
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
+SERVICEROOT    = "System\CurrentControlSet\Services"
+;------------ Non-Localizable Strings end ------------
+
+;----------- Localizable Strings begin ---------------
+;------------ DO NOT EDIT !! -------------------------
+;
+CAMERA.SvcDesc         = "uc480 kernel driver"
+CAMERA_BOOT.SvcDesc    = "uc480 boot driver"
+Version                = "4.80.5.0"
+uc480InstallationMedia = "Path to uc480.inf"
+;----------- Localizable Strings end -----------------
+
+
+;====== OEM strings begin ============================
+;====== strings in quotation marks can be edit =======
+
+CompanyName     = "OEMINC"
+ProductName     = "uc480"
+StartMenuFolder = "uc480"
+InstallFolder   = "uc480"
+BkRed           = "0"
+BkGreen         = "0"
+BkBlue          = "96"
+
+Model_1  = "C0640R13M"      ; cmos, 0640x0480, rolling, 1/3", mono
+Model_2  = "C0640R13C"      ; cmos, 0640x0480, rolling, 1/3", color
+Model_3  = "C1280R23M"      ; cmos, 1280x1024, rolling, 2/3", mono
+Model_4  = "C1280R23C"      ; cmos, 1280x1024, rolling, 2/3", color
+Model_8  = "C1600R12C"      ; cmos, 1600x1200, rolling, 1/2", color
+Model_a  = "C2048R12C"      ; cmos, 2048x1536, rolling, 1/2", color
+Model_b  = "C2592R12M"      ; cmos, 2592x1944, rolling, 1/2", mono
+Model_c  = "C2592R12C"      ; cmos, 2592x1944, rolling, 1/2", color
+Model_10 = "C0640G12M"      ; cmos, 0640x0480, global,  1/2", mono
+Model_11 = "C0640G12C"      ; cmos, 0640x0480, global,  1/2", color
+Model_12 = "C0752G13M"      ; cmos, 0752x0480, global,  1/3", mono
+Model_13 = "C0752G13C"      ; cmos, 0752x0480, global,  1/3", color
+Model_15 = "C1282R13C"      ; cmos, 1280x1024, rolling, 1/3", color
+Model_17 = "C1601R13C"      ; cmos, 1600x1200, rolling, 1/3", color
+Model_18 = "C0753G13M"      ; cmos, 0752x0480, global,  1/3", mono,  single board
+Model_19 = "C0753G13C"      ; cmos, 0752x0480, global,  1/3", color, single board
+Model_22 = "C0754G13M"      ; cmos, 0752x0480, global,  1/3", mono,  plastic housing
+Model_23 = "C0754G13C"      ; cmos, 0752x0480, global,  1/3", color, plastic housing
+Model_25 = "C1284R13C"      ; cmos, 1280x1024, rolling, 1/3", color, plastic housing
+Model_27 = "C1604R13C"      ; cmos, 1600x1200, rolling, 1/3", color, plastic housing
+Model_28 = "C1285R12M"      ; cmos, 1280x1024, rolling, 1/2", mono,  single board
+Model_29 = "C1285R12C"      ; cmos, 1280x1024, rolling, 1/2", color, single board
+Model_2b = "C1605R12C"      ; cmos, 1600x1200, rolling, 1/2", color, plastic housing
+Model_2d = "C2055R12C"      ; cmos, 2048x1536, rolling, 1/2", color, plastic housing
+Model_2e = "C2595R12M"      ; cmos, 2592x1944, rolling, 1/2", color, plastic housing
+Model_2f = "C2595R12C"      ; cmos, 2592x1944, rolling, 1/2", color, plastic housing
+Model_30 = "C1280R12M"      ; cmos, 1280x1024, rolling, 1/2", mono
+Model_31 = "C1280R12C"      ; cmos, 1280x1024, rolling, 1/2", color
+Model_32 = "C1283R12M"      ; cmos, 1280x1024, rolling, 1/2", mono,  single board
+Model_33 = "C1283R12C"      ; cmos, 1280x1024, rolling, 1/2", color, single board
+Model_35 = "C1603R12C"      ; cmos, 1600x1200, rolling, 1/2", color, single board
+Model_37 = "C2053R12C"      ; cmos, 2048x1536, rolling, 1/2", color, single board
+Model_39 = "C2593R12C"      ; cmos, 2592x1944, rolling, 1/2", color, single board
+Model_3a = "C1286R12M"      ; cmos, 1280x1024, rolling, 1/2", mono,  single board
+Model_3b = "C1286R12C"      ; cmos, 1280x1024, rolling, 1/2", color, single board
+Model_3e = "C3840R12M"      ; cmos, 3840x2748, rolling, 1/2.5", mono
+Model_3f = "C3840R12C"      ; cmos, 3840x2748, rolling, 1/2.5", color
+Model_40 = "C3845R12M"      ; cmos, 3840x2748, rolling, 1/2.5", mono, plastic housing
+Model_41 = "C3845R12C"      ; cmos, 3840x2748, rolling, 1/2.5", color, plastic housing
+Model_4a = "C0768R12M"      ; cmos, 0768x0576, rolling, 1/2", mono
+Model_4c = "C3264R13M"      ; cmos, 3264x2448, rolling, mono
+Model_4d = "C3264R13C"      ; cmos, 3264x2448, rolling, color
+Model_50 = "C1280G12M"      ; cmos, 1280x1024, global, 1/2", mono
+Model_51 = "C1280G12C"      ; cmos, 1280x1024, global, 1/2", color
+Model_52 = "C0753G13M"      ; cmos, 0752x0480, global,  1/3", mono,  single board
+Model_54 = "C1283G12M"      ; cmos, 1280x1024, global, 1/2", mono, plastic housing
+Model_55 = "C1283G12C"      ; cmos, 1280x1024, global, 1/2", color, plastic housing
+Model_5a = "C2598R12M"      ; cmos, 2592x1944, rolling, 1/2", mono
+Model_5b = "C2598R12C"      ; cmos, 2592x1944, rolling, 1/2", color
+Model_60 = "C2599R12M"      ; cmos, 2592x1944, rolling, 1/2", mono, plastic housing
+Model_61 = "C2599R12C"      ; cmos, 2592x1944, rolling, 1/2", color, plastic housing
+Model_62 = "C1280G12N"		; cmos, 1280x1024, global, 1/2", NIR
+Model_64 = "C1283G12N"		; cmos, 1280x1024, global, 1/2", NIR, plastic housing
+Model_66 = "C1284G12M"		; cmos, 1280x1024, global, 1/2", mono
+Model_67 = "C1284G12C"		; cmos, 1280x1024, global, 1/2", color
+Model_200 = "C1284G12N"		; cmos, 1280x1024, global, 1/2", NIR
+Model_80 = "D1024G13M"      ; ccd, 1024x0768, global, 1/3", mono
+Model_81 = "D1024G13C"      ; ccd, 1024x0768, global, 1/3", color
+Model_82 = "D0640G13M"      ; ccd, 0640x0480, global, 1/3", mono
+Model_83 = "D0640G13C"      ; ccd, 0640x0480, global, 1/3", color
+Model_84 = "D1281G12M"      ; ccd, 1280x1024, global, 1/2", mono
+Model_85 = "D1281G12C"      ; ccd, 1280x1024, global, 1/2", color
+Model_86 = "D1024G23M"      ; ccd, 1024x1024, global, 2/3", mono
+Model_87 = "D1024G23C"      ; ccd, 1024x1024, global, 2/3", color
+Model_88 = "D0640G12M"      ; ccd, 0640x0480, global, 1/2", mono
+Model_89 = "D0640G12C"      ; ccd, 0640x0480, global, 1/2", color
+Model_90 = "D0640G14M"      ; ccd, 0640x0480, global, 1/4", mono
+Model_91 = "D0640G14C"      ; ccd, 0640x0480, global, 1/4", color
+Model_92 = "D0768G12M"      ; ccd, 0768x0582, global, 1/2", mono
+Model_93 = "D0768G12C"      ; ccd, 0768x0582, global, 1/2", color
+Model_96 = "D1280G12M"      ; ccd, 1280x1024, global, 1/2", mono
+Model_97 = "D1280G12C"      ; ccd, 1280x1024, global, 1/2", color
+Model_98 = "D1600G12M"      ; ccd, 1600x1200, global, 1/1.8", mono
+Model_99 = "D1600G12C"      ; ccd, 1600x1200, global, 1/1.8", color
+Model_9a = "D1280G12M"      ; ccd, 1280x0960, global, 1/2", mono
+Model_9b = "D1280G12C"      ; ccd, 1280x0960, global, 1/2", color
+Model_9c = "D2448G23M"      ; ccd, 2448x2048, global, 2/3", mono
+Model_9d = "D2448G23C"      ; ccd, 2448x2048, global, 2/3", color
+Model_180 = "D1024G13MR3"   ; ccd, 1024x0768, global, 1/3", mono
+Model_181 = "D1024G13CR3"   ; ccd, 1024x0768, global, 1/3", color
+Model_182 = "D0640G13MR3"   ; ccd, 0640x0480, global, 1/3", mono
+Model_183 = "D0640G13CR3"   ; ccd, 0640x0480, global, 1/3", color
+Model_184 = "D1360G12MR3"   ; ccd, 1360x1024, global, 1/2", mono
+Model_185 = "D1360G12CR3"   ; ccd, 1360x1024, global, 1/2", color
+Model_188 = "D0640G12MR3"   ; ccd, 0640x0480, global, 1/2", mono
+Model_189 = "D0640G12CR3"   ; ccd, 0640x0480, global, 1/2", color
+Model_192 = "D0768G12MR3"   ; ccd, 0768x0582, global, 1/2", mono
+Model_193 = "D0768G12CR3"   ; ccd, 0768x0582, global, 1/2", color
+Model_198 = "D1600G12MR3"   ; ccd, 1600x1200, global, 1/1.8", mono
+Model_199 = "D1600G12CR3"   ; ccd, 1600x1200, global, 1/1.8", color
+Model_12_usb3 = "SC0752G13M" ; cmos, 0752x0480, global,  1/3", mono
+Model_13_usb3 = "SC0752G13C" ; cmos, 0752x0480, global,  1/3", color
+Model_50_usb3 = "SC1280G12M" ; cmos, 1280x1024, global, 1/2", mono
+Model_50_usb3_le = "SC1281G12M" ; cmos, 1280x1024, global, 1/2", mono
+Model_50_usb3_ml = "SC1282G12M" ; cmos, 1280x1024, global, 1/2", mono
+Model_51_usb3 = "SC1280G12C" ; cmos, 1280x1024, global, 1/2", color
+Model_51_usb3_le = "SC1281G12C" ; cmos, 1280x1024, global, 1/2", color
+Model_51_usb3_ml = "SC1282G12C" ; cmos, 1280x1024, global, 1/2", color
+Model_b_usb3  = "SC2592R12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_b_usb3_le  = "SC2595R12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_b_usb3_ml  = "SC2596R12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_c_usb3  = "SC2592R12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_c_usb3_le  = "SC2595R12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_c_usb3_ml  = "SC2596R12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_5a_usb3 = "SC2598R12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_5a_usb3_le = "SC2599R12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_5a_usb3_ml = "SC259AR12M" ; cmos, 2592x1944, rolling, 1/2", mono
+Model_5b_usb3 = "SC2598R12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_5b_usb3_le = "SC2599R12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_5b_usb3_ml = "SC259AR12C" ; cmos, 2592x1944, rolling, 1/2", color
+Model_62_usb3 = "SC1280G12N" ; cmos, 1280x1024, global, 1/2", NIR
+Model_62_usb3_le = "SC1281G12N" ; cmos, 1280x1024, global, 1/2", NIR
+Model_62_usb3_ml = "SC1282G12N" ; cmos, 1280x1024, global, 1/2", NIR
+Model_6c = "C1600G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_6d = "C1600G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_6e = "C1600G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_70 = "C1603G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_71 = "C1603G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_72 = "C1603G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_74 = "C1604G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_75 = "C1604G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_202 = "C1604G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_6c_usb3 = "SC1600G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_6c_usb3_le = "SC1601G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_6c_usb3_ml = "SC1602G12M" ; cmos, 1600x1200, global, 1/1.8", mono
+Model_6d_usb3 = "SC1600G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_6d_usb3_le = "SC1601G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_6d_usb3_ml = "SC1602G12C" ; cmos, 1600x1200, global, 1/1.8", color
+Model_6e_usb3 = "SC1600G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_6e_usb3_le = "SC1601G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_6e_usb3_ml = "SC1602G12N" ; cmos, 1600x1200, global, 1/1.8", NIR
+Model_6a_usb3 = "SC2048G11M" ; cmos, 2048x2048, global, 1/1", mono
+Model_6b_usb3 = "SC2048G11C" ; cmos, 2048x2048, global, 1/1", color
+Model_214_usb3 = "SC2048G11N" ; cmos, 2048x2048, global, 1/1", NIR
+Model_20b = "C2592R14C" ; cmos, 2592x1944, rolling, 1/4", color
+Model_68_usb3 = "SC2048G23M" ; cmos, 2048x1088, global, 2/3", mono
+Model_69_usb3 = "SC2048G23C" ; cmos, 2048x1088, global, 2/3", color
+Model_212_usb3 = "SC2048G23N" ; cmos, 2048x1088, global, 2/3", NIR
+Model_21a_usb3 = "SC1920G11M" ; cmos, 1920x1200, global, 1/1.2"
+Model_21b_usb3 = "SC1920G11C" ; cmos, 1920x1200, global, 1/1.2"
+Model_21d_usb3 = "SC4216R12C" ; cmos, 4216x3160, rolling, 1/2.45"
+Model_21e_usb3 = "SC1283G12M" ; cmos, 1280x1024, global, 1/2"
+Model_21f_usb3 = "SC1283G12C" ; cmos, 1280x1024, global, 1/2"
+Model_220_usb3 = "SC1283G12N" ; cmos, 1280x1024, global, 1/2"
+Model_222_usb3 = "SC4912R12M" ; cmos, 4912x3684, rolling, 1/2.3"
+Model_222_usb3_le = "SC4913R12M" ; cmos, 4912x3684, rolling, 1/2.3"
+Model_223_usb3 = "SC4912R12C" ; cmos, 4912x3684, rolling, 1/2.3"
+Model_223_usb3_le = "SC4913R12C" ; cmos, 4912x3684, rolling, 1/2.3"
+Model_226_usb3 = "SC1936G11M" ; cmos, 1936x1216, global, 1/1.2"
+Model_227_usb3 = "SC1936G11C" ; cmos, 1936x1216, global, 1/1.2"
+Model_22A_usb3 = "SC0800G13M" ; cmos, 800x600, 1/3.6", mono
+Model_22B_usb3 = "SC0800G13C" ; cmos, 800x600, 1/3.6", color
+Model_22C_usb3 = "SC1920G23M" ; cmos, 1920x1200, 2/3", mono
+Model_22D_usb3 = "SC1920G23C" ; cmos, 1920x1200, 2/3", color
+Model_22E_usb3 = "SC2592G10M" ; cmos, 2592x2048, 1", mono
+Model_22F_usb3 = "SC2592G10C" ; cmos, 2592x2048, 1", color
+
+Model_start      = "uc480 boot"
+ModelGroup_1_2   = "uc480 cmos, 640x480, ers, 1/3 cameras"
+ModelGroup_3_4   = "uc480 cmos, 1280x1024, ers, 2/3 cameras"
+ModelGroup_8     = "uc480 cmos, 1600x1200, ers, 1/2 cameras"
+ModelGroup_a     = "uc480 cmos, 2048x1536, ers, 1/2 cameras"
+ModelGroup_b_c   = "uc480 cmos, 2592x1944, ers, 1/2 cameras"
+ModelGroup_10_11 = "uc480 cmos, 640x480, gs, 1/2 cameras"
+ModelGroup_12_13 = "uc480 cmos, 752x480, gs, 1/3 cameras"
+ModelGroup_15    = "uc480 cmos, 1280x1024, ers, 1/3 cameras"
+ModelGroup_17    = "uc480 cmos, 1600x1200, ers, 1/3 cameras"
+ModelGroup_18_19 = "uc480 cmos, 752x480, gs, 1/3 cameras"
+ModelGroup_22_23 = "uc480 cmos, 752x480, gs, 1/3 cameras"
+ModelGroup_25    = "uc480 cmos, 1280x1024, ers, 1/3 cameras"
+ModelGroup_27    = "uc480 cmos, 1600x1200, ers, 1/3 cameras"
+ModelGroup_28_29 = "uc480 cmos, 1280x1024, ers, 1/2 cameras"
+ModelGroup_2b    = "uc480 cmos, 1600x1200, ers, 1/2 cameras"
+ModelGroup_2d    = "uc480 cmos, 2048x1536, ers, 1/2 cameras"
+ModelGroup_2e_2f = "uc480 cmos, 2592x1944, ers, 1/2 cameras"
+ModelGroup_30_31 = "uc480 cmos, 1280x1024, ers, 1/2 cameras"
+ModelGroup_32_33 = "uc480 cmos, 1280x1024, ers, 1/2 cameras"
+ModelGroup_35    = "uc480 cmos, 1600x1200, ers, 1/2 cameras"
+ModelGroup_37    = "uc480 cmos, 2048x1536, ers, 1/2 cameras"
+ModelGroup_39    = "uc480 cmos, 2592x1944, ers, 1/2 cameras"
+ModelGroup_3a_3b = "uc480 cmos, 1280x1024, ers, 1/2 cameras"
+ModelGroup_3e_3f = "uc480 cmos, 3840x2748, ers, 1/2.5 cameras"
+ModelGroup_40_41 = "uc480 cmos, 3840x2748, ers, 1/2.5 cameras"
+ModelGroup_4a    = "uc480 cmos, 0768x0576, ers, 1/2 cameras"
+ModelGroup_4c_4d = "uc480 cmos, 3264x2448, ers, 1/3 cameras"
+ModelGroup_50_51 = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_52    = "uc480 cmos, 752x480, gs, 1/3 cameras"
+ModelGroup_54_55 = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_5a_5b = "uc480 cmos, 2592x1944, ers, 1/2 cameras"
+ModelGroup_60_61 = "uc480 cmos, 2592x1944, ers, 1/2 cameras"
+ModelGroup_62    = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_64    = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_66_67 = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_200   = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_80_81 = "uc480 ccd, 1024x0768, ps, 1/3 cameras"
+ModelGroup_82_83 = "uc480 ccd, 640x480, ps, 1/3 cameras"
+ModelGroup_84_85 = "uc480 ccd, 1360x1024, ps, 1/2 cameras"
+ModelGroup_86_87 = "uc480 ccd, 1024x1024, ps, 2/3 cameras"
+ModelGroup_88_89 = "uc480 ccd, 640x480, ps, 1/2 cameras"
+ModelGroup_90_91 = "uc480 ccd, 640x480, ps, 1/4 cameras"
+ModelGroup_92_93 = "uc480 ccd, 768x582, ps, 1/2 cameras"
+ModelGroup_96_97 = "uc480 ccd, 1280x1024, ps, 1/2 cameras"
+ModelGroup_98_99 = "uc480 ccd, 1600x1200, ps, 1/1.8 cameras"
+ModelGroup_9a_9b = "uc480 ccd, 1280x0960, ps, 1/2 cameras"
+ModelGroup_9c_9d = "uc480 ccd, 2448x2048, ps, 2/3 cameras"
+ModelGroup_12_13_usb3 = "uc480 cmos, 752x480, gs, 1/3 usb3 cameras"
+ModelGroup_50_51_usb3 = "uc480 cmos, 1280x1024, gs, 1/2 usb3 cameras"
+ModelGroup_b_c_usb3   = "uc480 cmos, 2592x1944, ers, 1/2 usb3 cameras"
+ModelGroup_5a_5b_usb3 = "uc480 cmos, 2592x1944, ers, 1/2 usb3 cameras"
+ModelGroup_62_usb3    = "uc480 cmos, 1280x1024, gs, 1/2 usb3 cameras"
+ModelGroup_6c_6e = "uc480 cmos, 1600x1200, gs, 1/1.8 cameras"
+ModelGroup_70_72 = "uc480 cmos, 1600x1200, gs, 1/1.8 cameras"
+ModelGroup_74_75 = "uc480 cmos, 1600x1200, gs, 1/1.8 cameras"
+ModelGroup_202   = "uc480 cmos, 1600x1200, gs, 1/1.8 cameras"
+ModelGroup_6c_6e_usb3 = "uc480 cmos, 1600x1200, gs, 1/1.8 usb3 cameras"
+ModelGroup_6a_6b_usb3 = "uc480 cmos, 2048x2048, gs, 1/1 usb3 cameras"
+ModelGroup_68_69_212_usb3 = "uc480 cmos, 2048x1088, gs, 2/3 usb3 cameras"
+ModelGroup_20b = "uc480 cmos, 2592x1944, ers, 1/4 cameras"
+ModelGroup_21a_21b_usb3 = "uc480 cmos, 1920x1200, gs, 1/1.2 cameras"
+ModelGroup_21d_usb3 = "uc480 cmos, 4216x3160, ers, 1/2.45 cameras"
+ModelGroup_21e_221_usb3 = "uc480 cmos, 1280x1024, gs, 1/2 cameras"
+ModelGroup_222_223_usb3 = "uc480 cmos, 4912x3684, ers, 1/2.3 cameras"
+ModelGroup_226_227_usb3 = "uc480 cmos, 1936x1216, gs, 1/1.2 cameras"
+ModelGroup_22A_22B_usb3 = "uc480 cmos, 800x600, 1/3.6, cameras"
+ModelGroup_22C_22D_usb3 = "uc480 cmos, 1920x1200, 2/3, cameras"
+ModelGroup_22E_22F_usb3 = "uc480 cmos, 2592x2048, 1, cameras"
+
+;====== OEM strings end ==============================
+
+;==========================================
+; BOOT sections
+;==========================================
+[CAMERA_BOOT.Dev]
+AddReg    = CAMERA_BOOT.AddReg
+CopyFiles = CAMERA_BOOT.CopyFiles.sys, CAMERA_BOOT.CopyFiles.dll
+
+
+[CAMERA_BOOT.Dev.NT]
+AddReg    = CAMERA_BOOT.AddReg
+CopyFiles = CAMERA_BOOT.CopyFiles.sys, CAMERA_BOOT.CopyFiles.dll
+
+
+[CAMERA_BOOT.AddReg]
+HKR,,NTMPDriver,,uc480_boot_64.sys
+HKR,,DevLoader,,*ntkern
+
+
+[CAMERA_BOOT.CopyFiles.sys]
+uc480_64.sys,,,4
+uc480_boot_64.sys,,,4
+
+
+[CAMERA_BOOT.CopyFiles.dll]
+uc480_64.dll,,,4
+uc480_tools_64.dll,,,4
+
+
+[CAMERA_BOOT.DEV.Services] 		
+Addservice = uc480_boot,  0x00000002, CAMERA_BOOT.AddService, CAMERA_BOOT.EventLog.Inst
+
+
+[CAMERA_BOOT.Dev.NT.Services]
+Addservice = uc480_boot,  0x00000002, CAMERA_BOOT.AddService, CAMERA_BOOT.EventLog.Inst
+
+
+[CAMERA_BOOT.AddService]
+DisplayName    =%CAMERA_BOOT.SvcDesc%
+ServiceType    =1
+StartType      =3
+ErrorControl   =1
+ServiceBinary  =%12%\uc480_boot_64.sys
+LoadOrderGroup =Extended Base
+AddReg         =CAMERA_BOOT_SERVICE.AddReg
+
+
+[CAMERA_BOOT_SERVICE.AddReg]
+HKR,"Parameters","Devices",%REG_DWORD%,0
+HKR,"Parameters","EventLogLevel",%REG_DWORD%, 2
+
+
+[CAMERA_BOOT.EventLog.Inst]
+AddReg = CAMERA_BOOT.EventLog.AddReg
+
+
+[CAMERA_BOOT.EventLog.AddReg]
+HKR,,TypesSupported,0x00010001,7
+HKR,,EventMessageFile,0x00020000,"%%SystemRoot%%\System32\IoLogMsg.dll;%%SystemRoot%%\System32\drivers\uc480_boot_64.sys"
