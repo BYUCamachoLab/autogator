@@ -1,0 +1,5 @@
+thorlabs_apt
+numpy
+matplotlib
+instrumental
+opencv-python
