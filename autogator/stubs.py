@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 class ImageGeneratorStub:
     _instance = None
@@ -18,7 +19,7 @@ class ImageGeneratorStub:
         self.live_mode = True
 
     def stop_live_video(self):
-        self.live_mode = True
+        self.live_mode = False
 
     def latest_frame(self):
         if self.live_mode is False:
@@ -27,6 +28,10 @@ class ImageGeneratorStub:
 
     def get_captured_image(self):
         return np.random.normal(size=(self.height, self.width, 3))
+
+    def wait_for_frame(self):
+        time.sleep(0.05)
+        return True
 
     def close(self):
         self._instance = None
