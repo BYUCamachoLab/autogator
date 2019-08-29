@@ -1,0 +1,5 @@
+numpy
+matplotlib
+instrumental-lib
+opencv-python
+Pillow
