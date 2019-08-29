@@ -9,7 +9,7 @@
 #
 stage_x = 27003356
 stage_y = 27003323
-piezo_motor = 71874833
+stage_deg = 27003323
 
 piezo_primary = 71874833
 piezo_secondary = 71854093

@@ -47,8 +47,13 @@ class App(tk.Tk):
         splash = Splash(self)
 
         # Setup stuff goes here
+        import os
         import time
         from autogator.ui.program import AutoGatorWindow
+
+        # Add location of the DLLs to PATH so that the program can run on any machine
+        dll_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dll')
+        os.environ['PATH'] = dll_location + os.pathsep + os.environ['PATH']
 
         window = AutoGatorWindow(self)
         self.state('zoomed')

@@ -11,7 +11,7 @@ class DCServo(apt.Motor):
         RuntimeError
             Raises a runtime error if the connection is unsuccessful.
         """
-        super.__init__(self, serial_number)
+        super().__init__(serial_number)
 
     def get_travel_limits(self):
         min_position, max_position, _, _ = self.get_stage_axis_info()
