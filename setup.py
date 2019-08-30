@@ -54,7 +54,8 @@ setuptools.setup(
         'matplotlib',
         'instrumental-lib',
         'opencv-python',
-        'thorlabs-apt',
         'Pillow',
+        'pywin32',
+        'nicelib',
     ]
 )
