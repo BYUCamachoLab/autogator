@@ -106,7 +106,10 @@ class KCubeController(Frame):
     def update(self):
         if self.motor:
             pos = self.motor.position
-            self.position.set("{:.4f}".format(pos))
+            try:
+                self.position.set("{:.4f}".format(pos))
+            except:
+                pass
 
     def move_to(self, event=None):
         if self.motor:
