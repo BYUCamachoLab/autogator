@@ -109,3 +109,5 @@ venv.bak/
 # Developer's notes
 devnotes.txt
 test_bench.py
+lextab.py
+yacctab.py
