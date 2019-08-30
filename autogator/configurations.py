@@ -7,8 +7,8 @@
 # SERIAL NUMBERS
 #
 #
-stage_x = 27003356
-stage_y = 27003323
+stage_x = 27003497
+stage_y = 27504851
 stage_deg = 27003323
 
 piezo_primary = 71874833
