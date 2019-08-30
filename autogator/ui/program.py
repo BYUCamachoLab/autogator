@@ -77,8 +77,8 @@ class KCubeController(Frame):
         Label(self.info_frame, text="Position").grid(row=0, column=0, sticky=W)
         self.position = StringVar()
         Label(self.info_frame, textvariable=self.position, style='PosDisplay.TLabel').grid(row=1, column=0, rowspan=2, sticky=NSEW)
-        Label(self.info_frame, text="Homed").grid(row=1, column=1)
-        Button(self.info_frame, text="IDENT").grid(row=2, column=1)
+        Button(self.info_frame, text="Home", command=self.home).grid(row=1, column=1)
+        Button(self.info_frame, text="IDENT", command=self.ident).grid(row=2, column=1)
         self.info_frame.pack(side=TOP, fill='x')
         
         self.move_frame = Frame(self)
@@ -110,6 +110,14 @@ class KCubeController(Frame):
                 self.position.set("{:.4f}".format(pos))
             except:
                 pass
+
+    def home(self):
+        if self.motor:
+            self.motor.home()
+
+    def ident(self):
+        if self.motor:
+            self.motor.identify()
 
     def move_to(self, event=None):
         if self.motor:
