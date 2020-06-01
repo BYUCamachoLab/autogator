@@ -5,19 +5,10 @@ import os
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-verstr = "unknown"
-try:
-    verstrline = open('autogator/_version.py', "rt").read()
-except EnvironmentError:
-    # No version file.
-    raise RuntimeError("Unable to find version in autogator/_version.py")
-else:
-    VSRE = r"^__version__ = ['\"]([^'\"]*)['\"]"
-    mo = re.search(VSRE, verstrline, re.M)
-    if mo:
-        verstr = mo.group(1)
-    else:
-        raise RuntimeError("unable to find version in autogator/_version.py")
+
+NAME = 'autogator'
+LIBNAME = 'autogator'
+from autogator import __version__, __website_url__  #analysis:ignore
 
 extra_files = []
 data_files_ext = []
@@ -33,7 +24,7 @@ def package_data_files(directory):
 
 setuptools.setup(
     name="AutoGator",
-    version=verstr,
+    version=__version__,
     author="Sequoia Ploeg",
     author_email="sequoia.ploeg@ieee.org",
     description="A software package for camera-assisted motion control of PIC chip interrogation platforms.",
@@ -47,7 +38,17 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
-        "Operating System :: OS Independent",
+        "Operating System :: Microsoft :: Windows",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3 :: Only",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Education",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Developers",
+        "Topic :: Scientific/Engineering",
     ],
     install_requires=[
         'numpy',
