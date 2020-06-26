@@ -35,7 +35,7 @@ if sys.version_info < (3, 0, 0):
         + " detected)."
     )
 
-__version__ = "0.1.0dev0"
+__version__ = "0.2.0dev0"
 __license__ = __doc__
 __project_url__ = "https://github.com/BYUCamachoLab/autogator"
 __forum_url__ = "https://github.com/BYUCamachoLab/autogator/issues"

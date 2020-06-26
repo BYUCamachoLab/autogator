@@ -1,0 +1,7 @@
+numpy
+matplotlib
+instrumental-lib
+opencv-python
+Pillow
+pywin32
+nicelib
