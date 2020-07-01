@@ -1,27 +1,23 @@
-
 # -*- coding: utf-8 -*-
 #
-# Copyright © Simphony Project Contributors
+# Copyright © Autogator Project Contributors
 # Licensed under the terms of the MIT License
-# (see simphony/__init__.py for details)
+# (see autogator/__init__.py for details)
 
-import configparser
+"""
+autogator.config
+----------------
 
-def write_config():
-    config = configparser.ConfigParser()
+All configuration settings that may be specific to a user or installation
+can be loaded here. Defaults are provided, but the specifics are found
+in 'config.ini'. Each time the program GUI is loaded, these parameters are
+read and set. Each time the program is closed, these parameters are persisted
+in 'config.ini'.
 
-    config['DEFAULT'] = {
-        'stage_x': '27003497',
-        'stage_y': '27504851',
-        'stage_rot': '27003323',
-    }
+No functions or objects besides plain variables should appear in this file.
+"""
 
-    with open('config.ini', 'w') as configfile:
-        config.write(configfile)
-
-def read_config():
-    config = configparser.ConfigParser()
-
-    config.read('config.ini')
-
-    return config
+KINESIS_DLL_PATH = "/"
+STAGE_X_SERIAL = 27003497
+STAGE_Y_SERIAL = 27504851
+STAGE_ROT_SERIAL = 27003323

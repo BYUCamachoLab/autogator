@@ -2,74 +2,47 @@
 #
 # Copyright © Autogator Project Contributors
 # Licensed under the terms of the MIT License
-# (see simphony/__init__.py for details)
+# (see autogator/__init__.py for details)
 
-import sys
+from datetime import date
+import configparser
+import atexit
 
-try:
-    import autogator
-except:
-    print('USAGE: python -m autogator (did you forget "-m"?)')
-    sys.exit()
+import autogator.config as cfg
+from autogator.mainwindow import start_gui
 
-print("Welcome to AutoGator, the automatic chip interrogator.")
-print("(C) 2019 by Sequoia Ploeg")
 
-import tkinter as tk
-import autogator.images
-import PIL.ImageTk
+def write_config():
+    module = globals().get('cfg', None)
+    if module:
+        settings = {key: value for key, value in module.__dict__.items() if not (key.startswith('__') or key.startswith('_'))}
+    else:
+        return
 
-class Splash(tk.Toplevel):
-    def __init__(self, parent):
-        tk.Toplevel.__init__(self, parent)
-        self.title("Splash")
-        self.overrideredirect(True)
-        self.geometry("400x300")
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        x = (self.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.winfo_screenheight() // 2) - (height // 2)
-        self.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    config = configparser.ConfigParser()
+    config['DEFAULT'] = settings
 
-        maxsize = (400, 300)
-        img_holder = tk.Canvas(self, width=400, height=250)
-        img_holder.pack(fill="both", expand=True)
-        self.img = autogator.images.get_image_by_name('croc.jpg')
-        self.img.thumbnail(maxsize)
-        self.img = PIL.ImageTk.PhotoImage(self.img)
-        img_holder.create_image(0, 0, image=self.img, anchor=tk.NW)
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
 
-        lbl = tk.Label(self, text='AutoGator')
-        lbl.pack(fill='both', expand=True)
+def read_config():
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
-        ## required to make window show before the program gets to the mainloop
-        self.update()
+    cfg.KINESIS_DLL_PATH = config['DEFAULT'].get('KINESIS_DLL_PATH')
+    cfg.STAGE_X_SERIAL = config['DEFAULT'].getint('STAGE_X_SERIAL')
+    cfg.STAGE_Y_SERIAL = config['DEFAULT'].getint('STAGE_Y_SERIAL')
+    cfg.STAGE_ROT_SERIAL = config['DEFAULT'].getint('STAGE_ROT_SERIAL')
 
-class App(tk.Tk):
-    def __init__(self):
-        tk.Tk.__init__(self)
-        self.withdraw()
-        splash = Splash(self)
+@atexit.register
+def onclose():
+    print("Saving configurations and closing...", end='')
+    write_config()
+    print("DONE")
 
-        # Setup stuff goes here
-        import os
-        import time
-        from autogator.ui.program import AutoGatorWindow
+if __name__ == "__main__":
+    print("Welcome to Autogator!")
+    print("© 2019-{}, CamachoLab".format(date.today().year))
+    read_config()
 
-        # Add location of the DLLs to PATH so that the program can run on any machine
-        dll_location = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'dll')
-        os.environ['PATH'] = dll_location + os.pathsep + os.environ['PATH']
-
-        window = AutoGatorWindow(self)
-        self.state('zoomed')
-        self.update_idletasks()
-        
-        # We have finished loading, so destroy splash and show window again
-        splash.destroy()
-        self.deiconify()
-        # window.center()
-
-if __name__ == '__main__':
-    app = App()
-    app.mainloop()
+    start_gui()
