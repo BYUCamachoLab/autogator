@@ -18,6 +18,6 @@ No functions or objects besides plain variables should appear in this file.
 """
 
 KINESIS_DLL_PATH = "/"
-STAGE_X_SERIAL = 27003497
-STAGE_Y_SERIAL = 27504851
-STAGE_ROT_SERIAL = 27003323
+STAGE_X_SERIAL = None
+STAGE_Y_SERIAL = None
+STAGE_ROT_SERIAL = None
