@@ -3,14 +3,20 @@ The AUTOmatic chip interroGATOR.
 
 A software package for camera-assisted motion control of PIC chip interrogation platforms.
 
-## Notes
-ThorLabs software, [Kinesis](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10285) must be installed. 
-You also need the [uc480 API](https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=ThorCam) installed.
-
+## Installation
 This package only works on Windows.
 
-This package makes use of the less restrictive PySide2 module for GUI creation.
+ThorLabs software, [Kinesis](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10285) must be installed. 
+You will also need the [uc480 API](https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=ThorCam).
 
+It is recommended to use a virtual environment when installing Autogator. 
+To recreate the development environment, after manually installing the above packages, run:
+
+```
+pip install -r requirements.txt
+```
+
+## Notes
 
 ### Possible algorithm for calibrating the stage
 
