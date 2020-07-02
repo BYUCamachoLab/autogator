@@ -149,6 +149,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionAdd_Device"/>
+   <addaction name="actionStop_All"/>
   </widget>
   <action name="actionAdd_Device">
    <property name="icon">
@@ -222,6 +223,18 @@
   <action name="actionLocate_DLL">
    <property name="text">
     <string>Locate ThorLabs DLLs</string>
+   </property>
+  </action>
+  <action name="actionStop_All">
+   <property name="icon">
+    <iconset resource="../res.qrc">
+     <normaloff>:/images/images/stop.jpg</normaloff>:/images/images/stop.jpg</iconset>
+   </property>
+   <property name="text">
+    <string>Stop All</string>
+   </property>
+   <property name="toolTip">
+    <string>Immediately stop all motion</string>
    </property>
   </action>
  </widget>
