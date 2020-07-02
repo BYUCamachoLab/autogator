@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © Simphony Project Contributors
+# Copyright © Autogator Project Contributors
 # Licensed under the terms of the MIT License
-# (see simphony/__init__.py for details)
+# (see autogator/__init__.py for details)
 
 """
 autogator.models.motioncontrol
@@ -18,24 +18,77 @@ import numpy as np
 from PySide2.QtCore import QObject, Signal
 
 
-class LinearMotor(QObject):
+class Motor(QObject):
     """
-    A motor with a linear travel.
-
     Attributes
     ----------
     position : int
-    velocity : int
     jog_size : int
+    reverse : bool
+        False if the stage's position increases in the same direction as the
+        coordinate system. True if opposite.
+    """
+
+    position_changed = Signal(int)
+    jog_size_changed = Signal(int)
+
+    def __init__(self, position=0, jog_size=0, reverse=False):
+        super().__init__()
+        self._position = position
+        self._jog_size = jog_size
+        self.reverse = reverse
+
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, value):
+        self._position = value
+        self.position_changed.emit(value)
+
+    @property
+    def jog_size(self):
+        return self._jog_size
+
+    @jog_size.setter
+    def jog_size(self, value):
+        self._jog_size = value
+        self.jog_size_changed.emit(value)
+
+
+class VariableSpeedMotor(Motor):
+    """
+    Attributes
+    ----------
+    velocity : int
+    """
+
+    velocity_changed = Signal(int)
+
+    def __init__(self, position=0, jog_size=0, reverse=False, velocity=0):
+        super().__init__(position, jog_size, reverse)
+        self._velocity = velocity
+
+    @property
+    def velocity(self):
+        return self._velocity
+
+    @velocity.setter
+    def velocity(self, value):
+        self._velocity = value
+        self.velocity_changed.emit(value)
+
+
+class VariableLinearMotor(VariableSpeedMotor):
+    """
+    A motor with a linear travel.
 
     Parameters
     ----------
     max_pos : int
     min_pos : int
     position : int
-    reverse : bool
-        False if the stage's position increases in the same direction as the
-        coordinate system. True if opposite.
     max_vel : int
     min_vel : int
     velocity : int
@@ -43,9 +96,6 @@ class LinearMotor(QObject):
     min_jog : int
     jog_size : int
     """
-    position_changed = Signal(int)
-    velocity_changed = Signal(int)
-    jog_size_changed = Signal(int)
 
     def __init__(
         self,
@@ -60,49 +110,18 @@ class LinearMotor(QObject):
         min_jog=0,
         jog_size=0,
     ):
-        super().__init__()
+        super().__init__(position, jog_size, reverse, velocity)
         self.max_pos = max_pos
         self.min_pos = min_pos
-        self._position = position
-        self.reverse = reverse
         self.max_vel = max_vel
         self.min_vel = min_vel
-        self._velocity = velocity
         self.max_jog = max_jog
         self.min_jog = min_jog
-        self._jog_size = jog_size
-
-    @property
-    def position(self):
-        return self._position
-
-    @position.setter
-    def position(self, value):
-        self._position = value
-        self.position_changed.emit(value)
-
-    @property
-    def velocity(self):
-        return self._velocity
-
-    @velocity.setter
-    def velocity(self, value):
-        self._velocity = value
-        self.velocity_changed.emit(value)
-
-    @property
-    def jog_size(self):
-        return self._jog_size
-
-    @jog_size.setter
-    def jog_size(self, value):
-        self._jog_size = value
-        self.jog_size_changed.emit(value)
 
 
-class RotationalMotor(QObject):
-    def __init__(self):
-        super().__init__()
+class VariableRotationalMotor(VariableSpeedMotor):
+    def __init__(self, position=0, jog_size=0, reverse=False, velocity=0):
+        super().__init__(position, jog_size, reverse, velocity)
 
 
 class CompositeStage:
