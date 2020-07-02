@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright © Simphony Project Contributors
+# Copyright © Autogator Project Contributors
 # Licensed under the terms of the MIT License
-# (see simphony/__init__.py for details)
+# (see autogator/__init__.py for details)

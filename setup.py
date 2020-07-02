@@ -51,12 +51,12 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     install_requires=[
-        'numpy',
-        'matplotlib',
-        'instrumental-lib',
-        'opencv-python',
-        'Pillow',
-        'pywin32',
-        'nicelib',
+        # 'numpy',
+        # 'matplotlib',
+        # 'instrumental-lib',
+        # 'opencv-python',
+        # 'Pillow',
+        # 'pywin32',
+        # 'nicelib',
     ]
 )
