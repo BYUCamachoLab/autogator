@@ -12,7 +12,7 @@ import VISAresourceExtentions
 from pathlib import Path
 import time
 import numpy as np
-import matplotlib as tpi
+import matplotlib.pyplot as plt
 import thorlabs_kinesis as tk
 from thorlabs_kinesis import kcube_dcservo as kcdc
 from autogator.models.stage import Z825B, VariableRotationalMotor
@@ -32,8 +32,11 @@ from ctypes.wintypes import (
     WORD,
 )
 
+STEPS_PER_MM = 34304
+SWEEP_DIST_MM = 10.0
+STEP_SIZE_MM = 0.5
+
 class Static_Vars:
-    
     ##   ***IMPORTANT: THE MAX TRAVEL ON THE LINEAR STAGE IS 25MM, SO KEEP THE MAX SCAN DISTANCE IN EITHER DIRECTION UNDER 12.5MM***
     steps_per_mm = 34304
     num_passes = 10 # number of passes the array will take across the chip (Latitudinal Stage)
@@ -43,7 +46,7 @@ class Static_Vars:
     max_lat_travel = num_passes * lat_step * steps_per_mm
     max_long_travel = num_samples * long_step * steps_per_mm
 
-arr = np.zeroes(num_passes,num_samples) # array to store data
+arr = np.zeros((num_passes,num_samples)) # array to store data
 
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
@@ -56,9 +59,9 @@ if kcdc.TLI_BuildDeviceList() == 0:
     serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
     print("Serial #'s:", serialnos)
 
-    latitudinal_mot = c_char_p(bytes("27504851", "utf-8"))
-    longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
-    rotational_mot = c_char_p(bytes("27003366", "utf-8"))
+    lateral = c_char_p(bytes("27504851", "utf-8"))
+    longitudinal = c_char_p(bytes("27003497", "utf-8"))
+    rotational = c_char_p(bytes("27003366", "utf-8"))
 
     motors = [lateral, longitudinal, rotational]
 
@@ -101,35 +104,35 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.query('*OPC?')
         scope.ext_error_checking()
 
-            # Start Move Test
+        # Start Move Test
         for i in range(len(arr)):
             for p in range(len(arr[0])):
-                test_pos = kcdc.CC_GetPosition(longitudinal_mot)
+                test_pos = kcdc.CC_GetPosition(longitudinal)
                 if p%2==0:
                     current_long_pos = max_long_travel - (p*long_step*steps_per_mm)
-                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(max_long_travel-(p*long_step*steps_per_mm)))
+                    kcdc.CC_MoveToPosition(longitudinal, c_int(max_long_travel-(p*long_step*steps_per_mm)))
                     kcdc.CC_WaitForMessage(longintudinal_mot, byref(message_type), byref(message_id), byref(message_data))
                     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                        kcdc.CC_WaitForMessage(longitudinal, byref(message_type), byref(message_id), byref(message_data))
                         #kcdc.CC_RequestPosition(serialno)
                     time.sleep(0.01)
                     arr[i][max_long_pos-p] = scope.query('MEAS1:RES:ACT?')
                     #time.sleep(0.01)
                 else:
                     current_long_pos = p*long_step*steps_per_mm
-                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(current_long_pos+(p*long_step*steps_per_mm)))
+                    kcdc.CC_MoveToPosition(longitudinal, c_int(current_long_pos+(p*long_step*steps_per_mm)))
                     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                        kcdc.CC_WaitForMessage(longitudinal, byref(message_type), byref(message_id), byref(message_data))
                         #kcdc.CC_RequestPosition(serialno)
                     time.sleep(0.01)
                     arr[i][p] = scope.query('MEAS1:RES:ACT?')
                     #time.sleep(0.01)
 
             current_lat_pos = i*lat_steps*steps_per_mm
-            kcdc.CC_MoveToPosition(latitudinal_mot, c_int(i*lat_step*steps_per_mm))
-            kcdc.CC_WaitForMessage(latitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+            kcdc.CC_MoveToPosition(lateral, c_int(i*lat_step*steps_per_mm))
+            kcdc.CC_WaitForMessage(lateral, byref(message_type), byref(message_id), byref(message_data))
             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                kcdc.CC_WaitForMessage(latitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                kcdc.CC_WaitForMessage(lateral, byref(message_type), byref(message_id), byref(message_data))
                 #kcdc.CC_RequestPosition(serialno)
         
         
