@@ -39,12 +39,12 @@ if kcdc.TLI_BuildDeviceList() == 0:
     serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
     print("Serial #'s:", serialnos)
 
-    lateral = Z825B(27504851)
-    longitudinal = Z825B(27003497)
-    rotational = VariableRotationalMotor(27003366)
+    lateral = c_char_p(bytes("27504851", "utf-8"))
+    longitudinal = c_char_p(bytes("27003497", "utf-8"))
+    rotational = c_char_p(bytes("27003366", "utf-8"))
 
-    # accel_param = c_int()
-    # vel_param = c_int()
+    motors = [lateral, longitudinal, rotational]
+
     # message_type = WORD()
     # message_id = WORD()
     # message_data = DWORD()
@@ -52,19 +52,21 @@ if kcdc.TLI_BuildDeviceList() == 0:
 
     # motor_command = c_int(2000)
 
-    # # Open Communication
-    # kcdc.CC_Open(serialno)
-    # kcdc.CC_StartPolling(serialno, c_int(20))
-    # kcdc.CC_ClearMessageQueue(serialno)
-    # time.sleep(3)
-    # homeable = bool(kcdc.CC_CanHome(serialno))
-    # print(homeable)
-    # #Get Motor Position
-    # kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
-    # #print(accel_param.value)
-    # current_motor_pos = kcdc.CC_GetPosition(serialno)
-    # print(current_motor_pos)
-    # # #kcdc.CC_Home(serialno)
+    # Open Communication
+    for serialno in motors:
+        kcdc.CC_Open(serialno)
+        kcdc.CC_StartPolling(serialno, c_int(20))
+        kcdc.CC_ClearMessageQueue(serialno)
+        time.sleep(3)
+        homeable = bool(kcdc.CC_CanHome(serialno))
+        print("Can home:", homeable)
+        #Get Motor Position
+        accel_param, vel_param = c_int(), c_int()
+        kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
+        print("Acceleration:", accel_param.value, "Velocity:", vel_param.value)
+        current_motor_pos = kcdc.CC_GetPosition(serialno)
+        print("Position:", current_motor_pos)
+        # #kcdc.CC_Home(serialno)
 
     # # Start Move Test
     # kcdc.CC_ClearMessageQueue(serialno)
@@ -82,6 +84,8 @@ if kcdc.TLI_BuildDeviceList() == 0:
     # time.sleep(0.1)
     # current_motor_pos = kcdc.CC_GetPosition(serialno)
     # print(current_motor_pos)
-    # # Close Communication
-    # kcdc.CC_StopPolling(serialno)
-    # kcdc.CC_Close(serialno)
+    
+    # Close Communication
+    for serialno in motors:
+        kcdc.CC_StopPolling(serialno)
+        kcdc.CC_Close(serialno)

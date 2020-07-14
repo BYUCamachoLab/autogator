@@ -5,8 +5,8 @@ sphinx==3.1.0
 sphinx_rtd_theme==0.4.3
 PySide2==5.15.0
 git+git://github.com/byucamacholab/thorlabs-kinesis
-pywin32==228
-nicelib==0.6
+# pywin32==228
+# nicelib==0.6
 # matplotlib
 # instrumental-lib
 # opencv-python

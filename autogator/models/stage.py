@@ -22,6 +22,7 @@ class Motor(QObject):
     """
     Attributes
     ----------
+    serialno : int
     position : int
     jog_size : int
     reverse : bool
@@ -32,11 +33,16 @@ class Motor(QObject):
     position_changed = Signal(int)
     jog_size_changed = Signal(int)
 
-    def __init__(self, position=0, jog_size=0, reverse=False):
+    def __init__(self, serialno, position=0, jog_size=0, reverse=False):
         super().__init__()
+        self._serialno = c_char_p(bytes(str(serialno), "utf-8"))
         self._position = position
         self._jog_size = jog_size
         self.reverse = reverse
+
+    @property
+    def serialno(self):
+        return self._serialno.value
 
     @property
     def position(self):
@@ -66,8 +72,8 @@ class VariableSpeedMotor(Motor):
 
     velocity_changed = Signal(int)
 
-    def __init__(self, position=0, jog_size=0, reverse=False, velocity=0):
-        super().__init__(position, jog_size, reverse)
+    def __init__(self, serialno, position=0, jog_size=0, reverse=False, velocity=0):
+        super().__init__(serialno, position, jog_size, reverse)
         self._velocity = velocity
 
     @property
@@ -99,6 +105,7 @@ class VariableLinearMotor(VariableSpeedMotor):
 
     def __init__(
         self,
+        serialno, 
         max_pos=0,
         min_pos=0,
         position=0,
@@ -110,7 +117,7 @@ class VariableLinearMotor(VariableSpeedMotor):
         min_jog=0,
         jog_size=0,
     ):
-        super().__init__(position, jog_size, reverse, velocity)
+        super().__init__(serialno, position, jog_size, reverse, velocity)
         self.max_pos = max_pos
         self.min_pos = min_pos
         self.max_vel = max_vel
@@ -120,8 +127,8 @@ class VariableLinearMotor(VariableSpeedMotor):
 
 
 class VariableRotationalMotor(VariableSpeedMotor):
-    def __init__(self, position=0, jog_size=0, reverse=False, velocity=0):
-        super().__init__(position, jog_size, reverse, velocity)
+    def __init__(self, serialno, position=0, jog_size=0, reverse=False, velocity=0):
+        super().__init__(serialno, position, jog_size, reverse, velocity)
 
 
 class CompositeStage:
@@ -148,3 +155,34 @@ class CompositeStage:
         self.pos_y = state.item(1)
         self.pos_z = state.item(2)
         self.rotation = state.item(3)
+
+
+
+
+################################################################################
+# Specific implementations, not just abstractable classes.
+################################################################################
+
+class Z825B(VariableLinearMotor):
+    """
+    The class that wraps a Z825B variable speed linear motor.
+
+    Parameters
+    ----------
+    serialno : int
+        The serial number of the device to connect to. Note that 
+        ``TLI_BuildDeviceList()`` should be called prior to instantiating any
+        motors.
+    """
+    STEPS_PER_MM = 34304
+
+    def __init__(
+        self,
+        serialno, 
+        reverse=False,
+    ):
+        super().__init__(serialno, reverse=reverse)
+        # max_pos, min_pos, position, max_vel, min_vel, velocity, max_jog, min_jog, jog_size
+
+class PRM1Z8(VariableRotationalMotor):
+    pass
