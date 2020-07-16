@@ -46,7 +46,10 @@ class Static_Vars:
     max_lat_travel = num_passes * lat_step * steps_per_mm
     max_long_travel = num_samples * long_step * steps_per_mm
 
-arr = np.zeros((num_passes,num_samples)) # array to store data
+arr = np.zeros((Static_Vars.num_passes,Static_Vars.num_samples)) # array to store data
+message_type = WORD()
+message_id = WORD()
+message_data = DWORD()
 
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
@@ -59,11 +62,11 @@ if kcdc.TLI_BuildDeviceList() == 0:
     serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
     print("Serial #'s:", serialnos)
 
-    lateral = c_char_p(bytes("27504851", "utf-8"))
-    longitudinal = c_char_p(bytes("27003497", "utf-8"))
+    lateral_mot = c_char_p(bytes("27504851", "utf-8"))
+    longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
     rotational = c_char_p(bytes("27003366", "utf-8"))
 
-    motors = [lateral, longitudinal, rotational]
+    motors = [lateral_mot, longitudinal_mot, rotational]
 
     # message_type = WORD()
     # message_id = WORD()
@@ -104,35 +107,41 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.query('*OPC?')
         scope.ext_error_checking()
 
+        #Dumb thing remove later by fixing home position
+        kcdc.CC_MoveToPosition(longitudinal_mot, c_int(0))
+        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+        while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+            kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+
         # Start Move Test
         for i in range(len(arr)):
             for p in range(len(arr[0])):
-                test_pos = kcdc.CC_GetPosition(longitudinal)
+                test_pos = kcdc.CC_GetPosition(longitudinal_mot)
                 if p%2==0:
-                    current_long_pos = max_long_travel - (p*long_step*steps_per_mm)
-                    kcdc.CC_MoveToPosition(longitudinal, c_int(max_long_travel-(p*long_step*steps_per_mm)))
-                    kcdc.CC_WaitForMessage(longintudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                    current_long_pos = Static_Vars.max_long_travel - (p*Static_Vars.long_step*Static_Vars.steps_per_mm)
+                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(Static_Vars.max_long_travel-(p*Static_Vars.long_step*Static_Vars.steps_per_mm)))
+                    kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
                     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal, byref(message_type), byref(message_id), byref(message_data))
+                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
                         #kcdc.CC_RequestPosition(serialno)
                     time.sleep(0.01)
-                    arr[i][max_long_pos-p] = scope.query('MEAS1:RES:ACT?')
+                    arr[i][Static_Vars.num_samples-p-1] = scope.query('MEAS1:RES:ACT?')
                     #time.sleep(0.01)
                 else:
-                    current_long_pos = p*long_step*steps_per_mm
-                    kcdc.CC_MoveToPosition(longitudinal, c_int(current_long_pos+(p*long_step*steps_per_mm)))
+                    current_long_pos = p*Static_Vars.long_step*Static_Vars.steps_per_mm
+                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(current_long_pos+(p*Static_Vars.long_step*Static_Vars.steps_per_mm)))
                     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal, byref(message_type), byref(message_id), byref(message_data))
+                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
                         #kcdc.CC_RequestPosition(serialno)
                     time.sleep(0.01)
                     arr[i][p] = scope.query('MEAS1:RES:ACT?')
                     #time.sleep(0.01)
 
-            current_lat_pos = i*lat_steps*steps_per_mm
-            kcdc.CC_MoveToPosition(lateral, c_int(i*lat_step*steps_per_mm))
-            kcdc.CC_WaitForMessage(lateral, byref(message_type), byref(message_id), byref(message_data))
+            current_lat_pos = i*Static_Vars.lat_step*Static_Vars.steps_per_mm
+            kcdc.CC_MoveToPosition(lateral_mot, c_int(i*Static_Vars.lat_step*Static_Vars.steps_per_mm))
+            kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                kcdc.CC_WaitForMessage(lateral, byref(message_type), byref(message_id), byref(message_data))
+                kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
                 #kcdc.CC_RequestPosition(serialno)
         
         
