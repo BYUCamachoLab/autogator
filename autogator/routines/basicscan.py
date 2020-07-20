@@ -7,6 +7,7 @@
 import os
 os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
 
+import atexit
 import pyvisa as visa
 import VISAresourceExtentions
 from pathlib import Path
@@ -34,9 +35,9 @@ from ctypes.wintypes import (
 )
 
 STEPS_PER_MM = 34304
-SWEEP_DIST_MM = 1.0
-STEP_SIZE_MM = 0.05
-SHAPE = SWEEP_DIST_MM / STEP_SIZE_MM
+SWEEP_DIST_MM = 0.03
+STEP_SIZE_MM = 0.001
+SHAPE = round(SWEEP_DIST_MM / STEP_SIZE_MM)
 
 def mm_to_steps(mm):
     return round(mm * STEPS_PER_MM)
@@ -45,24 +46,44 @@ def steps_to_mm(steps):
     return steps / STEPS_PER_MM
 
 data = np.zeros((SHAPE, SHAPE)) # Array to store data
+print("Scan grid: {}x{}".format(*data.shape))
 
-# class Static_Vars:
-#     ##   ***IMPORTANT: THE MAX TRAVEL ON THE LINEAR STAGE IS 25MM, SO KEEP THE MAX SCAN DISTANCE IN EITHER DIRECTION UNDER 12.5MM***
-#     steps_per_mm = 34304
-#      # number of samples per pass (Longitudinal Stage)
-#     lat_step = 0.1 # step size between vertical/latitudinal scan passes in mm
-#     long_step = 0.1 # step size between horizontal/longitudinal scan positions in mm
-#     max_lat_travel = 5
-#     #num_passes * lat_step * steps_per_mm
-#     max_long_travel = 5
-#     num_passes =  math.floor(max_lat_travel/lat_step)
-#     num_samples = math.floor(max_long_travel/long_step)
-#     #num_samples * long_step * steps_per_mm
+lateral_mot = c_char_p(bytes("27504851", "utf-8"))
+longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
+rotational = c_char_p(bytes("27003366", "utf-8"))
+motors = [lateral_mot, longitudinal_mot, rotational]
 
-# arr = np.zeros((Static_Vars.num_passes,Static_Vars.num_samples)) # array to store data
-message_type = WORD()
-message_id = WORD()
-message_data = DWORD()
+def open_motors():
+    global motors
+    for serialno in motors:
+        kcdc.CC_Open(serialno)
+        kcdc.CC_StartPolling(serialno, c_int(20))
+        kcdc.CC_ClearMessageQueue(serialno)
+        
+    time.sleep(3)
+
+    for serialno in motors:
+        homeable = bool(kcdc.CC_CanHome(serialno))
+        print("Can home:", homeable)
+        #Get Motor Position
+        accel_param, vel_param = c_int(), c_int()
+        kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
+        print("Acceleration:", accel_param.value, "Velocity:", vel_param.value)
+        current_motor_pos = kcdc.CC_GetPosition(serialno)
+        print("Position:", current_motor_pos)
+
+@atexit.register
+def close_motors():
+    global motors
+    for serialno in motors:
+        kcdc.CC_StopPolling(serialno)
+        kcdc.CC_Close(serialno)
+
+def block(serialno):
+    message_type, message_id, message_data = WORD(), WORD(), DWORD()
+    kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
+    while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+        kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
 
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
@@ -75,54 +96,29 @@ if kcdc.TLI_BuildDeviceList() == 0:
     serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
     print("Serial #'s:", serialnos)
 
-    lateral_mot = c_char_p(bytes("27504851", "utf-8"))
-    longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
-    rotational = c_char_p(bytes("27003366", "utf-8"))
-
-    motors = [lateral_mot, longitudinal_mot, rotational]
-
     # Open Communication
     rm = visa.ResourceManager()
     scope = rm.open_resource('TCPIP::10.32.112.162::INSTR')
-
-    for serialno in motors:
-        kcdc.CC_Open(serialno)
-        kcdc.CC_StartPolling(serialno, c_int(20))
-        kcdc.CC_ClearMessageQueue(serialno)
-        time.sleep(3)
-        homeable = bool(kcdc.CC_CanHome(serialno))
-        print("Can home:", homeable)
-
-        #Get Motor Position
-        accel_param, vel_param = c_int(), c_int()
-        kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
-        print("Acceleration:", accel_param.value, "Velocity:", vel_param.value)
-        current_motor_pos = kcdc.CC_GetPosition(serialno)
-        print("Position:", current_motor_pos)
-        #kcdc.CC_Home(serialno)
+    open_motors()
 
     # Calculate current position
     kcdc.CC_RequestPosition(lateral_mot)
     current_lat_pos_du = kcdc.CC_GetPosition(lateral_mot)
     kcdc.CC_RequestPosition(longitudinal_mot)
     current_long_pos_du = kcdc.CC_GetPosition(longitudinal_mot)
-    print(current_lat_pos_du)
-    print(current_long_pos_du)
+    print("Current position: {}, {}".format(current_lat_pos_du, current_long_pos_du))
 
     # Calculate starting position
     corner_lat_pos_du = current_lat_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
     corner_long_pos_du = current_long_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
-    print(corner_lat_pos_du)
-    print(corner_long_pos_du)
-    x = input("TEST")
+    print("Corner position: {}, {}".format(corner_lat_pos_du, corner_long_pos_du))
+    x = input("Press <ENTER> to begin moving...")
 
     # Move to starting position
     kcdc.CC_MoveToPosition(lateral_mot, c_int(corner_lat_pos_du))
     kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
-    kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-    while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-    time.sleep(0.02)
+    block(longitudinal_mot)
+    block(lateral_mot)
 
     # Configure motors for jogging
     kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(STEP_SIZE_MM))
@@ -143,84 +139,42 @@ if kcdc.TLI_BuildDeviceList() == 0:
 
         # Start Move Test
         rows, cols = data.shape
+        
+        fig, ax = plt.subplots(1,1)
+        im = ax.imshow(data, cmap='hot')
+        
         for i in range(rows):
             for j in range(cols):
                 # Measure and jog the longitudinal motor
                 data[i, j] = scope.query('MEAS1:RES:ACT?')
-                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards)
-                kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-                while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                    kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+
+                im.set_data(data)
+                im.set_clim(data.min(), data.max())
+                fig.canvas.draw_idle()
+                plt.pause(0.000001)
+                
+                block(longitudinal_mot)
             
             # Jog the lateral motor
-            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards)
-            kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
-            while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
+            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+            block(lateral_mot)
             
             # Move the longitudinal motor back to the start of the row
             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
-            kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-            while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+            block(longitudinal_mot)
 
-        # for i in range(len(arr)):
-        #     for p in range(len(arr[0])):
-        #         if i%2==1:
-        #             next_pos=math.floor(corner_long_pos+(Static_Vars.max_long_travel*Static_Vars.steps_per_mm)-(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
-        #             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
-        #             kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-        #             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        #                 kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-        #                 #kcdc.CC_RequestPosition(serialno)
-        #             time.sleep(0.01)
-        #             arr[i-1][Static_Vars.num_samples-p-1] = scope.query('MEAS1:RES:ACT?')
-        #             #time.sleep(0.01)
-        #         else:
-        #             next_pos=math.floor(corner_long_pos+(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
-        #             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
-        #             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        #                 kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-        #                 #kcdc.CC_RequestPosition(serialno)
-        #             time.sleep(0.01)
-        #             arr[i-1][p-1] = scope.query('MEAS1:RES:ACT?')
-        #             #time.slee0.01)
+        plt.show()
 
-        #     current_lat_pos = i*Static_Vars.lat_step*Static_Vars.steps_per_mm
-        #     next_pos=math.floor(corner_lat_pos+(i*Static_Vars.lat_step*Static_Vars.steps_per_mm))
-        #     kcdc.CC_MoveToPosition(lateral_mot, c_int(next_pos))
-        #     kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
-        #     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        #         kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
-        #         #kcdc.CC_RequestPosition(serialno)
+        with open('data.npy', 'wb') as f:
+            np.save(f, data)
         
-        
-
-
-        # kcdc.CC_ClearMessageQueue(serialno)
-        # #kcdc.CC_MoveToPosition(serialno, motor_command)
-        # kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
-        # while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        #     kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
-        #     kcdc.CC_RequestPosition(serialno)
-
-
-        #     # I Get correct position feedback here
-        #     print("TEST", kcdc.CC_GetPosition(serialno))
-
-        # kcdc.CC_RequestPosition(serialno)
-        # time.sleep(0.1)
-        # current_motor_pos = kcdc.CC_GetPosition(serialno)
-        # print(current_motor_pos)
-        
-        # Close Communication
-
     except VISAresourceExtentions.InstrumentErrorException as e:
         # Catching instrument error exception and showing its content
         print('Instrument error(s) occurred:\n' + e.message)
 
-    for serialno in motors:
-        kcdc.CC_StopPolling(serialno)
-        kcdc.CC_Close(serialno)
-
-print(data)
+    # Move to original position
+    kcdc.CC_MoveToPosition(lateral_mot, c_int(current_lat_pos_du))
+    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
+    block(longitudinal_mot)
+    block(lateral_mot)
