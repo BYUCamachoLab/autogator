@@ -34,23 +34,32 @@ from ctypes.wintypes import (
 )
 
 STEPS_PER_MM = 34304
-SWEEP_DIST_MM = 10.0
-STEP_SIZE_MM = 0.5
+SWEEP_DIST_MM = 1.0
+STEP_SIZE_MM = 0.05
+SHAPE = SWEEP_DIST_MM / STEP_SIZE_MM
 
-class Static_Vars:
-    ##   ***IMPORTANT: THE MAX TRAVEL ON THE LINEAR STAGE IS 25MM, SO KEEP THE MAX SCAN DISTANCE IN EITHER DIRECTION UNDER 12.5MM***
-    steps_per_mm = 34304
-     # number of samples per pass (Longitudinal Stage)
-    lat_step = 0.1 # step size between vertical/latitudinal scan passes in mm
-    long_step = 0.1 # step size between horizontal/longitudinal scan positions in mm
-    max_lat_travel = 5
-    #num_passes * lat_step * steps_per_mm
-    max_long_travel = 5
-    num_passes =  math.floor(max_lat_travel/lat_step)
-    num_samples = math.floor(max_long_travel/long_step)
-    #num_samples * long_step * steps_per_mm
+def mm_to_steps(mm):
+    return round(mm * STEPS_PER_MM)
 
-arr = np.zeros((Static_Vars.num_passes,Static_Vars.num_samples)) # array to store data
+def steps_to_mm(steps):
+    return steps / STEPS_PER_MM
+
+data = np.zeros((SHAPE, SHAPE)) # Array to store data
+
+# class Static_Vars:
+#     ##   ***IMPORTANT: THE MAX TRAVEL ON THE LINEAR STAGE IS 25MM, SO KEEP THE MAX SCAN DISTANCE IN EITHER DIRECTION UNDER 12.5MM***
+#     steps_per_mm = 34304
+#      # number of samples per pass (Longitudinal Stage)
+#     lat_step = 0.1 # step size between vertical/latitudinal scan passes in mm
+#     long_step = 0.1 # step size between horizontal/longitudinal scan positions in mm
+#     max_lat_travel = 5
+#     #num_passes * lat_step * steps_per_mm
+#     max_long_travel = 5
+#     num_passes =  math.floor(max_lat_travel/lat_step)
+#     num_samples = math.floor(max_long_travel/long_step)
+#     #num_samples * long_step * steps_per_mm
+
+# arr = np.zeros((Static_Vars.num_passes,Static_Vars.num_samples)) # array to store data
 message_type = WORD()
 message_id = WORD()
 message_data = DWORD()
@@ -72,15 +81,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
 
     motors = [lateral_mot, longitudinal_mot, rotational]
 
-    # message_type = WORD()
-    # message_id = WORD()
-    # message_data = DWORD()
-    # current_motor_pos = 0
-
-    # motor_command = c_int(2000)
-
     # Open Communication
-
     rm = visa.ResourceManager()
     scope = rm.open_resource('TCPIP::10.32.112.162::INSTR')
 
@@ -91,6 +92,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
         time.sleep(3)
         homeable = bool(kcdc.CC_CanHome(serialno))
         print("Can home:", homeable)
+
         #Get Motor Position
         accel_param, vel_param = c_int(), c_int()
         kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
@@ -99,29 +101,34 @@ if kcdc.TLI_BuildDeviceList() == 0:
         print("Position:", current_motor_pos)
         #kcdc.CC_Home(serialno)
 
+    # Calculate current position
     kcdc.CC_RequestPosition(lateral_mot)
-    current_lat_pos = kcdc.CC_GetPosition(lateral_mot)
+    current_lat_pos_du = kcdc.CC_GetPosition(lateral_mot)
     kcdc.CC_RequestPosition(longitudinal_mot)
-    current_long_pos = kcdc.CC_GetPosition(longitudinal_mot)
-    
-    print(current_lat_pos)
-    print(current_long_pos)
+    current_long_pos_du = kcdc.CC_GetPosition(longitudinal_mot)
+    print(current_lat_pos_du)
+    print(current_long_pos_du)
 
-    
-    corner_lat_pos = current_lat_pos-(math.floor(Static_Vars.max_lat_travel*Static_Vars.steps_per_mm/2))
-    corner_long_pos = current_long_pos-(math.floor(Static_Vars.max_long_travel*Static_Vars.steps_per_mm/2))
-    print(corner_lat_pos)
-    print(corner_long_pos)
+    # Calculate starting position
+    corner_lat_pos_du = current_lat_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
+    corner_long_pos_du = current_long_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
+    print(corner_lat_pos_du)
+    print(corner_long_pos_du)
     x = input("TEST")
 
-    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos))
-    kcdc.CC_MoveToPosition(lateral_mot, c_int(corner_lat_pos))
+    # Move to starting position
+    kcdc.CC_MoveToPosition(lateral_mot, c_int(corner_lat_pos_du))
+    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
+    kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
         kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
     time.sleep(0.02)
-        
 
-    
+    # Configure motors for jogging
+    kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(STEP_SIZE_MM))
+    kcdc.CC_SetJogStepSize(longitudinal_mot, mm_to_steps(STEP_SIZE_MM))
+        
+    # Wake up, scope!
     try: 
         scope.write('TIM:SCAL 1e-9') # Set the time base of the oscilloscope
         scope.write('MEAS1:SOUR C1W1') # Set measuring params
@@ -135,35 +142,57 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.ext_error_checking()
 
         # Start Move Test
-        for i in range(len(arr)):
-            for p in range(len(arr[0])):
-                if i%2==1:
-                    next_pos=math.floor(corner_long_pos+(Static_Vars.max_long_travel*Static_Vars.steps_per_mm)-(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
-                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
+        rows, cols = data.shape
+        for i in range(rows):
+            for j in range(cols):
+                # Measure and jog the longitudinal motor
+                data[i, j] = scope.query('MEAS1:RES:ACT?')
+                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards)
+                kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+                while (int(message_type.value) != 2) or (int(message_id.value) != 1):
                     kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-                    while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-                        #kcdc.CC_RequestPosition(serialno)
-                    time.sleep(0.01)
-                    arr[i-1][Static_Vars.num_samples-p-1] = scope.query('MEAS1:RES:ACT?')
-                    #time.sleep(0.01)
-                else:
-                    next_pos=math.floor(corner_long_pos+(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
-                    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
-                    while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-                        kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
-                        #kcdc.CC_RequestPosition(serialno)
-                    time.sleep(0.01)
-                    arr[i-1][p-1] = scope.query('MEAS1:RES:ACT?')
-                    #time.slee0.01)
-
-            current_lat_pos = i*Static_Vars.lat_step*Static_Vars.steps_per_mm
-            next_pos=math.floor(corner_lat_pos+(i*Static_Vars.lat_step*Static_Vars.steps_per_mm))
-            kcdc.CC_MoveToPosition(lateral_mot, c_int(next_pos))
+            
+            # Jog the lateral motor
+            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards)
             kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
                 kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
-                #kcdc.CC_RequestPosition(serialno)
+            
+            # Move the longitudinal motor back to the start of the row
+            kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
+            kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+            while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+                kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+
+        # for i in range(len(arr)):
+        #     for p in range(len(arr[0])):
+        #         if i%2==1:
+        #             next_pos=math.floor(corner_long_pos+(Static_Vars.max_long_travel*Static_Vars.steps_per_mm)-(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
+        #             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
+        #             kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+        #             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+        #                 kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+        #                 #kcdc.CC_RequestPosition(serialno)
+        #             time.sleep(0.01)
+        #             arr[i-1][Static_Vars.num_samples-p-1] = scope.query('MEAS1:RES:ACT?')
+        #             #time.sleep(0.01)
+        #         else:
+        #             next_pos=math.floor(corner_long_pos+(p*Static_Vars.long_step*Static_Vars.steps_per_mm))
+        #             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(next_pos))
+        #             while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+        #                 kcdc.CC_WaitForMessage(longitudinal_mot, byref(message_type), byref(message_id), byref(message_data))
+        #                 #kcdc.CC_RequestPosition(serialno)
+        #             time.sleep(0.01)
+        #             arr[i-1][p-1] = scope.query('MEAS1:RES:ACT?')
+        #             #time.slee0.01)
+
+        #     current_lat_pos = i*Static_Vars.lat_step*Static_Vars.steps_per_mm
+        #     next_pos=math.floor(corner_lat_pos+(i*Static_Vars.lat_step*Static_Vars.steps_per_mm))
+        #     kcdc.CC_MoveToPosition(lateral_mot, c_int(next_pos))
+        #     kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
+        #     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+        #         kcdc.CC_WaitForMessage(lateral_mot, byref(message_type), byref(message_id), byref(message_data))
+        #         #kcdc.CC_RequestPosition(serialno)
         
         
 
@@ -193,6 +222,5 @@ if kcdc.TLI_BuildDeviceList() == 0:
     for serialno in motors:
         kcdc.CC_StopPolling(serialno)
         kcdc.CC_Close(serialno)
-print(arr)
 
-
+print(data)
