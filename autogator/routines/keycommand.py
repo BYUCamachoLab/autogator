@@ -1,3 +1,5 @@
+import os
+os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
 import atexit
 import keyboard
 import numpy as np
@@ -5,7 +7,6 @@ import time
 import thorlabs_kinesis as tk
 from thorlabs_kinesis import kcube_dcservo as kcdc
 from autogator.models.stage import Z825B, VariableRotationalMotor
-import enum
 
 from ctypes import (
     c_char_p,
@@ -13,15 +14,14 @@ from ctypes import (
     c_short,
     c_char,
     POINTER,
-    cdll,
-    byref
-)        
+    byref,
+    create_string_buffer,
+)  
 
-from thorlabs_kinesis._utils import (
-    bind
+from ctypes.wintypes import (
+    DWORD,
+    WORD,
 )
-
-lib = cdll.LoadLibrary("Thorlabs.MotionControl.KCube.DCServo.dll")
 
 lateral_mot = c_char_p(bytes("27504851", "utf-8"))
 longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
@@ -55,19 +55,52 @@ def close_motors():
         kcdc.CC_StopPolling(serialno)
         kcdc.CC_Close(serialno)
 
-open_motors()
+def block(serialno):
+    message_type, message_id, message_data = WORD(), WORD(), DWORD()
+    kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
+    while (int(message_type.value) != 2) or (int(message_id.value) != 1):
+        kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
 
-# Get velocity params
-# Set velocity params
+if kcdc.TLI_BuildDeviceList() == 0:
+    print("Device list built (no errors).")
 
-while True:
-    if keyboard.is_pressed('left arrow'):
-        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-        pass
-    elif keyboard.is_pressed('right arrow'):
-        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-        pass
-    if keyboard.is_pressed('up arrow'):
-        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-    elif keyboard.is_pressed('down arrow'):
-        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+    size = kcdc.TLI_GetDeviceListSize()
+    print(size, "device(s) found.")
+
+    serialnos = create_string_buffer(100)
+    kcdc.TLI_GetDeviceListByTypeExt(serialnos, 100, 27)
+    serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
+    print("Serial #'s:", serialnos)
+
+    open_motors()
+
+    acceleration_param = c_int()
+    velocity_param = c_int()
+
+    # Get velocity params
+    kcdc.CC_GetVelParams(lateral_mot, byref(acceleration_param), byref(velocity_param))
+    print(acceleration_param.value, velocity_param.value)
+    kcdc.CC_GetVelParams(longitudinal_mot, byref(acceleration_param), byref(velocity_param))
+    print(acceleration_param.value, velocity_param.value)
+
+    # Set velocity params
+    # kcdc.CC_SetVelParams(lateral_mot, acceleration_param, velocity_param)
+    # kcdc.CC_SetVelParams(longitudinal_mot, acceleration_param, velocity_param)
+
+    input('Press <ENTER> to active motion...')
+
+    while True:
+        if keyboard.is_pressed('left arrow'):
+            kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+            # We may actually not want to block, so that we can detect other keyboard
+            # commands such as one to STOP the motion
+            block(lateral_mot)
+        elif keyboard.is_pressed('right arrow'):
+            kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+            block(lateral_mot)
+        if keyboard.is_pressed('up arrow'):
+            kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+            block(longitudinal_mot)
+        elif keyboard.is_pressed('down arrow'):
+            kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+            block(longitudinal_mot) 
