@@ -35,17 +35,30 @@ from ctypes.wintypes import (
     WORD,
 )
 
-SWEEP_DIST_MM = 0.03
-STEP_SIZE_MM = 0.001
+# -------------------------------------------------------------------
+# User defined variables
+
+# Optimization type: either 'local' or 'global'
+OPT_TYPE = 'global'
+
+# Bounds: bounding box for optimization, centered around the
+# probe's starting position, in mm or degrees (global optimizer only)
+lat_bound = (0, 0) # Lateral bounds, mm
+long_bound = (0, 0) # Longitudinal bounds, mm
+rot_bound = (0, 0) # Rotational bounds, degrees
+# -------------------------------------------------------------------
 
 STEPS_PER_MM = 34304
-SHAPE = round(SWEEP_DIST_MM / STEP_SIZE_MM)
+STEPS_PER_DEG = 2000
 
 def mm_to_steps(mm):
     return round(mm * STEPS_PER_MM)
 
 def steps_to_mm(steps):
     return steps / STEPS_PER_MM
+
+def deg_to_steps(deg):
+    return round(deg * STEPS_PER_DEG)
 
 lateral_mot = c_char_p(bytes("27504851", "utf-8"))
 longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
@@ -118,27 +131,25 @@ if kcdc.TLI_BuildDeviceList() == 0:
     open_motors()
 
     # Calculate current position
-    kcdc.CC_RequestPosition(lateral_mot)
-    current_lat_pos_du = kcdc.CC_GetPosition(lateral_mot)
-    kcdc.CC_RequestPosition(longitudinal_mot)
-    current_long_pos_du = kcdc.CC_GetPosition(longitudinal_mot)
-    print("Current position: {}, {}".format(current_lat_pos_du, current_long_pos_du))
+    pos_du = []
+    for motor in motors:
+        kcdc.CC_RequestPosition(motor)
+        pos_du.append(kcdc.CC_GetPosition(motor))
+    print("Current position: {}, {}, {}".format(*pos_du))
 
-    # Calculate starting position
-    corner_lat_pos_du = current_lat_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
-    corner_long_pos_du = current_long_pos_du - mm_to_steps(SWEEP_DIST_MM / 2)
-    print("Corner position: {}, {}".format(corner_lat_pos_du, corner_long_pos_du))
+    # Calculate bounds in device units
+    if OPT_TYPE == 'global':
+        bounds_du = []
+        lb, ub = lat_bound
+        bounds_du.append((mm_to_steps(lb) + pos_du[0], mm_to_steps(ub) + pos_du[0]))
+        lb, ub = long_bound
+        bounds_du.append((mm_to_steps(lb) + pos_du[1], mm_to_steps(ub) + pos_du[1]))
+        lb, ub = rot_bound
+        bounds_du.append((deg_to_steps(lb) + pos_du[2], deg_to_steps(ub) + pos_du[2]))
+
     x = input("Press <ENTER> to begin moving...")
 
-    # Move to starting position
-    kcdc.CC_MoveToPosition(lateral_mot, c_int(corner_lat_pos_du))
-    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
-    block(longitudinal_mot)
-    block(lateral_mot)
-
-    # Configure motors for jogging
-    kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(STEP_SIZE_MM))
-    kcdc.CC_SetJogStepSize(longitudinal_mot, mm_to_steps(STEP_SIZE_MM))
+    # Configure motors for position movement speed
         
     # Wake up, scope!
     try: 
@@ -153,44 +164,24 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.query('*OPC?')
         scope.ext_error_checking()
 
-        # Start Move Test
-        rows, cols = data.shape
+        # Start Optimization
+        if OPT_TYPE == 'local':
+            res = minimize(J, np.array(pos_du), method='nelder-mead', options={'xatol': 0.2, 'fatol': 10, 'disp': True})
+        elif OPT_TYPE == 'global':
+            res = differential_evolution(J, bounds_du)
+        else:
+            raise ValueError('OPT_TYPE is not one of "local" or "global", is it defined correctly?')
+
+        print(res.x)
         
-        fig, ax = plt.subplots(1,1)
-        im = ax.imshow(data, cmap='hot')
-        
-        for i in range(rows):
-            for j in range(cols):
-                # Measure and jog the longitudinal motor
-                data[i, j] = scope.query('MEAS1:RES:ACT?')
-                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-
-                im.set_data(data)
-                im.set_clim(data.min(), data.max())
-                fig.canvas.draw_idle()
-                plt.pause(0.000001)
-                
-                block(longitudinal_mot)
-            
-            # Jog the lateral motor
-            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-            block(lateral_mot)
-            
-            # Move the longitudinal motor back to the start of the row
-            kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
-            block(longitudinal_mot)
-
-        plt.show()
-
-        with open('data.npy', 'wb') as f:
-            np.save(f, data)
+        # fig, ax = plt.subplots(1,1)
+        # im = ax.imshow(data, cmap='hot')
+        # im.set_data(data)
+        # im.set_clim(data.min(), data.max())
+        # fig.canvas.draw_idle()
+        # plt.pause(0.000001)
+        # plt.show()
         
     except VISAresourceExtentions.InstrumentErrorException as e:
         # Catching instrument error exception and showing its content
         print('Instrument error(s) occurred:\n' + e.message)
-
-    # Move to original position
-    kcdc.CC_MoveToPosition(lateral_mot, c_int(current_lat_pos_du))
-    kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
-    block(longitudinal_mot)
-    block(lateral_mot)
