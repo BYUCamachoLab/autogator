@@ -95,6 +95,10 @@ if kcdc.TLI_BuildDeviceList() == 0:
             # We may actually not want to block, so that we can detect other keyboard
             # commands such as one to STOP the motion
             block(lateral_mot)
+            # If we don't block, then what we should do is monitor for a keypress lift event,
+            # and use CC_StopProfiled (for CC_MoveAtVelocity, not for jogging) in that case.
+            # We may also want an "Emergency Stop All" button, perhaps the spacebar, that
+            # uses CC_StopImmediate and stops the motion of all stages.
         elif keyboard.is_pressed('right arrow'):
             kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
             block(lateral_mot)
