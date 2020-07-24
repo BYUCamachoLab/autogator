@@ -84,66 +84,66 @@ def block(serialno):
 
 def move_left(e):
     global move_mode, lateral_mot, lat_moving
-    if move_mode == MoveMode.JOG:
+    if move_mode == MoveMode.JOG and lat_moving == False:
         kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-        block(lateral_mot)
-    if move_mode == MoveMode.CONTINUOUS:
         lat_moving = True
-        print('move left')
+    if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
+        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        lat_moving = True
         # kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
 
 def release_left(e):
     global move_mode, lateral_mot, lat_moving
     if move_mode == MoveMode.CONTINUOUS:
-        print('stopping move left')
-        lat_moving = False
+        kcdc.CC_StopProfiled(lateral_mot)
+    lat_moving = False
         # If we don't block, then what we should do is monitor for a keypress lift event,
         # and use CC_StopProfiled (for CC_MoveAtVelocity, not for jogging) in that case.
 
 def move_right(e):
     global move_mode, lateral_mot, lat_moving
-    if move_mode == MoveMode.JOG:
+    if move_mode == MoveMode.JOG and lat_moving == False:
         kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-        block(lateral_mot)
-    if move_mode == MoveMode.CONTINUOUS:
-        print('move right')
+        lat_moving = True
+    if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
+        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
         lat_moving = True
 
 def release_right(e):
     global move_mode, lateral_mot, lat_moving
     if move_mode == MoveMode.CONTINUOUS:
-        print('stopping move right')
-        lat_moving = False
+        kcdc.CC_StopProfiled(lateral_mot)
+    lat_moving = False
 
 def move_up(e):
     global move_mode, longitudinal_mot, long_moving
-    if move_mode == MoveMode.JOG:
+    if move_mode == MoveMode.JOG and long_moving == False:
         kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-        block(longitudinal_mot)
-    if move_mode == MoveMode.CONTINUOUS:
-        print('move up')
+        long_moving = True
+    if move_mode == MoveMode.CONTINUOUS and long_moving == False:
+        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
         long_moving = True
 
 def release_up(e):
     global move_mode, longitudinal_mot, long_moving
     if move_mode == MoveMode.CONTINUOUS:
-        print('stopping move up')
-        long_moving = False
+       kcdc.CC_StopProfiled(longitudinal_mot)
+    long_moving = False
 
 def move_down(e):
     global move_mode, longitudinal_mot, long_moving
-    if move_mode == MoveMode.JOG:
+    if move_mode == MoveMode.JOG and long_moving == False:
         kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-        block(longitudinal_mot)
-    if move_mode == MoveMode.CONTINUOUS:
-        print('move down')
+        long_moving = True
+    if move_mode == MoveMode.CONTINUOUS and long_moving == False:
+        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
         long_moving = True
 
 def release_down(e):
     global move_mode, longitudinal_mot, long_moving
     if move_mode == MoveMode.CONTINUOUS:
-        print('stopping move down')
-        long_moving = False
+        kcdc.CC_StopProfiled(longitudinal_mot)
+    long_moving = False
 
 def rotate_cw(e):
     global move_mode
@@ -170,7 +170,9 @@ def release_ccw(e):
         print('stopping move ccw')
 
 def stop_all(e):
-    print('emergency stop')
+    if move_mode == MoveMode.CONTINUOUS or move_mode == MoveMode.Jog:
+        CC_StopImmediate(lateral_mot)
+        CC_StopImmediate(longitudinal_mot)
     # We may also want an "Emergency Stop All" button, perhaps the spacebar, that
     # uses CC_StopImmediate and stops the motion of all stages.
 
@@ -178,6 +180,10 @@ def jog_mode(e):
     global move_mode
     move_mode = MoveMode.JOG
     print('JOG mode activated')
+
+def set_jog_mode(e):
+    kcdc.CC_SetJogMode(lateral_mot, kcdc.MOT_JogModeUndefined, kcdc.StopModeUndefined)
+    kcdc.CC_SetJogMode(longitudinal_mot, kcdc.MOT_JogModeUndefined, kcdc.StopModeUndefined)
 
 def set_jog_step():
     step = float(input('New jog step size (mm):'))
@@ -223,7 +229,7 @@ keyboard.on_press_key('c', rotate_cw)
 keyboard.on_release_key('c', release_cw)
 keyboard.on_press_key('x', rotate_ccw)
 keyboard.on_release_key('x', release_ccw)
-keyboard.on_press_key('j', jog_mode)
+keyboard.on_press_key('j', set_jog_mode, jog_mode)
 keyboard.add_hotkey('shift + j', set_jog_step)
 keyboard.on_press_key('k', cont_mode)
 keyboard.add_hotkey('shift + k', set_velocity)
