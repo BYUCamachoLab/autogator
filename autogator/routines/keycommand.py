@@ -1,9 +1,12 @@
 import os
 os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
+
 import atexit
+import time
+from enum import Enum, auto
+
 import keyboard
 import numpy as np
-import time
 import thorlabs_kinesis as tk
 from thorlabs_kinesis import kcube_dcservo as kcdc
 from autogator.models.stage import Z825B, VariableRotationalMotor
@@ -23,9 +26,27 @@ from ctypes.wintypes import (
     WORD,
 )
 
+class MoveMode(Enum):
+    JOG = auto()
+    CONTINUOUS = auto()
+
+STEPS_PER_MM = 34304
+STEP_SIZE_MM = 0.001
+
+def mm_to_steps(mm):
+    return round(mm * STEPS_PER_MM)
+
+def steps_to_mm(steps):
+    return steps / STEPS_PER_MM
+
+move_mode = MoveMode.JOG
 lateral_mot = c_char_p(bytes("27504851", "utf-8"))
 longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
 motors = [lateral_mot, longitudinal_mot]
+
+lat_moving = False
+long_moving = False
+rot_moving = False
 
 def open_motors():
     global motors
@@ -61,6 +82,154 @@ def block(serialno):
     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
         kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
 
+def move_left(e):
+    global move_mode, lateral_mot, lat_moving
+    if move_mode == MoveMode.JOG:
+        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        block(lateral_mot)
+    if move_mode == MoveMode.CONTINUOUS:
+        lat_moving = True
+        print('move left')
+        # kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+
+def release_left(e):
+    global move_mode, lateral_mot, lat_moving
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move left')
+        lat_moving = False
+        # If we don't block, then what we should do is monitor for a keypress lift event,
+        # and use CC_StopProfiled (for CC_MoveAtVelocity, not for jogging) in that case.
+
+def move_right(e):
+    global move_mode, lateral_mot, lat_moving
+    if move_mode == MoveMode.JOG:
+        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        block(lateral_mot)
+    if move_mode == MoveMode.CONTINUOUS:
+        print('move right')
+        lat_moving = True
+
+def release_right(e):
+    global move_mode, lateral_mot, lat_moving
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move right')
+        lat_moving = False
+
+def move_up(e):
+    global move_mode, longitudinal_mot, long_moving
+    if move_mode == MoveMode.JOG:
+        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        block(longitudinal_mot)
+    if move_mode == MoveMode.CONTINUOUS:
+        print('move up')
+        long_moving = True
+
+def release_up(e):
+    global move_mode, longitudinal_mot, long_moving
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move up')
+        long_moving = False
+
+def move_down(e):
+    global move_mode, longitudinal_mot, long_moving
+    if move_mode == MoveMode.JOG:
+        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        block(longitudinal_mot)
+    if move_mode == MoveMode.CONTINUOUS:
+        print('move down')
+        long_moving = True
+
+def release_down(e):
+    global move_mode, longitudinal_mot, long_moving
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move down')
+        long_moving = False
+
+def rotate_cw(e):
+    global move_mode
+    if move_mode == MoveMode.JOG:
+        print('jog cw')
+    if move_mode == MoveMode.CONTINUOUS:
+        print('move cw')
+
+def release_cw(e):
+    global move_mode
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move cw')
+
+def rotate_ccw(e):
+    global move_mode
+    if move_mode == MoveMode.JOG:
+        print('jog ccw')
+    if move_mode == MoveMode.CONTINUOUS:
+        print('move ccw')
+
+def release_ccw(e):
+    global move_mode
+    if move_mode == MoveMode.CONTINUOUS:
+        print('stopping move ccw')
+
+def stop_all(e):
+    print('emergency stop')
+    # We may also want an "Emergency Stop All" button, perhaps the spacebar, that
+    # uses CC_StopImmediate and stops the motion of all stages.
+
+def jog_mode(e):
+    global move_mode
+    move_mode = MoveMode.JOG
+    print('JOG mode activated')
+
+def set_jog_step():
+    step = float(input('New jog step size (mm):'))
+    kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(step))
+    kcdc.CC_SetJogStepSize(longitudinal_mot, mm_to_steps(step))
+
+def cont_mode(e):
+    global move_mode
+    move_mode = MoveMode.CONTINUOUS
+    print('CONTINUOUS mode activated')
+
+def set_velocity():
+    vel = float(input('New velocity (device units):'))
+
+help_txt = """\nControls\n--------\n
+\tleft arrow - move left
+\tright arrow - move right
+\tdown arrow - move down
+\tup arrow - move up
+\tj - jog mode
+\tshift + j - jog step size
+\tk - continuous mode
+\tc - clockwise rotation
+\tx - counterclockwise rotation
+\tspacebar - emergency stop all
+\th - help
+\tq - quit
+"""
+
+def helpme(e):
+    global help_txt
+    print(help_txt)
+
+keyboard.on_press_key('left arrow', move_left)
+keyboard.on_release_key('left arrow', release_left)
+keyboard.on_press_key('right arrow', move_right)
+keyboard.on_release_key('right arrow', release_right)
+keyboard.on_press_key('up arrow', move_up)
+keyboard.on_release_key('up arrow', release_up)
+keyboard.on_press_key('down arrow', move_down)
+keyboard.on_release_key('down arrow', release_down)
+keyboard.on_press_key('c', rotate_cw)
+keyboard.on_release_key('c', release_cw)
+keyboard.on_press_key('x', rotate_ccw)
+keyboard.on_release_key('x', release_ccw)
+keyboard.on_press_key('j', jog_mode)
+keyboard.add_hotkey('shift + j', set_jog_step)
+keyboard.on_press_key('k', cont_mode)
+keyboard.add_hotkey('shift + k', set_velocity)
+keyboard.on_press_key('space', stop_all)
+keyboard.on_press_key('h', helpme)
+
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
 
@@ -87,24 +256,14 @@ if kcdc.TLI_BuildDeviceList() == 0:
     # kcdc.CC_SetVelParams(lateral_mot, acceleration_param, velocity_param)
     # kcdc.CC_SetVelParams(longitudinal_mot, acceleration_param, velocity_param)
 
+    # Default configuration for jogging motors
+    kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(STEP_SIZE_MM))
+    kcdc.CC_SetJogStepSize(longitudinal_mot, mm_to_steps(STEP_SIZE_MM))
+
+    print(help_txt)
     input('Press <ENTER> to active motion...')
 
     while True:
-        if keyboard.is_pressed('left arrow'):
-            kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-            # We may actually not want to block, so that we can detect other keyboard
-            # commands such as one to STOP the motion
-            block(lateral_mot)
-            # If we don't block, then what we should do is monitor for a keypress lift event,
-            # and use CC_StopProfiled (for CC_MoveAtVelocity, not for jogging) in that case.
-            # We may also want an "Emergency Stop All" button, perhaps the spacebar, that
-            # uses CC_StopImmediate and stops the motion of all stages.
-        elif keyboard.is_pressed('right arrow'):
-            kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-            block(lateral_mot)
-        if keyboard.is_pressed('up arrow'):
-            kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
-            block(longitudinal_mot)
-        elif keyboard.is_pressed('down arrow'):
-            kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
-            block(longitudinal_mot) 
+        if keyboard.is_pressed('q'):
+            print("QUIT")
+            break
