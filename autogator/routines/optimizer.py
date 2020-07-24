@@ -38,13 +38,18 @@ from ctypes.wintypes import (
 # -------------------------------------------------------------------
 # User defined variables
 
-# Optimization type: either 'local' or 'global'
-OPT_TYPE = 'global'
+# Optimization type, one of:
+#   nm : Nelder-Mead
+#   slsqp : Sequential Least Squares Programming algorithm
+#   lbfgsb : lbfgsb algorithm
+#   de : Differential Evolution
+#   brute : brute force (check every point in grid)
+OPT_TYPE = 'slsqp'
 
 # Bounds: bounding box for optimization, centered around the
 # probe's starting position, in mm or degrees (global optimizer only)
-lat_bound = (0, 0) # Lateral bounds, mm
-long_bound = (0, 0) # Longitudinal bounds, mm
+lat_bound = (-0.020, 0.020) # Lateral bounds, mm
+long_bound = (-0.020, 0.020) # Longitudinal bounds, mm
 rot_bound = (0, 0) # Rotational bounds, degrees
 # -------------------------------------------------------------------
 
@@ -72,13 +77,15 @@ def J(x):
         x[1]: longitudinal position
         x[2]: rotational position
     """
+    x = np.round(x).astype(int)
     kcdc.CC_MoveToPosition(lateral_mot, c_int(x[0]))
     kcdc.CC_MoveToPosition(longitudinal_mot, c_int(x[1]))
     kcdc.CC_MoveToPosition(rotational, c_int(x[2]))
     block(lateral_mot)
     block(longitudinal_mot)
     block(rotational)
-    data = scope.query('MEAS1:RES:ACT?')
+    data = float(scope.query('MEAS1:RES:ACT?'))
+    print("x:", x, 'value:', data)
     return -1 * data
 
 
@@ -114,6 +121,20 @@ def block(serialno):
     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
         kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
 
+def optimize(method, x0, bounds):
+    if method == 'nm':
+        res = minimize(J, np.array(x0), method='nelder-mead', options={'xatol': 0.2, 'fatol': 10, 'disp': True})
+    elif method == 'lbfgsb':
+        res = minimize(J, np.array(x0), method='L-BFGS-B', bounds=bounds)
+    elif method == 'slsqp':
+        res = minimize(J, np.array(x0), method='SLSQP', bounds=bounds)
+    elif method == 'de':
+        res = differential_evolution(J, bounds)
+    else:
+        raise ValueError('OPT_TYPE is not one of "local" or "global", is it defined correctly?')
+    return res
+
+
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
 
@@ -138,19 +159,19 @@ if kcdc.TLI_BuildDeviceList() == 0:
     print("Current position: {}, {}, {}".format(*pos_du))
 
     # Calculate bounds in device units
-    if OPT_TYPE == 'global':
-        bounds_du = []
-        lb, ub = lat_bound
-        bounds_du.append((mm_to_steps(lb) + pos_du[0], mm_to_steps(ub) + pos_du[0]))
-        lb, ub = long_bound
-        bounds_du.append((mm_to_steps(lb) + pos_du[1], mm_to_steps(ub) + pos_du[1]))
-        lb, ub = rot_bound
-        bounds_du.append((deg_to_steps(lb) + pos_du[2], deg_to_steps(ub) + pos_du[2]))
-
+    bounds_du = []
+    lb, ub = lat_bound
+    bounds_du.append((mm_to_steps(lb) + pos_du[0], mm_to_steps(ub) + pos_du[0]))
+    lb, ub = long_bound
+    bounds_du.append((mm_to_steps(lb) + pos_du[1], mm_to_steps(ub) + pos_du[1]))
+    lb, ub = rot_bound
+    bounds_du.append((deg_to_steps(lb) + pos_du[2], deg_to_steps(ub) + pos_du[2]))
+    print("Bounds:", bounds_du)
     x = input("Press <ENTER> to begin moving...")
 
     # Configure motors for position movement speed
-        
+    
+
     # Wake up, scope!
     try: 
         scope.write('TIM:SCAL 1e-9') # Set the time base of the oscilloscope
@@ -165,13 +186,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.ext_error_checking()
 
         # Start Optimization
-        if OPT_TYPE == 'local':
-            res = minimize(J, np.array(pos_du), method='nelder-mead', options={'xatol': 0.2, 'fatol': 10, 'disp': True})
-        elif OPT_TYPE == 'global':
-            res = differential_evolution(J, bounds_du)
-        else:
-            raise ValueError('OPT_TYPE is not one of "local" or "global", is it defined correctly?')
-
+        res = optimize(OPT_TYPE, pos_du, bounds_du)
         print(res.x)
         
         # fig, ax = plt.subplots(1,1)
