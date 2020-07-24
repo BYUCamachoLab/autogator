@@ -7,6 +7,7 @@ sphinx_rtd_theme==0.4.3
 PySide2==5.15.0
 pyvisa==1.10.1
 git+git://github.com/byucamacholab/thorlabs-kinesis
+keyboard==0.13.5
 # pywin32==228
 # nicelib==0.6
 # matplotlib
