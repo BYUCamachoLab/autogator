@@ -170,9 +170,9 @@ def release_ccw(e):
         print('stopping move ccw')
 
 def stop_all(e):
-    if move_mode == MoveMode.CONTINUOUS or move_mode == MoveMode.Jog:
-        CC_StopImmediate(lateral_mot)
-        CC_StopImmediate(longitudinal_mot)
+    if move_mode == MoveMode.CONTINUOUS or move_mode == MoveMode.JOG:
+        kcdc.CC_StopImmediate(lateral_mot)
+        kcdc.CC_StopImmediate(longitudinal_mot)
     # We may also want an "Emergency Stop All" button, perhaps the spacebar, that
     # uses CC_StopImmediate and stops the motion of all stages.
 
@@ -182,8 +182,9 @@ def jog_mode(e):
     print('JOG mode activated')
 
 def set_jog_mode(e):
-    kcdc.CC_SetJogMode(lateral_mot, kcdc.MOT_JogModeUndefined, kcdc.StopModeUndefined)
-    kcdc.CC_SetJogMode(longitudinal_mot, kcdc.MOT_JogModeUndefined, kcdc.StopModeUndefined)
+    kcdc.CC_SetJogMode(lateral_mot, kcdc.MOT_JogModes.MOT_SingleStep.value, kcdc.MOT_StopModes.MOT_Profiled.value)
+    kcdc.CC_SetJogMode(longitudinal_mot, kcdc.MOT_JogModes.MOT_SingleStep.value, kcdc.MOT_StopModes.MOT_Profiled.value)
+    print('JOG mode set')
 
 def set_jog_step():
     step = float(input('New jog step size (mm):'))
@@ -203,6 +204,7 @@ help_txt = """\nControls\n--------\n
 \tright arrow - move right
 \tdown arrow - move down
 \tup arrow - move up
+\ts - reset jog
 \tj - jog mode
 \tshift + j - jog step size
 \tk - continuous mode
@@ -229,7 +231,8 @@ keyboard.on_press_key('c', rotate_cw)
 keyboard.on_release_key('c', release_cw)
 keyboard.on_press_key('x', rotate_ccw)
 keyboard.on_release_key('x', release_ccw)
-keyboard.on_press_key('j', set_jog_mode, jog_mode)
+keyboard.on_press_key('s', set_jog_mode)
+keyboard.on_press_key('j', jog_mode)
 keyboard.add_hotkey('shift + j', set_jog_step)
 keyboard.on_press_key('k', cont_mode)
 keyboard.add_hotkey('shift + k', set_velocity)
