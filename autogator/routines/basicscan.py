@@ -130,7 +130,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
         scope.write('MEAS1:SOUR C1W1') # Set measuring params
         scope.write('MEAS1 ON')
         scope.write('MEAS1:MAIN MAX') # Measure the max value in the current view window (Based on time base)
-        scope.write('CHAN1:RANG 22')  # Horizontal range 22V
+        scope.write('CHAN1:RANG 0.2')  # Horizontal range 22V
         scope.write('CHAN1:POS 0')  # Offset 0
         scope.write('CHAN1:COUP DCL')  # Coupling DC 1MOhm
         scope.write('CHAN1:STAT ON')  # Switch Channel 1 ON

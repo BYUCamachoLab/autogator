@@ -84,7 +84,7 @@ def block(serialno):
 
 def move_left(e):
     global move_mode, lateral_mot, lat_moving
-    if move_mode == MoveMode.JOG and lat_moving == False:
+    if move_mode == MoveMode.JOG:
         kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
         lat_moving = True
     if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
@@ -102,7 +102,7 @@ def release_left(e):
 
 def move_right(e):
     global move_mode, lateral_mot, lat_moving
-    if move_mode == MoveMode.JOG and lat_moving == False:
+    if move_mode == MoveMode.JOG:
         kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
         lat_moving = True
     if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
@@ -117,7 +117,7 @@ def release_right(e):
 
 def move_up(e):
     global move_mode, longitudinal_mot, long_moving
-    if move_mode == MoveMode.JOG and long_moving == False:
+    if move_mode == MoveMode.JOG:
         kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
         long_moving = True
     if move_mode == MoveMode.CONTINUOUS and long_moving == False:
@@ -132,7 +132,7 @@ def release_up(e):
 
 def move_down(e):
     global move_mode, longitudinal_mot, long_moving
-    if move_mode == MoveMode.JOG and long_moving == False:
+    if move_mode == MoveMode.JOG:
         kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
         long_moving = True
     if move_mode == MoveMode.CONTINUOUS and long_moving == False:
@@ -145,27 +145,38 @@ def release_down(e):
         kcdc.CC_StopProfiled(longitudinal_mot)
     long_moving = False
 
+# def set_rotation_mode(e):
+#     kcdc.CC_SetRotationModes(lateral_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
+#     kcdc.CC_SetRotationModes(lateral_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Reverse.value)
+#     kcdc.CC_SetRotationModes(longitudinal_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
+#     kcdc.CC_SetRotationModes(longitudinal_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Reverse.value)
+#     print('rotation mode set')
+
 def rotate_cw(e):
-    global move_mode
-    if move_mode == MoveMode.JOG:
-        print('jog cw')
-    if move_mode == MoveMode.CONTINUOUS:
-        print('move cw')
+     print ('rotate cw')
+#     global move_mode, lateral_mot, lat_moving
+#     if move_mode == MoveMode.JOG and lat_moving == False:
+#         kcdc.CC_SetRotationModes(lateral_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
+#         long_moving = True
+#     if move_mode == MoveMode.CONTINUOUS:
+#         kcdc.CC_SetRotationModes(lateral_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
+#         print('move cw')
 
 def release_cw(e):
-    global move_mode
+    global move_mode, lateral_mot, lat_moving
     if move_mode == MoveMode.CONTINUOUS:
         print('stopping move cw')
 
 def rotate_ccw(e):
-    global move_mode
-    if move_mode == MoveMode.JOG:
-        print('jog ccw')
-    if move_mode == MoveMode.CONTINUOUS:
-        print('move ccw')
+     print('rotate ccw')
+#     global move_mode, longitudinal_mot, long_moving
+#     if move_mode == MoveMode.JOG:
+#         kcdc.CC_SetRotationModes(longitudinal_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
+#     if move_mode == MoveMode.CONTINUOUS:
+#         kcdc.CC_SetRotationModes(longitudinal_mot, MOT_MovementModes.RotationalWrapping.value, MOT_MovementDirections.Forwards.value)
 
 def release_ccw(e):
-    global move_mode
+    global move_mode, longitudinal_mot, long_moving
     if move_mode == MoveMode.CONTINUOUS:
         print('stopping move ccw')
 
