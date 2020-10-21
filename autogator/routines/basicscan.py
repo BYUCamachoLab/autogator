@@ -35,8 +35,8 @@ from ctypes.wintypes import (
 )
 
 STEPS_PER_MM = 34304
-SWEEP_DIST_MM = 0.03
-STEP_SIZE_MM = 0.001
+SWEEP_DIST_MM = 0.06
+STEP_SIZE_MM = 0.003
 SHAPE = round(SWEEP_DIST_MM / STEP_SIZE_MM)
 
 def mm_to_steps(mm):
@@ -147,7 +147,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
             for j in range(cols):
                 # Measure and jog the longitudinal motor
                 data[i, j] = scope.query('MEAS1:RES:ACT?')
-                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+                kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_Reverse)
 
                 im.set_data(data)
                 im.set_clim(data.min(), data.max())
@@ -157,7 +157,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
                 block(longitudinal_mot)
             
             # Jog the lateral motor
-            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+            kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_Reverse)
             block(lateral_mot)
             
             # Move the longitudinal motor back to the start of the row

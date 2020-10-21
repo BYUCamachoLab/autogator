@@ -85,10 +85,10 @@ def block(serialno):
 def move_left(e):
     global move_mode, lateral_mot, lat_moving
     if move_mode == MoveMode.JOG:
-        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_Forwards)
         lat_moving = True
     if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
-        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_Forwards)
         lat_moving = True
         # kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
 
@@ -103,10 +103,10 @@ def release_left(e):
 def move_right(e):
     global move_mode, lateral_mot, lat_moving
     if move_mode == MoveMode.JOG:
-        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_Reverse)
         lat_moving = True
     if move_mode == MoveMode.CONTINUOUS and lat_moving == False:
-        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        kcdc.CC_MoveAtVelocity(lateral_mot, kcdc.MOT_Reverse)
         lat_moving = True
 
 def release_right(e):
@@ -118,10 +118,10 @@ def release_right(e):
 def move_up(e):
     global move_mode, longitudinal_mot, long_moving
     if move_mode == MoveMode.JOG:
-        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_Reverse)
         long_moving = True
     if move_mode == MoveMode.CONTINUOUS and long_moving == False:
-        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Reverse.value)
+        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_Reverse)
         long_moving = True
 
 def release_up(e):
@@ -133,10 +133,10 @@ def release_up(e):
 def move_down(e):
     global move_mode, longitudinal_mot, long_moving
     if move_mode == MoveMode.JOG:
-        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_Forwards)
         long_moving = True
     if move_mode == MoveMode.CONTINUOUS and long_moving == False:
-        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_TravelDirection.MOT_Forwards.value)
+        kcdc.CC_MoveAtVelocity(longitudinal_mot, kcdc.MOT_Forwards)
         long_moving = True
 
 def release_down(e):
