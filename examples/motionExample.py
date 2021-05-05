@@ -1,5 +1,5 @@
-from packages.motion import *
-from packages.map import Map
+from autogator.motion.motion import *
+from autogator.map.map import Map
 
 map = Map("circuits.txt")
 

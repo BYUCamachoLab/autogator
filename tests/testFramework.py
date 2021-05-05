@@ -19,7 +19,7 @@ class Test:
     filename_prefix="", filename_suffix="data_now", data_directory="measurements/", append_date=True, save_raw_data=True,
     take_screenshot=True, active_channels=[1,2,3,4], trigger_channel=1, trigger_level=1, 
     scope_IP="10.32.112.162", scope_protocol="INSTR", scope_range_1=10, scope_range_2=5, scope_range_3=5, scope_range_4=5, 
-    scope_position_1=2, scope_position_2=-4, scope_position_3=-2, scope_position_4=.5):
+    scope_position_1=2, scope_position_2=-4, scope_position_3=-2, scope_position_4=.5, circuits_text_file="circuits.txt"):
         self.lambda_start    = lambda_start
         self.lambda_stop     = lambda_stop
         self.duration        = duration
@@ -48,6 +48,14 @@ class Test:
         }
 
     def run(self):
+        ### Calibrate Stage
+        ### (Based on first 3 circuits in text file)
+        scope = RTO(self.scope_IP, protocol=self.scope_protocol)
+        platform = PlatformCalibrator(self.circuits_text_file, scope)
+
+        platform.calibrate()
+
+
         # ---------------------------------------------------------------------------- #
         # Check Input
         # ---------------------------------------------------------------------------- #
@@ -103,7 +111,6 @@ class Test:
 
         #Oscilloscope Settings
         print("Initializing Oscilloscope")
-        scope = RTO(self.scope_IP, protocol=self.scope_protocol)
         scope.acquisition_settings(self.sample_rate, acquire_time)
         for channel in self.active_channels:
             channelMode = "Trigger" if (channel == self.trigger_channel) else "Data"

@@ -1,4 +1,4 @@
-from packages.map import Map
+from autogator.map.map import Map
 
 map = Map("circuits.txt")
 
