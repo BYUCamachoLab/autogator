@@ -26,7 +26,7 @@ setuptools.setup(
     name="AutoGator",
     version=__version__,
     author="Sequoia Ploeg",
-    author_email="sequoia.ploeg@ieee.org",
+    author_email="sequoia.ploeg@byu.edu",
     description="A software package for camera-assisted motion control of PIC chip interrogation platforms.",
     long_description=long_description,
     long_description_content_type="text/markdown",
