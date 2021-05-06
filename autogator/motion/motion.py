@@ -1,6 +1,3 @@
-import os
-os.add_dll_directory("C:\\Program Files\\Thorlabs\\Kinesis")
-
 from ctypes import c_int, c_double, byref, pointer
 import numpy as np
 import time

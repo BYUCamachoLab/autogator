@@ -1,6 +1,3 @@
-import os
-os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
-
 import pyvisa as visa
 from packages.motion import *
 import matplotlib.pyplot as plt

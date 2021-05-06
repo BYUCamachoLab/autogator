@@ -2,8 +2,6 @@ from packages.motion import *
 from packages.map import Map
 from packages.dataScanner import DataScanner
 import numpy as np
-import os
-os.add_dll_directory("C:\\Program Files\\Thorlabs\\Kinesis")
 import keyboard
 
 ### Add lasor controls later, assume on for now
