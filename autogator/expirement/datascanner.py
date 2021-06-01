@@ -1,11 +1,6 @@
-import pyvisa as visa
-from packages.motion import *
 import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
-import atexit
-
-from pyrolab.drivers.motion.z825b import Z825B
 
 class DataScanner:
     def __init__(self, oscilloscope, channel=1):

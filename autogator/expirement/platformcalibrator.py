@@ -1,6 +1,6 @@
-from packages.motion import *
-from packages.map import Map
-from packages.dataScanner import DataScanner
+from autogator.motion import motion
+from autogator.map.map import Map
+from autogator.expirement.datascanner import DataScanner
 import numpy as np
 import keyboard
 
@@ -16,12 +16,13 @@ class PlatformCalibrator:
     def __init__(self, text_file_name, oscilliscope):
         self.oscope = oscilliscope
         self.map = Map(text_file_name)
+        self.motion = motion.Motion()
         self.dataScanner = DataScanner(self.oscope)
 
     def calibrate(self):
         circuits = self.map.return_circuits()
         global point1, point2, point3, conversion_matrix
-        home_motors()
+        self.motion.home_motors()
         print("Starting calibration process...")
         print("Move " + circuits[0].name + " into Crosshairs, then press q")
         self.keyloop_for_calibration_point1()
@@ -51,30 +52,30 @@ class PlatformCalibrator:
 
 
     def keyloop_for_calibration_point1(self):
-        keyloop()
+        self.motion.keyloop()
         global point1
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point1 = [get_x_position(), get_y_position()]
+        point1 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
         print("Point 1 set to (" + str(point1[0]) + "," + str(point1[1]) + ")")
 
     def keyloop_for_calibration_point2(self):
-        keyloop()
+        self.motion.keyloop()
         global point2
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point2 = [get_x_position(), get_y_position()]
+        point2 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
         print("Point 2 set to (" + str(point2[0]) + "," + str(point2[1]) + ")")
 
     def keyloop_for_calibration_point3(self):
-        keyloop()
+        self.motion.keyloop()
         global point3
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point3 = [get_x_position(), get_y_position()]
+        point3 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
         print("Point 3 set to (" + str(point3[0]) + "," + str(point3[1]) + ")")
 
     def get_conversions_matrix():
