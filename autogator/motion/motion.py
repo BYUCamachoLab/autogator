@@ -34,10 +34,6 @@ class Motion():
 
         self.conversion_matrix = np.array([[1]])
 
-        self.point1 = [0,0]
-        self.point2 = [0,0]
-        self.point3 = [0,0]
-
         self.x_mot_moving = False
         self.y_mot_moving = False
         self.r_mot_moving = False
@@ -137,17 +133,6 @@ class Motion():
         global help_txt
         print(help_txt)
 
-    def set_point_1(self):
-        self.point1 = [self.x_mot.get_position(), self.y_mot.get_position()]
-        print("Point 1 set to (" + str(self.point1[0]) + "," + str(self.point1[1]) + ")")
-
-    def set_point_2(self):
-        self.point2 = [self.x_mot.get_position(), self.y_mot.get_position()]
-        print("Point 2 set to (" + str(self.point2[0]) + "," + str(self.point2[1]) + ")")
-
-    def set_point_3(self):
-        self.point3 = [self.x_mot.get_position(), self.y_mot.get_position()]
-        print("Point 3 set to (" + str(self.point3[0]) + "," + str(self.point3[1]) + ")")
 
     def keyloop_for_calibration(self):
         keyboard.on_press_key('left arrow', lambda _:self.move_step(self.x_mot, "backward"))
@@ -317,45 +302,6 @@ class Motion():
     def go_to_circuit(self,circuit):
         pos = circuit.location
         go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
-
-    def calibrate(self,circuits):
-        # self.home_motors()
-        print("Starting calibration process...")
-        print("Move " + circuits[0].name + " into Crosshairs, then press shift + 1")
-        print("Then Move " + circuits[1].name + " into Crosshairs, then press shift + 2")
-        print("Then Move " + circuits[2].name + " into Crosshairs, then press shift + 3")
-        keyloop_for_calibration()
-        location1 = circuits[0].location
-        location2 = circuits[1].location
-        location3 = circuits[2].location
-        print("GDS locations:")
-        print(location1)
-        print(location2)
-        print(location3)
-        print("Chip locations:")
-        print(self.point1)
-        print(self.point2)
-        print(self.point3)
-
-        GDS = np.array([[float(location1[0]), float(location1[1]), 1, 0, 0, 0], [0, 0, 0, float(location1[0]), float(location1[1]), 1], [float(location2[0]), float(location2[1]), 1, 0, 0, 0], [0, 0, 0, float(location2[0]), float(location2[1]), 1], [float(location3[0]), float(location3[1]), 1, 0, 0, 0], [0, 0, 0, float(location3[0]), float(location3[1]), 1]])
-
-        CHIP = np.array([[self.point1[0]],[self.point1[1]],[self.point2[0]],[self.point2[1]],[self.point3[0]],[self.point3[1]]])
-
-        a = np.linalg.inv(GDS) @ CHIP
-
-        self.conversion_matrix = np.array([[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]])
-
-    def move_right(self):
-        move_step(self.x_mot, 'forward')
-
-    def move_left(self):
-        move_step(self.x_mot, 'backward')
-
-    def move_up(self):
-        move_step(self.y_mot, 'forward')
-
-    def move_down(self):
-        move_step(self.y_mot, 'backward')
 
     def get_y_position(self):
         return self.y_mot.get_position()
