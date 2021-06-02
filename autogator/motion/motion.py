@@ -133,43 +133,6 @@ class Motion():
         global help_txt
         print(help_txt)
 
-
-    def keyloop_for_calibration(self):
-        keyboard.on_press_key('left arrow', lambda _:self.move_step(self.x_mot, "backward"))
-        keyboard.on_release_key('left arrow', lambda _:self.stop_cont_jog(self.x_mot, "step"))
-        keyboard.on_press_key('right arrow', lambda _:self.move_step(self.x_mot, "forward"))
-        keyboard.on_release_key('right arrow', lambda _:self.stop_cont_jog(self.x_mot, "step"))
-        keyboard.on_press_key('up arrow', lambda _:self.move_step(self.y_mot, "forward"))
-        keyboard.on_release_key('up arrow', lambda _:self.stop_cont_jog(self.y_mot, "step"))
-        keyboard.on_press_key('down arrow', lambda _:self.move_step(self.y_mot, "backward"))
-        keyboard.on_release_key('down arrow', lambda _:self.stop_cont_jog(self.y_mot, "step"))
-        keyboard.on_press_key('a', lambda _:self.move_cont(self.x_mot, "backward"))
-        keyboard.on_release_key('a', lambda _:self.stop_cont_jog(self.x_mot, "continuous"))
-        keyboard.on_press_key('d', lambda _:self.move_cont(self.x_mot, "forward"))
-        keyboard.on_release_key('d', lambda _:self.stop_cont_jog(self.x_mot, "continuous"))
-        keyboard.on_press_key('w', lambda _:self.move_cont(self.y_mot, "forward"))
-        keyboard.on_release_key('w', lambda _:self.stop_cont_jog(self.y_mot, "continuous"))
-        keyboard.on_press_key('s', lambda _:self.move_cont(self.y_mot, "backward"))
-        keyboard.on_release_key('s', lambda _:self.stop_cont_jog(self.y_mot, "continuous"))
-        keyboard.add_hotkey('shift + j', self.set_jog_step_linear_input)
-        keyboard.add_hotkey('shift + g', self.set_jog_step_rotational)
-        keyboard.add_hotkey('shift + k', self.set_velocity)
-        keyboard.on_press_key('space', lambda _:self.stop_all())
-        keyboard.on_press_key('h', lambda _:self.help_me())
-        keyboard.on_press_key('o', lambda _:self.home_motors())
-        keyboard.add_hotkey('shift + 1', self.set_point_1)
-        keyboard.add_hotkey('shift + 2', self.set_point_2)
-        keyboard.add_hotkey('shift + 3', self.set_point_3)
-
-
-
-        print(help_txt)
-
-        while True:
-            if keyboard.is_pressed('q'):
-                print("QUIT")
-                break
-
     def set_flag(self, flag):
         self.flags[flag] = True
 
@@ -181,7 +144,6 @@ class Motion():
 
     def set_flag_vel(self):
         self.flags["shift_k"] = True
-
 
     def keyloop(self,quitKey = 'q'):
         keyboard.on_press_key('left arrow', lambda _:self.set_flag('left_arrow_pressed'))
