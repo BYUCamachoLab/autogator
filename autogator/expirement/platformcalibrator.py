@@ -57,7 +57,7 @@ class PlatformCalibrator:
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point1 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
+        point1 = [self.motion.get_x_position(), self.motion.get_y_position()]
         print("Point 1 set to (" + str(point1[0]) + "," + str(point1[1]) + ")")
 
     def keyloop_for_calibration_point2(self):
@@ -66,7 +66,7 @@ class PlatformCalibrator:
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point2 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
+        point2 = [self.motion.get_x_position(), self.motion.get_y_position()]
         print("Point 2 set to (" + str(point2[0]) + "," + str(point2[1]) + ")")
 
     def keyloop_for_calibration_point3(self):
@@ -75,7 +75,7 @@ class PlatformCalibrator:
         print("Optimizing data...")
         self.dataScanner.auto_scan()
         print("Done.")
-        point3 = [self.Motion.get_x_position(), self.Motion.get_y_position()]
+        point3 = [self.motion.get_x_position(), self.motion.get_y_position()]
         print("Point 3 set to (" + str(point3[0]) + "," + str(point3[1]) + ")")
 
     def get_conversions_matrix():
