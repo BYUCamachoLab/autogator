@@ -263,7 +263,7 @@ class Motion():
 
     def go_to_circuit(self,circuit):
         pos = circuit.location
-        go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
+        self.go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
 
     def get_y_position(self):
         return self.y_mot.get_position()
