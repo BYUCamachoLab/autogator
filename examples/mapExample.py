@@ -1,6 +1,6 @@
 from autogator.map.map import Map
 
-map = Map("circuits.txt")
+map = Map("examples/circuits.txt")
 
 print(map)
 print()
