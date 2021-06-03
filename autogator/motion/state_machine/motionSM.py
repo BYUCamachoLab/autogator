@@ -1,10 +1,12 @@
 import keyboard
 from enum import Enum, auto
-import autogator.motion.motion as motion
+import autogator.motion.motion as motpy
 
 #Used for timers in the State Machine
 MOTION_MAX_ADC_COUNT = 4 # Debounces Key Presses
 MOTION_MAX_CONT_COUNT = 15 # Sets time between movements
+
+motion = motpy.Motion()
 
 # Sets up objects from the motion.py so that actions can be performed
 x_motor = motion.x_mot # X axis motor

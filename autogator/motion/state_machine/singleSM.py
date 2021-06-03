@@ -1,10 +1,10 @@
 import keyboard
 from enum import Enum, auto
-import autogator.motion.motion as motion
+import autogator.motion.motion as motpy
 
 # This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4
-
+motion = motpy.Motion()
 # Sets up objects from the motion.py so that actions can be performed
 x_motor = motion.x_mot # X axis motor
 y_motor = motion.y_mot # Y axis motor
