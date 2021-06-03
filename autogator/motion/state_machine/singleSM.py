@@ -85,6 +85,7 @@ class single_action:
         self.wait_printing = False
         if self.press_printing == False:
             print("Pressing " + self.hotkey)
+            self.process_key_type()
             self.press_printing = True
     
     # This will be actiavted upon release of the key
@@ -92,6 +93,7 @@ class single_action:
         self.press_printing = False
         if self.release_printing == False:
             print("Releasing " + self.hotkey)
+            self.process_key_command()
             self.release_printing = True
     
     # This will see if any single press sm relevant keys were pressed and store the key

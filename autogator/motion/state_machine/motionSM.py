@@ -124,7 +124,7 @@ class motion_action:
         self.cont_printing = False
         if self.stop_printing == False:
             print("Stopping")
-            motion.stop_cont_jog(self.motor, self.direction)
+            motion.stop_cont_jog(self.motor, "continuous")
             self.stop_printing = True
     
     # Gets the key pressed and returns true if any key was pressed
@@ -143,6 +143,7 @@ class motion_action:
 class motion_sm:
     def __init__(self, state: motion_states=motion_states.INIT, count: int=0):
         self.state = state
+        self.cont_active = False
         self.count = count
         self.act = motion_action()
     
@@ -179,9 +180,12 @@ class motion_sm:
                     self.count += 1
                 else:
                     self.state = motion_states.ADC_CONT
+                    self.cont_active = True
                     self.count = 0
             else:
-                self.act.stop()
+                if self.cont_active: 
+                    self.act.stop()
+                    self.cont_active = False
                 self.state = motion_states.WAIT
                 self.count = 0
         elif self.state == motion_states.ADC_CONT:
@@ -190,6 +194,7 @@ class motion_sm:
                 self.state = motion_states.ADC_BUFFER
             else:
                 self.act.stop()
+                self.cont_active = False
                 self.state = motion_states.WAIT
         else:
             self.state = motion_states.INIT
