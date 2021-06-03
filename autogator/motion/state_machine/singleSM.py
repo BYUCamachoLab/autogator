@@ -1,7 +1,17 @@
 import keyboard
 from enum import Enum, auto
+import autogator.motion.motion as motion
 
+# This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4
+
+# Sets up objects from the motion.py so that actions can be performed
+x_motor = motion.x_mot # X axis motor
+y_motor = motion.y_mot # Y axis motor
+r_motor = motion.r_mot # Rotation motor
+
+# These hotkeys are possible keyboard inputs that will result in the activation
+# of the single press state machine
 single_hotkeys = [
     'left arrow',
     'right arrow',
@@ -16,6 +26,16 @@ single_hotkeys = [
     'o',
     'h'
 ]
+
+# Some keys have different functionalities and so the motion.py commands will be different
+# So I need to determine what type of key I'm working with
+class key_type(Enum):
+    MOTION = auto()
+    SETTER = auto()
+    INPUTLESS = auto()
+
+
+# Single Press State Machine States
 class single_states(Enum):
     INIT = auto()
     WAIT = auto()
@@ -29,44 +49,113 @@ class single_action:
         self.wait_printing = False
         self.press_printing = False
         self.release_printing = False
-        self.key_pressed = None
+        self.hotkey = None
+        self.key_type = None
+        self.motor = None
+        self.direction = None
+    
+    # Initializes the object
     def init(self):
         self.init_printing == False
         self.wait_printing = False
         self.press_printing = False
         self.release_printing = False
-        self.key_pressed = None
+        self.hotkey = None
+        self.key_type = None
+        self.motor = None
+        self.direction = None
         if self.init_printing == False:
             print("Initialized")
             self.init_printing = True
+    
+    # This will wait for a key to be pressed and will reset variables
     def wait(self):
         self.init_printing = False
         self.release_printing = False
+        self.hotkey = None
+        self.key_type = None
+        self.motor = None
+        self.direction = None
         if self.wait_printing == False:
             print("Waiting")
             self.wait_printing = True
+    
+    # This will be activated when a key is pressed
     def press(self):
         self.wait_printing = False
         if self.press_printing == False:
-            print("Pressing " + self.key_pressed)
+            print("Pressing " + self.hotkey)
             self.press_printing = True
+    
+    # This will be actiavted upon release of the key
     def release(self):
         self.press_printing = False
         if self.release_printing == False:
-            print("Releasing " + self.key_pressed)
+            print("Releasing " + self.hotkey)
             self.release_printing = True
     
-    def single_key_pressed(self):
+    # This will see if any single press sm relevant keys were pressed and store the key
+    def single_key_pressed(self) -> bool:
         output = False
         for hotkey in single_hotkeys:
             if(keyboard.is_pressed(hotkey)):
                 output = True
-                self.key_pressed = hotkey
+                self.hotkey = hotkey
         return output
     
-    def same_key_pressed(self):
-        return keyboard.is_pressed(self.key_pressed)
+    # This will check to see if the same key is still being pressed
+    def same_key_pressed(self) -> bool:
+        return keyboard.is_pressed(self.hotkey)
+
+    # Gets the key type so that the command can be proccessed later on
+    def process_key_type(self):
+        if (self.hotkey == 'left arrow') or (self.hotkey == 'right arrow') or \
+            (self.hotkey == 'down arrow') or (self.hotkey == 'up arrow') or \
+            (self.hotkey == 'c') or (self.hotkey == 'x'):
+            self.key_type = key_type.MOTION
+            if (self.hotkey == 'left arrow') or (self.hotkey == 'right arrow'):
+                self.motor = x_motor
+                if self.hotkey == 'left arrow':
+                    self.direction = "backward"
+                elif self.hotkey == 'right arrow':
+                    self.direction = "forward"
+            elif (self.hotkey == 'down arrow') or (self.hotkey == 'up arrow'):
+                self.motor = y_motor
+                if self.hotkey == 'down arrow':
+                    self.direction = "backward"
+                elif self.hotkey == 'up arrow':
+                    self.direction = "forward"
+            elif (self.hotkey == 'c') or (self.hotkey == 'x'):
+                self.motor = r_motor
+                if self.hotkey == 'c':
+                    self.direction = "forward"
+                elif self.hotkey == 'x':
+                    self.direction = "backward"
+        elif (self.hotkey == 'shift + j') or (self.hotkey == 'shift + g') or (self.hotkey == 'shift + k'):
+            self.key_type = key_type.SETTER
+        elif (self.hotkey == 'space') or (self.hotkey == 'o') or (self.hotkey == 'h'):
+            self.key_type = key_type.INPUTLESS
     
+    # This will actually run the motion.py command using the parameters determined in the process_key_type() function
+    def process_key_command(self):
+        if self.key_type == key_type.MOTION:
+            motion.move_step(self.motor, self.direction)
+        elif self.key_type == key_type.SETTER:
+            if self.hotkey == 'shift + j':
+                motion.set_jog_step_linear_input()
+            elif self.hotkey == 'shift + g':
+                motion.set_jog_step_rotational()
+            elif self.hotkey == 'shift + k':
+                motion.set_velocity()
+        elif self.key_type == key_type.INPUTLESS:
+            if self.hotkey == 'space':
+                motion.stop_all()
+            elif self.hotkey == 'h':
+                motion.help_me()
+            elif self.hotkey == 'o':
+                motion.home_motors()
+
+# Single Press State Machine
 class single_sm():
     def __init__(self, state: single_states=single_states.INIT, count: int=0):
         self.state = state

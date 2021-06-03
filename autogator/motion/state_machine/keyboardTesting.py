@@ -17,5 +17,3 @@ def run():
                 motion_sm.moore_sm()
                 single_sm.moore_sm()
                 ot = time.time()
-    
-run()
