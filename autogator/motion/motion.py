@@ -26,6 +26,35 @@ help_txt = """\nControls\n--------\n
     \th - help
     \tq - quit
     """
+NO_CHARACTER_KEYS = [
+    'left arrow',
+    'right arrow',
+    'down arrow',
+    'up arrow',
+    'shift',
+    'ctrl',
+    'alt',
+    'caps lock'
+]
+
+def is_no_char_key(input)->bool:
+    str_input = str(input).replace("KeyboardEvent(", "").replace(" down)", "")
+    if(str_input.count("up") != 0):
+        return True
+    output = False
+    for key in NO_CHARACTER_KEYS:
+        output |= str_input == key
+    return output
+
+def clear():
+    keystrokes = keyboard.stop_recording()
+    count = 0
+    for stroke in keystrokes:
+        if not is_no_char_key(stroke):
+            keyboard.write("\b")
+            count += 1
+    print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
+
 class Motion():
     def __init__(self):
         self.x_mot = Proxy(ns.lookup("KCUBE_LAT"))
@@ -81,23 +110,31 @@ class Motion():
             self.r_mot_moving = False
 
     def set_velocity(self):
+        clear()
+        os.system('cls')
         velocity = float(input('New velocity (device units):'))
         for m in self.motors:
             m.velocity = velocity
+        keyboard.start_recording()
 
     def set_jog_step_linear_input(self):
+        clear()
         os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
+        keyboard.start_recording
 
     def set_jog_step_linear(self,step_size):
         self.x_mot.jog_step_size = step_size
         self.y_mot.jog_step_size = step_size
         
     def set_jog_step_rotational(self):
+        clear()
+        os.system('cls')
         step = float(input('New Jog Step (degrees):'))
         self.r_mot.jog_step_size = step
+        keyboard.start_recording()
 
     def stop_all(self):
         for m in self.motors:
