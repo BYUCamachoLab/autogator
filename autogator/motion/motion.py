@@ -2,6 +2,7 @@ from ctypes import c_int, c_double, byref, pointer
 import numpy as np
 import time
 import keyboard
+import os
 
 from pyrolab.api import locate_ns, Proxy
 ns = locate_ns(host="camacholab.ee.byu.edu")
@@ -85,6 +86,7 @@ class Motion():
             m.velocity = velocity
 
     def set_jog_step_linear_input(self):
+        os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
