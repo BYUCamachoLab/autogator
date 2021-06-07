@@ -24,19 +24,42 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+"""
+autogator
+=======
+A software package for camera-assisted motion control of PIC chip interrogation platforms.
+"""
 
+import pathlib
 import platform
 import sys
 
-if sys.version_info < (3, 0, 0):
+if sys.version_info < (3, 6, 0):
     raise Exception(
-        "Autogator requires Python 3 (version "
+        "autogator requires Python 3 (version "
         + platform.python_version()
         + " detected)."
     )
 
+__name__ = "autogator"
+__author__ = "CamachoLab"
+__copyright__ = "Copyright 2021, CamachoLab" 
 __version__ = "0.2.0dev0"
-__license__ = __doc__
+__license__ = "MIT"
+__maintainer__ = "Sequoia Ploeg"
+__maintainer_email__ = "sequoia.ploeg@byu.edu"
+__status__ = "Development" # "Production"
 __project_url__ = "https://github.com/BYUCamachoLab/autogator"
 __forum_url__ = "https://github.com/BYUCamachoLab/autogator/issues"
 __website_url__ = "https://camacholab.byu.edu/"
+
+
+import warnings
+warnings.filterwarnings("default", category=DeprecationWarning)
+
+from appdirs import AppDirs
+_dirs = AppDirs(__name__, __author__, version=__version__)
+SITE_DATA_DIR = pathlib.Path(_dirs.site_data_dir)
+SITE_CONFIG_DIR = pathlib.Path(_dirs.site_config_dir)
+SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
+SITE_CONFIG_DIR.mkdir(parents=True, exist_ok=True)

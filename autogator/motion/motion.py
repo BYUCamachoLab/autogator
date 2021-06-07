@@ -309,3 +309,6 @@ class Motion():
 
     def get_x_position(self):
         return self.x_mot.get_position()
+
+    def get_r_position(self):
+        return self.r_mot.get_position()

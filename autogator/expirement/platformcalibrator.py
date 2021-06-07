@@ -60,5 +60,9 @@ class PlatformCalibrator:
         print("Done.")
         return [self.motion.get_x_position(), self.motion.get_y_position()]
 
-    def get_conversions_matrix():
+    def get_conversions_matrix(self):
         return self.conversion_matrix
+    
+    def get_config_parameters(self):
+        return self.motion.get_r_position(), self.point1, self.point2, self.point3, self.conversion_matrix
+    
