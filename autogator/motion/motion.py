@@ -110,31 +110,31 @@ class Motion():
             self.r_mot_moving = False
 
     def set_velocity(self):
-        clear()
+        #clear()
         os.system('cls')
         velocity = float(input('New velocity (device units):'))
         for m in self.motors:
             m.velocity = velocity
-        keyboard.start_recording()
+        #keyboard.start_recording()
 
     def set_jog_step_linear_input(self):
-        clear()
+        #clear()
         os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
-        keyboard.start_recording
+        #keyboard.start_recording
 
     def set_jog_step_linear(self,step_size):
         self.x_mot.jog_step_size = step_size
         self.y_mot.jog_step_size = step_size
         
     def set_jog_step_rotational(self):
-        clear()
+        #clear()
         os.system('cls')
         step = float(input('New Jog Step (degrees):'))
         self.r_mot.jog_step_size = step
-        keyboard.start_recording()
+        #keyboard.start_recording()
 
     def stop_all(self):
         for m in self.motors:

@@ -4,11 +4,6 @@ import autogator.motion.motion as motpy
 
 # This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4
-motion = motpy.Motion()
-# Sets up objects from the motion.py so that actions can be performed
-x_motor = motion.x_mot # X axis motor
-y_motor = motion.y_mot # Y axis motor
-r_motor = motion.r_mot # Rotation motor
 
 # These hotkeys are possible keyboard inputs that will result in the activation
 # of the single press state machine
@@ -44,7 +39,7 @@ class single_states(Enum):
     RELEASE = auto()
 
 class single_action:
-    def __init__(self):
+    def __init__(self, motion):
         self.init_printing = False
         self.wait_printing = False
         self.press_printing = False
@@ -53,6 +48,7 @@ class single_action:
         self.key_type = None
         self.motor = None
         self.direction = None
+        self.motion = motion
     
     # Initializes the object
     def init(self):
@@ -116,19 +112,19 @@ class single_action:
             (self.hotkey == 'c') or (self.hotkey == 'x'):
             self.key_type = key_type.MOTION
             if (self.hotkey == 'left arrow') or (self.hotkey == 'right arrow'):
-                self.motor = x_motor
+                self.motor = self.motion.x_motor
                 if self.hotkey == 'left arrow':
                     self.direction = "backward"
                 elif self.hotkey == 'right arrow':
                     self.direction = "forward"
             elif (self.hotkey == 'down arrow') or (self.hotkey == 'up arrow'):
-                self.motor = y_motor
+                self.motor = self.motion.y_motor
                 if self.hotkey == 'down arrow':
                     self.direction = "backward"
                 elif self.hotkey == 'up arrow':
                     self.direction = "forward"
             elif (self.hotkey == 'c') or (self.hotkey == 'x'):
-                self.motor = r_motor
+                self.motor = self.motion.r_motor
                 if self.hotkey == 'c':
                     self.direction = "forward"
                 elif self.hotkey == 'x':
@@ -141,28 +137,28 @@ class single_action:
     # This will actually run the motion.py command using the parameters determined in the process_key_type() function
     def process_key_command(self):
         if self.key_type == key_type.MOTION:
-            motion.move_step(self.motor, self.direction)
+            self.motion.move_step(self.motor, self.direction)
         elif self.key_type == key_type.SETTER:
             if self.hotkey == 'shift + j':
-                motion.set_jog_step_linear_input()
+                self.motion.set_jog_step_linear_input()
             elif self.hotkey == 'shift + g':
-                motion.set_jog_step_rotational()
+                self.motion.set_jog_step_rotational()
             elif self.hotkey == 'shift + k':
-                motion.set_velocity()
+                self.motion.set_velocity()
         elif self.key_type == key_type.INPUTLESS:
             if self.hotkey == 'space':
-                motion.stop_all()
+                self.motion.stop_all()
             elif self.hotkey == 'h':
-                motion.help_me()
+                self.motion.help_me()
             elif self.hotkey == 'o':
-                motion.home_motors()
+                self.motion.home_motors()
 
 # Single Press State Machine
 class single_sm():
-    def __init__(self, state: single_states=single_states.INIT, count: int=0):
+    def __init__(self, state: single_states=single_states.INIT, count: int=0, motion: motpy.Motion=motpy.Motion()):
         self.state = state
         self.count = count
-        self.act = single_action()
+        self.act = single_action(motion)
 
     def moore_sm(self):
         if self.state == single_states.INIT:

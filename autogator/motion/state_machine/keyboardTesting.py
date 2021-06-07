@@ -2,6 +2,7 @@ import keyboard
 import time
 import autogator.motion.state_machine.motionSM as msm
 import autogator.motion.state_machine.singleSM as ssm
+import autogator.motion.motion as motpy
 
 NO_CHARACTER_KEYS = [
     'left arrow',
@@ -36,8 +37,9 @@ def clear():
     print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
 
 def run():
-    motion_sm = msm.motion_sm()
-    single_sm = ssm.single_sm()
+    mot = motpy.Motion()
+    motion_sm = msm.motion_sm(motion=mot)
+    single_sm = ssm.single_sm(motion=mot)
     ot = time.time()
     done = False
     keyboard.start_recording()
