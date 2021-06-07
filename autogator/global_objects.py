@@ -54,3 +54,5 @@ class globals:
     
     def get_motion(self):
         return self.motion
+
+globals_obj = globals()
