@@ -8,7 +8,6 @@ from typing import Optional, Tuple
 from pathlib import Path
 import numpy as np
 
-
 from yaml import dump, safe_load
 
 from autogator import SITE_CONFIG_DIR
@@ -40,7 +39,7 @@ class CoordinateConfiguration:
                  coordinate_1: Tuple[float,float]=(0.0,0.0),
                  coordinate_2: Tuple[float,float]=(0.0,0.0),
                  coordinate_3: Tuple[float,float]=(0.0,0.0),
-                 affine: np.array=np.array()) -> None:
+                 affine: np.array=np.array(object=[])) -> None:
         self.rotation = rotation
         self.coordinate_1 = coordinate_1
         self.coordinate_2 = coordinate_2
