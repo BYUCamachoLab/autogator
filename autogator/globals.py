@@ -2,7 +2,6 @@
 This file acts as an object that holds objects that need to have persistance from the beginning to the end of the program
 """
 
-from pyrolab import nameserver
 import autogator.expirement.platformcalibrator as cal
 import autogator.config as cfg
 import autogator.motion.state_machine.keyboardTesting as gator
