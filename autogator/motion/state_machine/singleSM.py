@@ -112,19 +112,19 @@ class single_action:
             (self.hotkey == 'c') or (self.hotkey == 'x'):
             self.key_type = key_type.MOTION
             if (self.hotkey == 'left arrow') or (self.hotkey == 'right arrow'):
-                self.motor = self.motion.x_motor
+                self.motor = self.motion.x_mot
                 if self.hotkey == 'left arrow':
                     self.direction = "backward"
                 elif self.hotkey == 'right arrow':
                     self.direction = "forward"
             elif (self.hotkey == 'down arrow') or (self.hotkey == 'up arrow'):
-                self.motor = self.motion.y_motor
+                self.motor = self.motion.y_mot
                 if self.hotkey == 'down arrow':
                     self.direction = "backward"
                 elif self.hotkey == 'up arrow':
                     self.direction = "forward"
             elif (self.hotkey == 'c') or (self.hotkey == 'x'):
-                self.motor = self.motion.r_motor
+                self.motor = self.motion.r_mot
                 if self.hotkey == 'c':
                     self.direction = "forward"
                 elif self.hotkey == 'x':

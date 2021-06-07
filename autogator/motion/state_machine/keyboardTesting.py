@@ -16,11 +16,9 @@ NO_CHARACTER_KEYS = [
 ]
 
 def is_no_char_key(input)->bool:
-    print(input)
     str_input = str(input).replace("KeyboardEvent(", "").replace(" down)", "")
     if(str_input.count("up") != 0):
         return True
-    print(str_input)
     output = False
     for key in NO_CHARACTER_KEYS:
         output |= str_input == key

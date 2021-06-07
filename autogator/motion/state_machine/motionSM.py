@@ -112,13 +112,13 @@ class motion_action:
     # This will process the key pressed and return values corresponding to the pressed key
     def process_key(self, hotkey: str):
         if hotkey == 'w':
-            return self.motion.y_motor, "forward"
+            return self.motion.y_mot, "forward"
         elif hotkey == 'a':
-            return self.motion.x_motor, "backward"
+            return self.motion.x_mot, "backward"
         elif hotkey == 's':
-            return self.motion.y_motor, "backward"
+            return self.motion.y_mot, "backward"
         elif hotkey == 'd':
-            return self.motion.x_motor, "forward"
+            return self.motion.x_mot, "forward"
     # Gets the key pressed and returns true if any key was pressed
     def motion_key_pressed(self) -> bool:
         output = False
