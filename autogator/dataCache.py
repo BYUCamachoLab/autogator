@@ -17,16 +17,27 @@ OSCILLISCOPE_IP_ADDRESS = "10.32.112.162"
 OSCILLISCOPE_PROTOCOL = "INSTR"
 PLATFORM_CALIBRATION_TEXT_FILE = "examples/circuits.txt"
 
-class globals:
+class DataCache:
+    __instance = None
     def __init__(self):
-        self.configuration = cfg.CoordinateConfiguration()
-        self.configuration.load()
-        self.state_machine = gator
-        self.nameserver = locate_ns(host=NAMESERVER_HOST)
-        self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
-        self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
-        self.motion = motion.Motion.get_instance()
+        if self.__instance != None:
+            raise Exception("This Class is a Singleton")
+        else:
+            self.configuration = cfg.CoordinateConfiguration()
+            self.configuration.load()
+            self.state_machine = gator
+            self.nameserver = locate_ns(host=NAMESERVER_HOST)
+            self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
+            self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
+            self.motion = motion.Motion.get_instance()
+            self.__instance = self
     
+    @staticmethod
+    def get_instance():
+        if DataCache.__instance == None:
+            DataCache()
+        return DataCache.__instance
+
     def calibrate(self) -> None:
         self.calibration.calibrate()
     
@@ -54,5 +65,3 @@ class globals:
     
     def get_motion(self):
         return self.motion
-
-globals_obj = globals()

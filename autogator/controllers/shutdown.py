@@ -9,11 +9,11 @@ import configparser
 import autogator.config as cfg
 import autogator.expirement.platformcalibrator as cal
 
-import autogator.global_objects as glob
+import autogator.dataCache as data
 
 
 def shutdown():
-    global_obj = glob.globals_obj
+    global_obj = data.DataCache.get_instance()
     response = input("Would you like to save your configurations? (y/n)")
     if response.lower().count("y") > 0:
         print("Saving...")

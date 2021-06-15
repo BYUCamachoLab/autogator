@@ -103,6 +103,7 @@ class Motion:
             }
             Motion.__instance = self
 
+    @staticmethod
     def get_instance():
         if Motion.__instance == None:
             Motion()
