@@ -3,6 +3,7 @@ from autogator.map.map import Map
 from autogator.expirement.datascanner import DataScanner
 import numpy as np
 import autogator.motion.state_machine.keyboardTesting as key_test
+import time
 
 
 
@@ -23,17 +24,20 @@ class PlatformCalibrator:
         circuits = self.map.return_circuits()
         self.motion.home_motors()
         print("Starting calibration process...")
-        print("Move " + circuits[0].id + "\n" + circuits[0].name + " into Crosshairs, then press q")
+        print("Move " + circuits[0].ID + "\n" + circuits[0].name + " into Crosshairs, then press q")
         self.point1=self.keyloop_for_calibration()
         print("Point 1 set to (" + str(self.point1[0]) + "," + str(self.point1[1]) + ")")
-
-        print("Then Move " + circuits[1].id + "\n" + circuits[1].name + " into Crosshairs, then press q")
+        time.sleep(5)
+        
+        print("Then Move " + circuits[1].ID + "\n" + circuits[1].name + " into Crosshairs, then press q")
         self.point2=self.keyloop_for_calibration()
         print("Point 2 set to (" + str(self.point2[0]) + "," + str(self.point2[1]) + ")")
+        time.sleep(5)
 
-        print("Then Move " + circuits[2].id + "\n" + circuits[2].name + " into Crosshairs, then press q")
+        print("Then Move " + circuits[2].ID + "\n" + circuits[2].name + " into Crosshairs, then press q")
         self.point3=self.keyloop_for_calibration()
         print("Point 3 set to (" + str(self.point3[0]) + "," + str(self.point3[1]) + ")")
+        time.sleep(5)
 
         location1 = circuits[0].location
         location2 = circuits[1].location

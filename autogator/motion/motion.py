@@ -62,7 +62,7 @@ class Motion():
         self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
         self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-        self.conversion_matrix = np.array([[1]])
+        self.conversion_matrix = None
 
         self.x_mot_moving = False
         self.y_mot_moving = False
