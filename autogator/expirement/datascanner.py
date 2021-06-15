@@ -51,9 +51,9 @@ class DataScanner:
                     max_data_loc = [self.mot.get_x_position(), self.mot.get_y_position()]
 
                 if moving_down:
-                    self.mot.move_step(self.y_mot, "backward")
+                    self.mot.move_step(self.mot.y_mot, "backward")
                 else:
-                    self.mot.move_step(self.y_mot, "forward")
+                    self.mot.move_step(self.mot.y_mot, "forward")
 
                 if plot:
                     im.set_data(data)
@@ -65,8 +65,8 @@ class DataScanner:
                 moving_down = False
             else:
                 moving_down = True
-        
-            self.mot.move_step(self.x_mot, "forward")
+            #I cannot tell what this line is doing
+            self.mot.x_mot.move_step(self.mot, "forward")
 
         self.mot.go_to_chip_coordinates(max_data_loc[0], max_data_loc[1])
         if plot:

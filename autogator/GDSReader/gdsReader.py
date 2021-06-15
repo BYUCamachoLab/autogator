@@ -133,9 +133,9 @@ for i in beforeUnits:
         spacing = i.repetition.spacing
         origin = i.origin
         num = 1
-        for r in range(rows):
-            for c in range(columns):
-                Units.append(Unit(get_name(i) + "_" + str(num), [i.origin[0] + (r * spacing[0]), i.origin[1] + (c * spacing[1])]))
+        for c in range(columns):
+            for r in range(rows):
+                Units.append(Unit(get_name(i) + "_" + str(num), [i.origin[0] + (c * spacing[0]), i.origin[1] + (r * spacing[1])]))
                 num = num + 1
     else:
         Units.append(Unit(get_name(i), i.origin))
@@ -143,7 +143,7 @@ for i in beforeUnits:
 
 dig(Units, dependencies, circuits, True)
 
-f = open("circuits.txt", "w")
+f = open("circuits_test.txt", "w")
 for h in circuits:
     f.write(h.print() + "\n")
 f.close()

@@ -11,7 +11,7 @@ class PlatformCalibrator:
         self.oscope = oscilliscope
         self.map = Map(text_file_name)
         self.motion = motion.Motion()
-        self.dataScanner = DataScanner(self.oscope)
+        self.dataScanner = DataScanner(self.oscope, self.motion)
         self.point1=[0,0]
         self.point2=[0,0]
         self.point3=[0,0]

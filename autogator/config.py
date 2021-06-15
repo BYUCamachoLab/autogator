@@ -7,6 +7,7 @@
 from typing import Optional, Tuple
 from pathlib import Path
 import numpy as np
+import os
 
 from yaml import dump, safe_load
 
@@ -66,10 +67,14 @@ class CoordinateConfiguration:
         Read the configuration from a file.
         """
         filename = COORDINATE_DIR / COORD_FILE
+        
+        if not os.path.exists(filename):
+            return
+
         with filename.open("r") as fin:
             d = safe_load(fin)
+            
         return self.from_dict(d)
-
 
 coord_config = CoordinateConfiguration()
 
