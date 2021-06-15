@@ -296,6 +296,8 @@ class Motion:
 
     def go_to_GDS_Coordinates(self,x, y): 
         oldPoint = np.array([[x], [y], [1]])
+        if self.conversion_matrix is None:
+            raise Exception("Set the conversion Matrix before going to GDS coordinates")
         newPoint = self.conversion_matrix @ oldPoint
         self.x_mot.move_to(newPoint[0][0])
         self.y_mot.move_to(newPoint[1][0])
@@ -312,7 +314,10 @@ class Motion:
 
     def go_to_circuit(self,circuit):
         pos = circuit.location
-        self.go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
+        try:
+            self.go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
+        except Exception as e:
+            print("Error: Tried to call go_to_GDS_Coordinates()\n" + str(e))
 
     def get_y_position(self):
         return self.y_mot.get_position()
@@ -322,3 +327,6 @@ class Motion:
 
     def get_r_position(self):
         return self.r_mot.get_position()
+
+    def set_conversion_matrix(self, matrix: np.numarray) -> None:
+        self.conversion_matrix = matrix
