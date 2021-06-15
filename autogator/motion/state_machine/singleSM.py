@@ -155,7 +155,7 @@ class single_action:
 
 # Single Press State Machine
 class single_sm():
-    def __init__(self, state: single_states=single_states.INIT, count: int=0, motion: motpy.Motion=motpy.Motion()):
+    def __init__(self, state: single_states=single_states.INIT, count: int=0, motion: motpy.Motion=motpy.Motion().get_instance()):
         self.state = state
         self.count = count
         self.act = single_action(motion)

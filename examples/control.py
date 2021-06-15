@@ -6,7 +6,7 @@ from autogator.motion import motion
 
 ns = locate_ns(host="camacholab.ee.byu.edu")
 
-motion1=motion.Motion()
+motion1=motion.Motion().get_instance()
 
 
 motion1.keyloop()

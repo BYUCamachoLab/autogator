@@ -34,7 +34,7 @@ def clear():
             count += 1
     print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
 
-def run(mot: motpy.Motion=motpy.Motion()):
+def run(mot: motpy.Motion=motpy.Motion.get_instance()):
     motion_sm = msm.motion_sm(motion=mot)
     single_sm = ssm.single_sm(motion=mot)
     ot = time.time()

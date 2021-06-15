@@ -4,7 +4,7 @@ import autogator.expirement.platformcalibrator as platfrom
 import autogator.global_objects as glob
 
 calibrator = platfrom.PlatformCalibrator("circuits_test.txt", glob.globals_obj.get_oscilliscope())
-motion = mot.Motion()
+motion = mot.Motion().get_instance()
 
 calibrator.calibrate()
 

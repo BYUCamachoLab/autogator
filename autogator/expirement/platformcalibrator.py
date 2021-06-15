@@ -13,7 +13,7 @@ class PlatformCalibrator:
     def __init__(self, text_file_name, oscilliscope):
         self.oscope = oscilliscope
         self.map = Map(text_file_name)
-        self.motion = motion.Motion()
+        self.motion = motion.Motion().get_instance()
         self.dataScanner = DataScanner(self.oscope, self.motion)
         self.point1=[0,0]
         self.point2=[0,0]
@@ -51,13 +51,19 @@ class PlatformCalibrator:
         print(self.point2)
         print(self.point3)
 
-        GDS = np.array([[float(location1[0]), float(location1[1]), 1, 0, 0, 0], [0, 0, 0, float(location1[0]), float(location1[1]), 1], [float(location2[0]), float(location2[1]), 1, 0, 0, 0], [0, 0, 0, float(location2[0]), float(location2[1]), 1], [float(location3[0]), float(location3[1]), 1, 0, 0, 0], [0, 0, 0, float(location3[0]), float(location3[1]), 1]])
+        GDS = np.array([[float(location1[0]),   float(location1[1]),    1, 0, 0, 0], 
+                        [0,                     0,                      0, float(location1[0]), float(location1[1]), 1], 
+                        [float(location2[0]),   float(location2[1]),    1, 0, 0, 0], 
+                        [0,                     0,                      0, float(location2[0]), float(location2[1]), 1], 
+                        [float(location3[0]),   float(location3[1]),    1, 0, 0, 0], 
+                        [0,                     0,                      0, float(location3[0]), float(location3[1]), 1]])
 
         CHIP = np.array([[self.point1[0]],[self.point1[1]],[self.point2[0]],[self.point2[1]],[self.point3[0]],[self.point3[1]]])
 
         a = np.linalg.inv(GDS) @ CHIP
 
         self.conversion_matrix = np.array([[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]])
+
 
     def keyloop_for_calibration(self):
         key_test.run(self.motion)

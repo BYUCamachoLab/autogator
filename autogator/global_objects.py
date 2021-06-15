@@ -25,7 +25,7 @@ class globals:
         self.nameserver = locate_ns(host=NAMESERVER_HOST)
         self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
         self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
-        self.motion = motion.Motion()
+        self.motion = motion.Motion.get_instance()
     
     def calibrate(self) -> None:
         self.calibration.calibrate()

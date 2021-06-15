@@ -55,49 +55,58 @@ def clear():
             count += 1
     print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
 
-class Motion():
+class Motion:
+    __instance = None
     def __init__(self):
-        self.x_mot = Proxy(ns.lookup("KCUBE_LAT"))
-        self.y_mot = Proxy(ns.lookup("KCUBE_LON"))
-        self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
-        self.motors = [self.x_mot, self.y_mot, self.r_mot]
+        if Motion.__instance != None:
+            raise Exception("This class is a singleton!")
+        else:
+            self.x_mot = Proxy(ns.lookup("KCUBE_LAT"))
+            self.y_mot = Proxy(ns.lookup("KCUBE_LON"))
+            self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
+            self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-        self.conversion_matrix = None
+            self.conversion_matrix = None
 
-        self.x_mot_moving = False
-        self.y_mot_moving = False
-        self.r_mot_moving = False
+            self.x_mot_moving = False
+            self.y_mot_moving = False
+            self.r_mot_moving = False
 
-        # keyboard flags
-        self.flags = {
-            "left_arrow_pressed": False,
-            "left_arrow_released": False,
-            "right_arrow_pressed": False,
-            "right_arrow_released": False,
-            "up_arrow_pressed": False,
-            "up_arrow_released": False,
-            "down_arrow_pressed": False,
-            "down_arrow_released": False,
-            "c_pressed": False,
-            "c_released": False,
-            "x_pressed": False,
-            "x_released": False,
-            "a_pressed": False,
-            "a_released": False,
-            "d_pressed": False,
-            "d_released": False,
-            "w_pressed": False,
-            "w_released": False,
-            "s_pressed": False,
-            "s_released": False,
-            "space_pressed": False,
-            "h_pressed": False,
-            "o_pressed": False,
-            "shift_j": False,
-            "shift_g": False,
-            "shift_k": False
-            
-        }
+            # keyboard flags
+            self.flags = {
+                "left_arrow_pressed": False,
+                "left_arrow_released": False,
+                "right_arrow_pressed": False,
+                "right_arrow_released": False,
+                "up_arrow_pressed": False,
+                "up_arrow_released": False,
+                "down_arrow_pressed": False,
+                "down_arrow_released": False,
+                "c_pressed": False,
+                "c_released": False,
+                "x_pressed": False,
+                "x_released": False,
+                "a_pressed": False,
+                "a_released": False,
+                "d_pressed": False,
+                "d_released": False,
+                "w_pressed": False,
+                "w_released": False,
+                "s_pressed": False,
+                "s_released": False,
+                "space_pressed": False,
+                "h_pressed": False,
+                "o_pressed": False,
+                "shift_j": False,
+                "shift_g": False,
+                "shift_k": False
+            }
+            Motion.__instance = self
+
+    def get_instance():
+        if Motion.__instance == None:
+            Motion()
+        return Motion.get_instance()
 
     def stop_cont_jog(self, motor, move_type):
         if move_type == "continuous":

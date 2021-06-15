@@ -133,7 +133,7 @@ class motion_action:
         return keyboard.is_pressed(self.hotkey)
 
 class motion_sm:
-    def __init__(self, state: motion_states=motion_states.INIT, count: int=0, motion: motpy.Motion=motpy.Motion()):
+    def __init__(self, state: motion_states=motion_states.INIT, count: int=0, motion: motpy.Motion=motpy.Motion().get_instance()):
         self.state = state
         self.cont_active = False
         self.count = count
