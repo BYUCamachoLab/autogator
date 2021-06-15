@@ -1,9 +1,9 @@
 import autogator.motion.motion as mot
 from autogator.map.map import Map
 import autogator.expirement.platformcalibrator as platfrom
-import autogator.global_objects as glob
+import autogator.dataCache as data
 
-calibrator = platfrom.PlatformCalibrator("circuits_test.txt", glob.globals_obj.get_oscilliscope())
+calibrator = platfrom.PlatformCalibrator("circuits_test.txt", data.DataCache.get_instance().get_oscilliscope())
 motion = mot.Motion().get_instance()
 
 calibrator.calibrate()

@@ -13,10 +13,10 @@ import autogator.dataCache as data
 
 
 def shutdown():
-    global_obj = data.DataCache.get_instance()
+    dataCache = data.DataCache.get_instance()
     response = input("Would you like to save your configurations? (y/n)")
     if response.lower().count("y") > 0:
         print("Saving...")
-        global_obj.set_configuration()
+        dataCache.set_configuration()
         print("Saved")
     print("Shutting Down")
