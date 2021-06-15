@@ -30,7 +30,7 @@ class DataCache:
             self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
             self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
             self.motion = motion.Motion.get_instance()
-            self.__instance = self
+            DataCache.__instance = self
     
     @staticmethod
     def get_instance():

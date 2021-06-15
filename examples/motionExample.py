@@ -3,8 +3,10 @@ from autogator.map.map import Map
 import autogator.expirement.platformcalibrator as platfrom
 import autogator.dataCache as data
 
-calibrator = platfrom.PlatformCalibrator("circuits_test.txt", data.DataCache.get_instance().get_oscilliscope())
-motion = mot.Motion().get_instance()
+dataCache = data.DataCache.get_instance()
+oscilliscope = dataCache.get_oscilliscope()
+calibrator = platfrom.PlatformCalibrator("circuits_test.txt", oscilliscope)
+motion = mot.Motion.get_instance()
 
 calibrator.calibrate()
 

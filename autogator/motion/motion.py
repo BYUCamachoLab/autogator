@@ -107,7 +107,7 @@ class Motion:
     def get_instance():
         if Motion.__instance == None:
             Motion()
-        return Motion.get_instance()
+        return Motion.__instance
 
     def stop_cont_jog(self, motor, move_type):
         if move_type == "continuous":
