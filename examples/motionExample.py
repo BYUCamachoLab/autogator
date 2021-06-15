@@ -14,5 +14,6 @@ circuits_to_go_to = map.filter_out("ports", "test")
 
 for circuit in circuits_to_go_to.circuits:
     motion.go_to_circuit(circuit)
+    print(circuit.id)
     print(circuit.name)
     input("Press Enter for next circuit")

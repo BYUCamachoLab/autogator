@@ -34,13 +34,12 @@ def clear():
             count += 1
     print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
 
-def run():
-    mot = motpy.Motion()
+def run(mot: motpy.Motion=motpy.Motion()):
     motion_sm = msm.motion_sm(motion=mot)
     single_sm = ssm.single_sm(motion=mot)
     ot = time.time()
     done = False
-    keyboard.start_recording()
+    #keyboard.start_recording()
     while not done:
         timer = time.time() - ot
         if(timer >= .01):
@@ -50,5 +49,5 @@ def run():
                 motion_sm.moore_sm()
                 single_sm.moore_sm()
                 ot = time.time()
-    clear()
-    keyboard.stop_recording()
+    #clear()
+    #keyboard.stop_recording()

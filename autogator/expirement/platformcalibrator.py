@@ -2,7 +2,9 @@ from autogator.motion import motion
 from autogator.map.map import Map
 from autogator.expirement.datascanner import DataScanner
 import numpy as np
-import keyboard
+import autogator.motion.state_machine.keyboardTesting as key_test
+
+
 
 ### Add lasor controls later, assume on for now
 
@@ -21,15 +23,15 @@ class PlatformCalibrator:
         circuits = self.map.return_circuits()
         self.motion.home_motors()
         print("Starting calibration process...")
-        print("Move " + circuits[0].name + " into Crosshairs, then press q")
+        print("Move " + circuits[0].id + "\n" + circuits[0].name + " into Crosshairs, then press q")
         self.point1=self.keyloop_for_calibration()
         print("Point 1 set to (" + str(self.point1[0]) + "," + str(self.point1[1]) + ")")
 
-        print("Then Move " + circuits[1].name + " into Crosshairs, then press q")
+        print("Then Move " + circuits[1].id + "\n" + circuits[1].name + " into Crosshairs, then press q")
         self.point2=self.keyloop_for_calibration()
         print("Point 2 set to (" + str(self.point2[0]) + "," + str(self.point2[1]) + ")")
 
-        print("Then Move " + circuits[2].name + " into Crosshairs, then press q")
+        print("Then Move " + circuits[2].id + "\n" + circuits[2].name + " into Crosshairs, then press q")
         self.point3=self.keyloop_for_calibration()
         print("Point 3 set to (" + str(self.point3[0]) + "," + str(self.point3[1]) + ")")
 
@@ -54,9 +56,9 @@ class PlatformCalibrator:
         self.conversion_matrix = np.array([[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]])
 
     def keyloop_for_calibration(self):
-        self.motion.keyloop()
-        print("Optimizing data...")
-        self.dataScanner.auto_scan()
+        key_test.run(self.motion)
+        #print("Optimizing data...")
+        #self.dataScanner.auto_scan()
         print("Done.")
         return [self.motion.get_x_position(), self.motion.get_y_position()]
 
