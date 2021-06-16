@@ -76,7 +76,7 @@ class Motion:
             self.y_mot_moving = False
             self.r_mot_moving = False
 
-            # keyboard flags
+            # key flags, boolean of whether they are pressed
             self.flags = {
                 "left_arrow_pressed": False,
                 "left_arrow_released": False,
@@ -105,11 +105,14 @@ class Motion:
                 "shift_g": False,
                 "shift_k": False
             }
+
+            # Set the singleton instance to self
             Motion.__instance = self
 
     # Grabs the singleton instance of motion
     @staticmethod
     def get_instance():
+        # If the object is not instantiated this will instantiate it.
         if Motion.__instance == None:
             Motion()
         return Motion.__instance
@@ -136,24 +139,25 @@ class Motion:
             m.velocity = velocity
         #keyboard.start_recording()
 
-    # Sets up the default step movement
+    # Sets the step size of a step movement
     def set_jog_step_linear_input(self):
         os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
 
+    # Sets the step size with a function call
     def set_jog_step_linear(self,step_size):
         self.x_mot.jog_step_size = step_size
         self.y_mot.jog_step_size = step_size
-        
+
+    # Sets the rotational step
     def set_jog_step_rotational(self):
-        #clear()
         os.system('cls')
         step = float(input('New Jog Step (degrees):'))
         self.r_mot.jog_step_size = step
-        #keyboard.start_recording()
 
+    # Stops All Motors, but then requires K Cubes to be restarted
     def stop_all(self):
         for m in self.motors:
             m.stop()
@@ -186,20 +190,25 @@ class Motion:
                 motor.move_continuous(direction)
                 self.r_mot_moving = True
 
-    def help_me(self):
+    # Prints the keys and their function
+    def help_me(self) -> None:
         global help_txt
         print(help_txt)
 
-    def set_flag(self, flag):
+    # Set the flag value true
+    def set_flag(self, flag: str) -> None:
         self.flags[flag] = True
 
-    def set_flag_lin_step(self):
+    # Set the step size flag to true
+    def set_flag_lin_step(self) -> None:
         self.flags["shift_j"] = True  
 
-    def set_flag_rot_step(self):
+    # Set the rotation step size flag to true
+    def set_flag_rot_step(self) -> None:
         self.flags["shift_g"] = True
 
-    def set_flag_vel(self):
+    # Set the velocity speed flag to true
+    def set_flag_vel(self) -> None:
         self.flags["shift_k"] = True
 
     def keyloop(self,quitKey = 'q'):
@@ -319,7 +328,9 @@ class Motion:
         self.y_mot.move_to(newPoint[1][0])
     
     # Will go to GDS y position entered in
-    def go_to_GDS_Coordinates_y(self, y_pos: float=float(input("Enter in Y Coordinate (mm): "))) -> None:
+    def go_to_GDS_Coordinates_y(self, y_pos: float=None) -> None:
+        if y_pos == None:
+            y_pos = float(input("Enter in Y Coordinate (mm): "))
         # The GDS Coordinates
         gds_pos = np.array([[self.get_x_position()], 
                             [y_pos], 
@@ -334,7 +345,9 @@ class Motion:
         self.y_mot.move_to(newPoint[1][0])
 
     # Will go to GDS x position entered in
-    def set_x_position(self, x_pos: float=float(input("Enter in X Coordinate (mm): "))) -> None:
+    def set_x_position(self, x_pos: float=None) -> None:
+        if x_pos == None:
+            x_pos = float(input("Enter in X Coordinate (mm): "))
         # The GDS Coordinates
         gds_pos = np.array([[x_pos], 
                             [self.get_y_position()], 
@@ -382,7 +395,9 @@ class Motion:
         return self.r_mot.get_position()
 
     # Will go to x position entered in
-    def set_rotation(self, r_pos: float=float(input("Enter in Rotation (deg): "))) -> None:
+    def set_rotation(self, r_pos: float=None) -> None:
+        if r_pos == None:
+            r_pos = float(input("Enter in Rotation (deg): "))
         self.r_mot.move_to(r_pos)
 
     # Set the conversion matrix
