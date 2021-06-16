@@ -13,7 +13,7 @@ CIRCUIT_3_ID = "grouping_6::MZIs_3::MZI2_1"
 ### Add lasor controls later, assume on for now
 
 class PlatformCalibrator:
-    def __init__(self, text_file_name: str, oscilliscope: RTO):
+    def __init__(self, text_file_name: str, oscilliscope: RTO) -> None:
         # Resets Basic Values
         self.oscope = oscilliscope
         self.map = Map(text_file_name)
@@ -28,7 +28,7 @@ class PlatformCalibrator:
         self.conversion_matrix = None
         self.do_scan = "n"
 
-    def calibrate(self):
+    def calibrate(self) -> None:
         self.do_scan = input("Do you want to do use autoscan? (y/n) Press Enter")
 
         do_home = input("Do you want tohome the motors? (y/n) Press Enter")
@@ -91,7 +91,8 @@ class PlatformCalibrator:
                                            [0,       0,       1]])
         self.motion.set_conversion_matrix(self.conversion_matrix)
 
-    def keyloop_for_calibration(self):
+    # Performs motor functions to calibrate
+    def keyloop_for_calibration(self) -> list[float]:
         key_test.run(self.motion)
         if self.do_scan.lower == "y":
             print("Optimizing data...")
@@ -99,14 +100,17 @@ class PlatformCalibrator:
         print("Done.")
         return [self.motion.get_x_position(), self.motion.get_y_position()]
 
-    def get_conversions_matrix(self):
+    # Returns the conversion matrix
+    def get_conversions_matrix(self) -> np.array:
         return self.conversion_matrix
     
+    # Returns Parameters used in the configuration
     def get_config_parameters(self):
         return self.motion.get_r_position(), self.point1, self.point2, self.point3, self.conversion_matrix
 
+    # Sets Parameters needed from the Config
     def set_parameters(self, r_motor, affine: np.array) -> None:
-        # Add In Functionality to set R Motor in motion
+        self.motion.set_rotation(r_motor)
         self.conversion_matrix = affine
         self.motion.set_conversion_matrix(affine)
     
