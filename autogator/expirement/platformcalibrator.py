@@ -77,13 +77,18 @@ class PlatformCalibrator:
                         [float(location3[0]),   float(location3[1]),    1,                  0,                      0,                      0], 
                         [0,                     0,                      0,                  float(location3[0]),    float(location3[1]),    1]])
 
-        CHIP = np.array([[self.point1[0]],[self.point1[1]],
-        [self.point2[0]],[self.point2[1]],
-        [self.point3[0]],[self.point3[1]]])
+        CHIP = np.array([[self.point1[0]],
+                         [self.point1[1]],
+                         [self.point2[0]],
+                         [self.point2[1]],
+                         [self.point3[0]],
+                         [self.point3[1]]])
 
         a = np.linalg.inv(GDS) @ CHIP
 
-        self.conversion_matrix = np.array([[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]])
+        self.conversion_matrix = np.array([[a[0][0], a[1][0], a[2][0]], 
+                                           [a[3][0], a[4][0], a[5][0]], 
+                                           [0,       0,       1]])
         self.motion.set_conversion_matrix(self.conversion_matrix)
 
     def keyloop_for_calibration(self):
