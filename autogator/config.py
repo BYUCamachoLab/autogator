@@ -76,6 +76,9 @@ class CoordinateConfiguration:
             
         return self.from_dict(d)
 
+    def get(self):
+        return self.rotation, self.coordinate_1, self.coordinate_2, self.coordinate_3, self.affine
+
 coord_config = CoordinateConfiguration()
 
 def load_config():

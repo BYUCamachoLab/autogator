@@ -83,3 +83,11 @@ class Map:
 
     def return_circuits(self):
         return self.circuits
+    
+    # Gets a specific item in the circuit using the ID
+    def get_circuit(self, key: str="ID", value: str="") -> Circuit:
+        for circuit in self.circuits:
+            valueInCircuit = circuit.params.get(key, 0)
+            if valueInCircuit == value:
+                return circuit
+        return None

@@ -14,7 +14,7 @@ map = Map("circuits_test.txt")
 
 circuits_to_go_to = map.filter_out("ports", "test")
 
-for circuit in circuits_to_go_to.circuits:
+for circuit in map.circuits:
     motion.go_to_circuit(circuit)
     print(circuit.ID)
     print(circuit.name)

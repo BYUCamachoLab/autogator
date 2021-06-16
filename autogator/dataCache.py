@@ -2,9 +2,10 @@
 This file acts as an object that holds objects that need to have persistance from the beginning to the end of the program
 """
 
+from typing import Any
 import autogator.expirement.platformcalibrator as cal
 import autogator.config as cfg
-import autogator.motion.state_machine.keyboardTesting as gator
+import autogator.motion.state_machine.keyboardTesting as control
 from pyrolab.api import locate_ns
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
@@ -23,9 +24,9 @@ class DataCache:
         if self.__instance != None:
             raise Exception("This Class is a Singleton")
         else:
-            self.configuration = cfg.CoordinateConfiguration()
-            self.configuration.load()
-            self.state_machine = gator
+            self.configuration = cfg.coord_config
+            cfg.load_config()
+            self.state_machine = control
             self.nameserver = locate_ns(host=NAMESERVER_HOST)
             self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
             self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
@@ -38,12 +39,9 @@ class DataCache:
             DataCache()
         return DataCache.__instance
 
-    def calibrate(self) -> None:
-        self.calibration.calibrate()
-    
-    def get_configuration(self) -> cfg.CoordinateConfiguration:
-        return self.configuration
-    
+    def load_configuration(self) -> None:
+        cfg.load_config()
+        
     def set_configuration(self) -> None:
         self.configuration = cfg.CoordinateConfiguration(self.calibration.get_config_parameters())
         self.configuration.save()
@@ -51,17 +49,23 @@ class DataCache:
     def run_sm(self) -> None:
         self.state_machine.run()
     
-    def get_sm(self) -> gator:
+    def calibrate(self) -> None:
+        self.calibration.calibrate()
+    
+    def get_configuration(self) -> cfg.CoordinateConfiguration:
+        return self.configuration
+    
+    def get_sm(self) -> control:
         return self.state_machine
     
-    def get_nameserver(self):
+    def get_nameserver(self) -> Any:
         return self.nameserver
     
-    def get_oscilliscope(self):
+    def get_oscilliscope(self) -> RTO:
         return self.oscilliscope
     
-    def get_calibration(self):
+    def get_calibration(self) -> cal.PlatformCalibrator:
         return self.calibration
     
-    def get_motion(self):
+    def get_motion(self) -> motion.Motion:
         return self.motion
