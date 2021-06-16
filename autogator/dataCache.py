@@ -1,5 +1,9 @@
 """
-This file acts as an object that holds objects that need to have persistance from the beginning to the end of the program
+This file acts as an object that holds objects that need to have persistance from call to call
+This file will also perform simple actions such as:
+ - Motion Control / Run State Machine
+ - Calibrate
+ - Setting the Configuration
 """
 
 from typing import Any
@@ -18,12 +22,15 @@ OSCILLISCOPE_IP_ADDRESS = "10.32.112.162"
 OSCILLISCOPE_PROTOCOL = "INSTR"
 PLATFORM_CALIBRATION_TEXT_FILE = "examples/circuits.txt"
 
+# A Singleton Class that holds persistent data
 class DataCache:
     __instance = None
     def __init__(self):
+        # Singleton Style
         if self.__instance != None:
             raise Exception("This Class is a Singleton")
         else:
+            # Sets base values
             self.configuration = cfg.coord_config
             cfg.load_config()
             self.state_machine = control
@@ -33,22 +40,28 @@ class DataCache:
             self.motion = motion.Motion.get_instance()
             DataCache.__instance = self
     
+    # Retrieves a singleton instance of the class
     @staticmethod
     def get_instance():
+        # if there is no instance, this will instantiate the class
         if DataCache.__instance == None:
             DataCache()
         return DataCache.__instance
 
+    # This will load the configuration
     def load_configuration(self) -> None:
         cfg.load_config()
-        
+
+    # This will set the configuration
     def set_configuration(self) -> None:
         self.configuration = cfg.CoordinateConfiguration(self.calibration.get_config_parameters())
         self.configuration.save()
 
+    # This will run the motion control state machine
     def run_sm(self) -> None:
         self.state_machine.run()
     
+    # This will perform the calibration
     def calibrate(self) -> None:
         self.calibration.calibrate()
     

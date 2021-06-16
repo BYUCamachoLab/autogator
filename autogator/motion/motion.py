@@ -131,7 +131,7 @@ class Motion:
             self.r_mot_moving = False
 
     # Doesn't work, but is never used, sets the speed of a continuous movement
-    def set_velocity(self):
+    def set_velocity(self) -> None:
         #clear()
         os.system('cls')
         velocity = float(input('New velocity (device units):'))
@@ -140,54 +140,62 @@ class Motion:
         #keyboard.start_recording()
 
     # Sets the step size of a step movement
-    def set_jog_step_linear_input(self):
+    def set_jog_step_linear_input(self) -> None:
         os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
 
     # Sets the step size with a function call
-    def set_jog_step_linear(self,step_size):
+    def set_jog_step_linear(self, step_size: float) -> None:
         self.x_mot.jog_step_size = step_size
         self.y_mot.jog_step_size = step_size
 
     # Sets the rotational step
-    def set_jog_step_rotational(self):
+    def set_jog_step_rotational(self) -> None:
         os.system('cls')
         step = float(input('New Jog Step (degrees):'))
         self.r_mot.jog_step_size = step
 
     # Stops All Motors, but then requires K Cubes to be restarted
-    def stop_all(self):
+    def stop_all(self) -> None:
         for m in self.motors:
             m.stop()
 
-    def move_step(self, motor, direction):
+    # Does a single Movement using a motor and direction input
+    def move_step(self, motor, direction: str) -> None:
+        # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
                 motor.jog(direction)
-                #x_mot_moving = True
+        # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
                 motor.jog(direction)
-                #y_mot_moving = True
+        # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
                 motor.jog(direction)
-                #r_mot_moving = True
 
-    def move_cont(self,motor, direction):
+    # Performs a continuous movement using a motor and direction input
+    def move_cont(self,motor, direction: str) -> None:
+        # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
                 motor.move_continuous(direction)
+                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.x_mot_moving = True
+        # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
                 motor.move_continuous(direction)
+                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.y_mot_moving = True
+        # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
                 motor.move_continuous(direction)
+                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.r_mot_moving = True
 
     # Prints the keys and their function

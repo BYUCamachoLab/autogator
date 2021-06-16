@@ -1,12 +1,7 @@
+from autogator.motion import state_machine
 from pyrolab.api import locate_ns, Proxy
 
-from autogator.expirement.platformcalibrator import PlatformCalibrator
-from pyrolab.drivers.scopes.rohdeschwarz import RTO
-from autogator.motion import motion
+import autogator.dataCache as dataCache
 
-ns = locate_ns(host="camacholab.ee.byu.edu")
-
-motion1=motion.Motion().get_instance()
-
-
-motion1.keyloop()
+state_machine = dataCache.DataCache.get_instance()
+state_machine.run_sm()
