@@ -25,10 +25,15 @@ class PlatformCalibrator:
         self.point2=[0,0]
         self.point3=[0,0]
         self.conversion_matrix = None
+        self.do_scan = "n"
 
     def calibrate(self):
+        self.do_scan = input("Do you want to do use autoscan? (y/n) Press Enter")
+
+        do_home = input("Do you want tohome the motors? (y/n) Press Enter")
         # Reset the Motors to base location
-        self.motion.home_motors()
+        if(do_home.lower() == "y"):
+            self.motion.home_motors()
 
         print("Starting calibration process...")
 
@@ -82,8 +87,9 @@ class PlatformCalibrator:
 
     def keyloop_for_calibration(self):
         key_test.run(self.motion)
-        #print("Optimizing data...")
-        #self.dataScanner.auto_scan()
+        if self.do_scan.lower == "y":
+            print("Optimizing data...")
+            self.dataScanner.auto_scan()
         print("Done.")
         return [self.motion.get_x_position(), self.motion.get_y_position()]
 
