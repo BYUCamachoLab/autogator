@@ -14,6 +14,7 @@ CIRCUIT_3_ID = "grouping_6::MZIs_3::MZI2_1"
 
 class PlatformCalibrator:
     def __init__(self, text_file_name: str, oscilliscope: RTO):
+        # Resets Basic Values
         self.oscope = oscilliscope
         self.map = Map(text_file_name)
         self.motion = motion.Motion.get_instance()

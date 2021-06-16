@@ -3,6 +3,7 @@ import numpy as np
 import time
 import keyboard
 import os
+import autogator.map.map as map
 
 from pyrolab.api import locate_ns, Proxy
 ns = locate_ns(host="camacholab.ee.byu.edu")
@@ -58,9 +59,11 @@ def clear():
 class Motion:
     __instance = None
     def __init__(self):
+        # Singleton Method
         if Motion.__instance != None:
             raise Exception("This class is a singleton!")
         else:
+            # Gets the motors
             self.x_mot = Proxy(ns.lookup("KCUBE_LAT"))
             self.y_mot = Proxy(ns.lookup("KCUBE_LON"))
             self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
@@ -68,6 +71,7 @@ class Motion:
 
             self.conversion_matrix = None
 
+            # Sets these to false so that motors can move without intereference
             self.x_mot_moving = False
             self.y_mot_moving = False
             self.r_mot_moving = False
@@ -103,15 +107,19 @@ class Motion:
             }
             Motion.__instance = self
 
+    # Grabs the singleton instance of motion
     @staticmethod
     def get_instance():
         if Motion.__instance == None:
             Motion()
         return Motion.__instance
 
-    def stop_cont_jog(self, motor, move_type):
+    # Stops a continuoss movement
+    def stop_cont_jog(self, motor, move_type: str="continuous") -> None:
+        # Stops the motor
         if move_type == "continuous":
             motor.stop()
+        # Sets the movement boolean to false
         if motor == self.x_mot:
             self.x_mot_moving = False
         if motor == self.y_mot:
@@ -119,6 +127,7 @@ class Motion:
         if motor == self.r_mot:
             self.r_mot_moving = False
 
+    # Doesn't work, but is never used, sets the speed of a continuous movement
     def set_velocity(self):
         #clear()
         os.system('cls')
@@ -127,13 +136,12 @@ class Motion:
             m.velocity = velocity
         #keyboard.start_recording()
 
+    # Sets up the default step movement
     def set_jog_step_linear_input(self):
-        #clear()
         os.system('cls')
         step = float(input('New Jog Step (mm):'))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
-        #keyboard.start_recording
 
     def set_jog_step_linear(self,step_size):
         self.x_mot.jog_step_size = step_size
@@ -287,46 +295,96 @@ class Motion:
                     
                     self.flags[flag] = False
             
-
-    def home_motors(self):
+    # Resets the motors to base positions
+    def home_motors(self) -> None:
         print("Homing motors...")
         self.x_mot.go_home()
         self.y_mot.go_home()
         print("Done homing")
 
-    def go_to_GDS_Coordinates(self,x, y): 
-        oldPoint = np.array([[x], [y], [1]])
+    # Converts GDS coordinates to chip coordinates and goes to those positions
+    def go_to_GDS_Coordinates(self, x: float, y: float) -> None: 
+        # The GDS Coordinates
+        gds_pos = np.array([[x], 
+                            [y], 
+                            [1]])
+
+        # In case the conversion matrix has not been set
         if self.conversion_matrix is None:
             raise Exception("Set the conversion Matrix before going to GDS coordinates")
-        newPoint = self.conversion_matrix @ oldPoint
+        
+        # Calculates the new point and moves to it
+        newPoint = self.conversion_matrix @ gds_pos
         self.x_mot.move_to(newPoint[0][0])
         self.y_mot.move_to(newPoint[1][0])
+    
+    # Will go to GDS y position entered in
+    def go_to_GDS_Coordinates_y(self, y_pos: float=float(input("Enter in Y Coordinate (mm): "))) -> None:
+        # The GDS Coordinates
+        gds_pos = np.array([[self.get_x_position()], 
+                            [y_pos], 
+                            [1]])
 
-    def go_to_chip_coordinates(self,x, y):
+        # In case the conversion matrix has not been set
+        if self.conversion_matrix is None:
+            raise Exception("Set the conversion Matrix before going to GDS coordinates")
+        
+        # Calculates the new point and moves to it
+        newPoint = self.conversion_matrix @ gds_pos
+        self.y_mot.move_to(newPoint[1][0])
+
+    # Will go to GDS x position entered in
+    def set_x_position(self, x_pos: float=float(input("Enter in X Coordinate (mm): "))) -> None:
+        # The GDS Coordinates
+        gds_pos = np.array([[x_pos], 
+                            [self.get_y_position()], 
+                            [1]])
+
+        # In case the conversion matrix has not been set
+        if self.conversion_matrix is None:
+            raise Exception("Set the conversion Matrix before going to GDS coordinates")
+        
+        # Calculates the new point and moves to it
+        newPoint = self.conversion_matrix @ gds_pos
+        self.x_mot.move_to(newPoint[0][0])
+
+    # Goes to Chip Coordinates, which are more undefined
+    def go_to_chip_coordinates(self, x: float, y: float) -> None:
         self.x_mot.move_to(x)
         self.y_mot.move_to(y)
 
-    def go_to_chip_coordinates_y(self,y):
+    # Goes to the Chip y coordinate entered in
+    def go_to_chip_coordinates_y(self, y: float) -> None:
         self.y_mot.move_to(y)
 
-    def go_to_chip_coordinates_x(self,x):
+    # Goes the the Chip x coordinate entered in
+    def go_to_chip_coordinates_x(self, x: float) -> None:
         self.x_mot.move_to(x)
 
-    def go_to_circuit(self,circuit):
+    # Goes to the position attributed to the circuit parameter
+    def go_to_circuit(self, circuit: map.Circuit) -> None:
         pos = circuit.location
         try:
             self.go_to_GDS_Coordinates(float(pos[0]), float(pos[1]))
         except Exception as e:
             print("Error: Tried to call go_to_GDS_Coordinates()\n" + str(e))
 
-    def get_y_position(self):
+    # Get the y position of the y motor
+    def get_y_position(self) -> float:
         return self.y_mot.get_position()
 
-    def get_x_position(self):
+    # Get the x position of motor x
+    def get_x_position(self) -> float:
         return self.x_mot.get_position()
 
-    def get_r_position(self):
+    # Get the rotation of the motor r
+    def get_r_position(self) -> float:
         return self.r_mot.get_position()
 
+    # Will go to x position entered in
+    def set_rotation(self, r_pos: float=float(input("Enter in Rotation (deg): "))) -> None:
+        self.r_mot.move_to(r_pos)
+
+    # Set the conversion matrix
     def set_conversion_matrix(self, matrix: np.numarray) -> None:
         self.conversion_matrix = matrix
