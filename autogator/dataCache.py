@@ -20,11 +20,12 @@ Various Parameters to setup the nameserver object and Oscilliscope
 NAMESERVER_HOST = "camacholab.ee.byu.edu"
 OSCILLISCOPE_IP_ADDRESS = "10.32.112.162"
 OSCILLISCOPE_PROTOCOL = "INSTR"
-PLATFORM_CALIBRATION_TEXT_FILE = "examples/circuits.txt"
+PLATFORM_CALIBRATION_TEXT_FILE = "circuits_test.txt"
 
 # A Singleton Class that holds persistent data
 class DataCache:
     __instance = None
+
     def __init__(self):
         # Singleton Style
         if self.__instance != None:
@@ -35,11 +36,24 @@ class DataCache:
             cfg.load_config()
             self.state_machine = control
             self.nameserver = locate_ns(host=NAMESERVER_HOST)
-            self.oscilliscope = RTO(OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL)
-            self.calibration = cal.PlatformCalibrator(text_file_name=PLATFORM_CALIBRATION_TEXT_FILE, oscilliscope=self.oscilliscope)
+            laser_available = (
+                True
+                if input("Is The Laser Available for use? (y/n) \n") == "y"
+                else False
+            )
+            if laser_available:
+                self.oscilliscope = RTO(
+                    OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL
+                )
+            else:
+                self.oscilliscope = None
+            self.calibration = cal.PlatformCalibrator(
+                text_file_name=PLATFORM_CALIBRATION_TEXT_FILE,
+                oscilliscope=self.oscilliscope,
+            )
             self.motion = motion.Motion.get_instance()
             DataCache.__instance = self
-    
+
     # Retrieves a singleton instance of the class
     @staticmethod
     def get_instance():
@@ -54,31 +68,33 @@ class DataCache:
 
     # This will set the configuration
     def set_configuration(self) -> None:
-        self.configuration = cfg.CoordinateConfiguration(self.calibration.get_config_parameters())
+        self.configuration = cfg.CoordinateConfiguration(
+            self.calibration.get_config_parameters()
+        )
         self.configuration.save()
 
     # This will run the motion control state machine
     def run_sm(self) -> None:
         self.state_machine.run()
-    
+
     # This will perform the calibration
     def calibrate(self) -> None:
         self.calibration.calibrate()
-    
+
     def get_configuration(self) -> cfg.CoordinateConfiguration:
         return self.configuration
-    
+
     def get_sm(self) -> control:
         return self.state_machine
-    
+
     def get_nameserver(self) -> Any:
         return self.nameserver
-    
+
     def get_oscilliscope(self) -> RTO:
         return self.oscilliscope
-    
+
     def get_calibration(self) -> cal.PlatformCalibrator:
         return self.calibration
-    
+
     def get_motion(self) -> motion.Motion:
         return self.motion

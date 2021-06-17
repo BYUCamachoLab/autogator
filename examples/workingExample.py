@@ -1,8 +1,4 @@
-import autogator
-from pyrolab.drivers.scopes.rohdeschwarz import RTO
+import autogator.dataCache as dataCache
 
-scope = RTO("10.32.112.162", protocol="INSTR")
-
-platformcalib = autogator.expirement.PlatformCalibrator("examples/circuits.txt", scope)
-
-platformcalib.calibrate()
+# Will test the calibration function
+dataCache.DataCache.get_instance().calibrate()
