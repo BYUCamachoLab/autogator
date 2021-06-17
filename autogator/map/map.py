@@ -3,58 +3,77 @@ from typing import Any, NamedTuple, overload
 
 class Circuit:
     def __init__(self):
+        # Dynamic Parameters
         self.params = {}
 
+    # String Result
     def __str__(self) -> str:
         output = str()
         for key in self.params:
             output += "\n" + key + ": " + str(self.params[key])
         return output
 
+    # Gets and attribute associated with the key
     def __getattr__(self, key):
         return self.params[key]
 
+    # Adds a parameter
     def add_param(self, key, value):
         self.params[key] = value
 
 
 class Location(NamedTuple):
+    # Coordinates
     x: float
     y: float
 
-    def __str__(self):
+    # string result
+    def __str__(self) -> str:
         return "(" + str(self.x) + ", " + str(self.y) + ")"
 
 
 class Map:
     def __init__(self, text_file: str = None):
+        # Returns an empty map if no text_file is provided
         if text_file == None:
             return
-        mapFile = open(text_file, "r")
-        circuitsForMap = []
 
-        for line in mapFile:
+        # Opens the file
+        map_file = open(text_file, "r")
+        map_circuits = []
+
+        # Adds in each circuit listed in the text file
+        for line in map_file:
             if line is not None:
-                line = line[:-1]
-                newCircuit = Circuit()
-                chunks = line.split(" ")
-                location = chunks.pop(0)
-                coordinates = location.split(",")
-                coordinates[0] = (coordinates[0])[1:]
-                coordinates[1] = (coordinates[1])[:-1]
-                newCircuit.add_param(
+                line = line[:-1]  # Takes out the '\n'
+                new_circuit = Circuit()
+                chunks = line.split(
+                    " "
+                )  # Splits up all the properties of the circui in the text file
+                location = chunks.pop(0)  # Retrieves the coordinate properties
+                coordinates = location.split(",")  # Seperates the x and y coordinates
+                coordinates[0] = (coordinates[0])[
+                    1:
+                ]  # drops the '(' and gets the x coordinate
+                coordinates[1] = (coordinates[1])[
+                    :-1
+                ]  # drops the ')' ang gets the y coordinate
+                new_circuit.add_param(
                     "location", Location(float(coordinates[0]), float(coordinates[1]))
-                )
+                )  # Creates a new location object, containing the x and y coordinates
 
-                ID = chunks.pop(0)
-                newCircuit.add_param("ID", ID)
+                ID = chunks.pop(0)  # Gets the ID chunk
+                new_circuit.add_param("ID", ID)  # The ID as new parameter
 
+                # The Remaining chunks are individually processed into the circuit
                 for chunk in chunks:
                     keyValues = chunk.split("=")
-                    newCircuit.add_param(keyValues[0], keyValues[1])
-                circuitsForMap.append(newCircuit)
-        self.circuits = circuitsForMap
+                    new_circuit.add_param(keyValues[0], keyValues[1])
+                map_circuits.append(new_circuit)
+        self.circuits = map_circuits
 
+    # Overloads the + operator to combine this map's circuits with another map's circuits
+    # Acts as a full join, with only unique elements
     def __add__(self, o: Any) -> Any:
         joined_circuits = []
         for circuit in self.circuits:
@@ -67,6 +86,7 @@ class Map:
         map.set_circuits(joined_circuits)
         return map
 
+    # The String Result of this class
     def __str__(self) -> str:
         string = ""
         for x in self.circuits:
@@ -75,6 +95,7 @@ class Map:
             string += "\n"
         return string
 
+    # Gets every circuit that is not filtered out and returns a new map
     def filter(self, key: str, value: Any) -> Any:
         filtered_circuits = []
         for x in self.circuits:
@@ -85,29 +106,35 @@ class Map:
         map.set_circuits(filtered_circuits)
         return map
 
+    # Gets every circuit that is filtered out and returns a new map
     def filter_out(self, key: str, value: Any) -> Any:
         filtered_out_circuits = []
-        for x in self.circuits:
-            valueInCircuit = x.params.get(key, 0)
+        for circuit in self.circuits:
+            valueInCircuit = circuit.params.get(key, 0)
             if str(valueInCircuit) != str(value):
-                filtered_out_circuits.append(x)
+                filtered_out_circuits.append(circuit)
         map = Map()
         map.set_circuits(filtered_out_circuits)
         return map
 
+    # Returns a map with every circuit in this map that are in the specified group
     def filter_by_group(self, group: int = None) -> Any:
         filtered_circuits = []
         for circuit in self.circuits:
+            # Gets the ID which contains the group
             valueInCircuit = circuit.params.get("ID", 0)
+            # Checks the ID for the group
             if "grouping_" + str(group) in valueInCircuit:
                 filtered_circuits.append(circuit)
         map = Map()
         map.set_circuits(filtered_circuits)
         return map
 
+    # Adds a new parameter to the circuits in the map
     def addNewParam(self, **kwargs) -> Any:
         new_circuits = []
         for circuit in self.circuits:
+            # Gets the Arguments in the function call and adds them to the circuit
             for key, value in kwargs.items():
                 circuit.add_param(key, value)
             new_circuits.append(circuit)
