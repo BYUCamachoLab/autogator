@@ -131,7 +131,7 @@ class Map:
         return map
 
     # Adds a new parameter to the circuits in the map
-    def addNewParam(self, **kwargs) -> Any:
+    def add_new_param(self, **kwargs) -> Any:
         new_circuits = []
         for circuit in self.circuits:
             # Gets the Arguments in the function call and adds them to the circuit
