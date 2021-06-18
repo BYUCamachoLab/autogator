@@ -20,6 +20,7 @@ COORDINATE_DIR.mkdir(parents=True, exist_ok=True)
 
 COORD_FILE = "coord_config.yaml"
 
+
 class CoordinateConfiguration:
     """
     Coordinate configuration object.
@@ -32,20 +33,29 @@ class CoordinateConfiguration:
         The Y coordinate being saved
     coordinate_y
     """
-    _valid_attributes = [
-        'COORDINATE_X', 'COORDINATE_Y'
-    ]
-    def __init__(self,
-                 rotation: float=0.0,
-                 coordinate_1: Tuple[float,float]=(0.0,0.0),
-                 coordinate_2: Tuple[float,float]=(0.0,0.0),
-                 coordinate_3: Tuple[float,float]=(0.0,0.0),
-                 affine: np.array=np.array(object=[])) -> None:
-        self.rotation = rotation
-        self.coordinate_1 = coordinate_1
-        self.coordinate_2 = coordinate_2
-        self.coordinate_3 = coordinate_3
-        self.affine = affine
+
+    _valid_attributes = ["COORDINATE_X", "COORDINATE_Y"]
+
+    def __init__(self, **kwargs) -> None:
+        self.attrs = {}
+        for key, value in kwargs.items():
+            print(value.__class__)
+            if value.__class__ == np.ndarray:
+                self.attrs[key] = value.tolist()
+            elif value.__class__ == tuple:
+                self.attrs[key] = list(value)
+            else:
+                self.attrs[key] = value
+
+    # Gets and attribute associated with the key
+    def __getattr__(self, key):
+        return self.attrs[key]
+
+    def __str__(self):
+        output = "\n"
+        for key in self.attrs:
+            output += key + ": " + str(self.attrs[key]) + "\n"
+        return output
 
     @classmethod
     def from_dict(cls, d):
@@ -60,27 +70,50 @@ class CoordinateConfiguration:
         """
         filename = COORDINATE_DIR / COORD_FILE
         with filename.open("w") as fout:
-            fout.write(dump(self.to_dict()))
+            fout.write(dump(self.attrs))
 
     def load(self):
         """
         Read the configuration from a file.
         """
         filename = COORDINATE_DIR / COORD_FILE
-        
+
         if not os.path.exists(filename):
-            return
+            self.save()
 
         with filename.open("r") as fin:
             d = safe_load(fin)
-            
+
         return self.from_dict(d)
 
-    def get(self):
-        return self.rotation, self.coordinate_1, self.coordinate_2, self.coordinate_3, self.affine
 
 coord_config = CoordinateConfiguration()
+
 
 def load_config():
     global coord_config
     coord_config = coord_config.load()
+    print(coord_config)
+
+
+def save_config(
+    input_rotation: float = 0.0,
+    input_coordinate_1: list[float] = [0.0, 0.0],
+    input_coordinate_2: list[float] = [0.0, 0.0],
+    input_coordinate_3: list[float] = [0.0, 0.0],
+    input_origin: list[float] = [0.0, 0.0],
+    input_affine: np.array = np.array(
+        object=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
+    ),
+) -> None:
+    global coord_config
+    coord_config = CoordinateConfiguration(
+        rotation=input_rotation,
+        coordinate_1=input_coordinate_1,
+        coordinate_2=input_coordinate_2,
+        coordinate_3=input_coordinate_3,
+        origin=input_origin,
+        affine=input_affine,
+    )
+    coord_config.save()
+    print(coord_config)

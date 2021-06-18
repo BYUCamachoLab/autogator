@@ -22,9 +22,10 @@ class PlatformCalibrator:
         self.circuit1 = test_circuits[0]
         self.circuit2 = test_circuits[1]
         self.circuit3 = test_circuits[2]
-        self.point1 = [0, 0]
-        self.point2 = [0, 0]
-        self.point3 = [0, 0]
+        self.point1 = None
+        self.point2 = None
+        self.point3 = None
+        self.origin = None
         self.conversion_matrix = None
         self.do_scan = "n"
 
@@ -69,7 +70,7 @@ class PlatformCalibrator:
         print(
             "Point 2 set to (" + str(self.point2[0]) + "," + str(self.point2[1]) + ")"
         )
-        time.sleep(1)        # Getting the Third point of Calibration
+        time.sleep(1)  # Getting the Third point of Calibration
         print(
             "Then Move "
             + self.circuit3.ID
@@ -132,12 +133,7 @@ class PlatformCalibrator:
             self.do_scan = "n"
             print("Data Scanner is not Initialized, unable to perform Auto Scan")
 
-        do_home = input("Do you want tohome the motors? (y/n) Press Enter\n")
-        # Reset the Motors to base location
-        if do_home.lower() == "y":
-            self.motion.home_motors()
-
-        print("Starting calibration process...")
+        print("Starting Calibration Process...")
 
         # Getting the First point of Calibration
         print(
@@ -147,32 +143,9 @@ class PlatformCalibrator:
             + self.circuit1.name
             + " into Crosshairs, then press q"
         )
-        point11 = self.keyloop_for_calibration()
-        print("Point 1 set to (" + str(point11[0]) + "," + str(point11[1]) + ")")
-        time.sleep(1)
-
-        # Getting the Second point of Calibration
-        print(
-            "Then Move "
-            + self.circuit2.ID
-            + "\n"
-            + self.circuit2.name
-            + " into Crosshairs, then press q"
-        )
-        point21 = self.keyloop_for_calibration()
-        print("Point 2 set to (" + str(point21[0]) + "," + str(point21[1]) + ")")
-
-        # Getting Locations and Showing Results
-        location1 = self.circuit1.location
-        location2 = self.circuit2.location
-        print("GDS locations:")
-        print(location1)
-        print(location2)
-        print("Chip locations:")
-        print(point11)
-        print(point21)
+        point11 = self.point1
+        point21 = self.point2
         self.motion.move_step(self.motion.r_mot, "forward")
-        time.sleep(1)
 
         # Getting the First point of Calibration
         print(
@@ -197,14 +170,6 @@ class PlatformCalibrator:
         point22 = self.keyloop_for_calibration()
         print("Point 2 set to (" + str(point22[0]) + "," + str(point22[1]) + ")")
 
-        # Getting Locations and Showing Results\
-        print("GDS locations:")
-        print(location1)
-        print(location2)
-        print("Chip locations:")
-        print(point12)
-        print(point22)
-        
         self.motion.move_step(self.motion.r_mot, "backward")
 
         # Affine Matrix Transformation of two vector spaces with different origins
@@ -221,9 +186,10 @@ class PlatformCalibrator:
         x = (c2 - c1) / (p1_slope - p2_slope)
         y = (p1_slope * x) + c1
 
-        self.motion.set_origin([x, y])
+        self.origin = [x, y]
+        self.motion.set_origin(self.origin)
 
-        return [x, y]
+        return self.origin
 
     # Performs motor functions to calibrate
     def keyloop_for_calibration(self) -> list[float]:
@@ -245,8 +211,17 @@ class PlatformCalibrator:
             self.point1,
             self.point2,
             self.point3,
+            self.origin,
             self.conversion_matrix,
         )
+
+    # Sets Parameters used in the configuration
+    def set_config_parameters(self, point1, point2, point3, origin, conversion_matrix):
+        self.point1 = point1
+        self.point2 = point2
+        self.point3 = point3
+        self.origin = origin
+        self.conversion_matrix = conversion_matrix
 
     # Sets Parameters needed from the Config
     def set_parameters(self, r_motor, affine: np.array) -> None:

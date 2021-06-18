@@ -1,7 +1,7 @@
 import autogator.dataCache
 
 cache = autogator.dataCache.DataCache.get_instance()
-cache.calibrate()
+cache.load_configuration()
 cache.concentric_calibration()
 mot = cache.motion.get_instance()
 for i in range(9):
