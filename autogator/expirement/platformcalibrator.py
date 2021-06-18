@@ -55,7 +55,7 @@ class PlatformCalibrator:
         print(
             "Point 1 set to (" + str(self.point1[0]) + "," + str(self.point1[1]) + ")"
         )
-        time.sleep(5)
+        time.sleep(1)
 
         # Getting the Second point of Calibration
         print(
@@ -69,9 +69,7 @@ class PlatformCalibrator:
         print(
             "Point 2 set to (" + str(self.point2[0]) + "," + str(self.point2[1]) + ")"
         )
-        time.sleep(5)
-
-        # Getting the Third point of Calibration
+        time.sleep(1)        # Getting the Third point of Calibration
         print(
             "Then Move "
             + self.circuit3.ID
@@ -151,7 +149,7 @@ class PlatformCalibrator:
         )
         point11 = self.keyloop_for_calibration()
         print("Point 1 set to (" + str(point11[0]) + "," + str(point11[1]) + ")")
-        time.sleep(5)
+        time.sleep(1)
 
         # Getting the Second point of Calibration
         print(
@@ -174,7 +172,7 @@ class PlatformCalibrator:
         print(point11)
         print(point21)
         self.motion.move_step(self.motion.r_mot, "forward")
-        time.sleep(5)
+        time.sleep(1)
 
         # Getting the First point of Calibration
         print(
@@ -186,7 +184,7 @@ class PlatformCalibrator:
         )
         point12 = self.keyloop_for_calibration()
         print("Point 1 set to (" + str(point12[0]) + "," + str(point12[1]) + ")")
-        time.sleep(5)
+        time.sleep(1)
 
         # Getting the Second point of Calibration
         print(
@@ -206,6 +204,8 @@ class PlatformCalibrator:
         print("Chip locations:")
         print(point12)
         print(point22)
+        
+        self.motion.move_step(self.motion.r_mot, "backward")
 
         # Affine Matrix Transformation of two vector spaces with different origins
         p1_x_bar = (point11[0] + point12[0]) / 2.0

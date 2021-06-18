@@ -330,12 +330,12 @@ class Motion:
         rotation_matrix = np.array(
             [
                 [
-                    math.cos(self.r_mot.jog_step_size),
-                    -math.sin(self.r_mot.jog_step_size),
+                    math.cos(theta),
+                    -math.sin(theta),
                 ],
                 [
-                    math.sin(self.r_mot.jog_step_size),
-                    math.cos(self.r_mot.jog_step_size),
+                    math.sin(theta),
+                    math.cos(theta),
                 ],
             ]
         )
