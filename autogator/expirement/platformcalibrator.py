@@ -7,13 +7,7 @@ import numpy as np
 import autogator.motion.state_machine.keyboardTesting as key_test
 import time
 
-CIRCUIT_1_ID = "grouping_1::SIOH_bdc_1::SIOH_jogs_0_1"
-CIRCUIT_2_ID = "grouping_2::MZIs_3::MZI2_1"
-CIRCUIT_3_ID = "grouping_6::MZIs_3::MZI2_1"
-
 ### Add lasor controls later, assume on for now
-
-
 class PlatformCalibrator:
     def __init__(self, text_file_name: str, oscilliscope: RTO = None) -> None:
         # Resets Basic Values
@@ -89,7 +83,6 @@ class PlatformCalibrator:
         print(
             "Point 3 set to (" + str(self.point3[0]) + "," + str(self.point3[1]) + ")"
         )
-        time.sleep(5)
 
         # Getting Locations and Showing Results
         location1 = self.circuit1.location
@@ -133,6 +126,102 @@ class PlatformCalibrator:
             [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
         )
         self.motion.set_conversion_matrix(self.conversion_matrix)
+
+    def rotational_calibration(self) -> None:
+        if self.dataScanner != None:
+            self.do_scan = input("Do you want to do use autoscan? (y/n) Press Enter\n")
+        else:
+            self.do_scan = "n"
+            print("Data Scanner is not Initialized, unable to perform Auto Scan")
+
+        do_home = input("Do you want tohome the motors? (y/n) Press Enter\n")
+        # Reset the Motors to base location
+        if do_home.lower() == "y":
+            self.motion.home_motors()
+
+        print("Starting calibration process...")
+
+        # Getting the First point of Calibration
+        print(
+            "Move "
+            + self.circuit1.ID
+            + "\n"
+            + self.circuit1.name
+            + " into Crosshairs, then press q"
+        )
+        point11 = self.keyloop_for_calibration()
+        print("Point 1 set to (" + str(point11[0]) + "," + str(point11[1]) + ")")
+        time.sleep(5)
+
+        # Getting the Second point of Calibration
+        print(
+            "Then Move "
+            + self.circuit2.ID
+            + "\n"
+            + self.circuit2.name
+            + " into Crosshairs, then press q"
+        )
+        point21 = self.keyloop_for_calibration()
+        print("Point 2 set to (" + str(point21[0]) + "," + str(point21[1]) + ")")
+
+        # Getting Locations and Showing Results
+        location1 = self.circuit1.location
+        location2 = self.circuit2.location
+        print("GDS locations:")
+        print(location1)
+        print(location2)
+        print("Chip locations:")
+        print(point11)
+        print(point21)
+        self.motion.move_step(self.motion.r_mot, "forward")
+        time.sleep(5)
+
+        # Getting the First point of Calibration
+        print(
+            "Move "
+            + self.circuit1.ID
+            + "\n"
+            + self.circuit1.name
+            + " into Crosshairs, then press q"
+        )
+        point12 = self.keyloop_for_calibration()
+        print("Point 1 set to (" + str(point12[0]) + "," + str(point12[1]) + ")")
+        time.sleep(5)
+
+        # Getting the Second point of Calibration
+        print(
+            "Then Move "
+            + self.circuit2.ID
+            + "\n"
+            + self.circuit2.name
+            + " into Crosshairs, then press q"
+        )
+        point22 = self.keyloop_for_calibration()
+        print("Point 2 set to (" + str(point22[0]) + "," + str(point22[1]) + ")")
+
+        # Getting Locations and Showing Results\
+        print("GDS locations:")
+        print(location1)
+        print(location2)
+        print("Chip locations:")
+        print(point12)
+        print(point22)
+
+        # Affine Matrix Transformation of two vector spaces with different origins
+        p1_x_bar = (point11[0] + point12[0]) / 2.0
+        p1_y_bar = (point11[1] + point12[1]) / 2.0
+        p1_slope = (point11[0] - point12[0]) / (point12[1] - point11[1])
+
+        p2_x_bar = (point21[0] + point22[0]) / 2.0
+        p2_y_bar = (point21[1] + point22[1]) / 2.0
+        p2_slope = (point21[0] - point22[0]) / (point22[1] - point21[1])
+
+        c1 = (p1_slope * (-p1_x_bar)) + p1_y_bar
+        c2 = (p2_slope * (-p2_x_bar)) + p2_y_bar
+        x = (c2 - c1) / (p1_slope - p2_slope)
+        y = (p1_slope * x) + c1
+
+        return [x, y]
 
     # Performs motor functions to calibrate
     def keyloop_for_calibration(self) -> list[float]:

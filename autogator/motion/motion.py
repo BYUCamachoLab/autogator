@@ -4,8 +4,10 @@ import time
 import keyboard
 import os
 import autogator.map.map as map
+import math
 
 from pyrolab.api import locate_ns, Proxy
+
 ns = locate_ns(host="camacholab.ee.byu.edu")
 
 help_txt = """\nControls\n--------\n
@@ -28,24 +30,26 @@ help_txt = """\nControls\n--------\n
     \tq - quit
     """
 NO_CHARACTER_KEYS = [
-    'left arrow',
-    'right arrow',
-    'down arrow',
-    'up arrow',
-    'shift',
-    'ctrl',
-    'alt',
-    'caps lock'
+    "left arrow",
+    "right arrow",
+    "down arrow",
+    "up arrow",
+    "shift",
+    "ctrl",
+    "alt",
+    "caps lock",
 ]
 
-def is_no_char_key(input)->bool:
+
+def is_no_char_key(input) -> bool:
     str_input = str(input).replace("KeyboardEvent(", "").replace(" down)", "")
-    if(str_input.count("up") != 0):
+    if str_input.count("up") != 0:
         return True
     output = False
     for key in NO_CHARACTER_KEYS:
         output |= str_input == key
     return output
+
 
 def clear():
     keystrokes = keyboard.stop_recording()
@@ -54,10 +58,18 @@ def clear():
         if not is_no_char_key(stroke):
             keyboard.write("\b")
             count += 1
-    print("There were a total of " + str(len(keystrokes)) + " keys recorded and "+ str(count) + " deleted")
+    print(
+        "There were a total of "
+        + str(len(keystrokes))
+        + " keys recorded and "
+        + str(count)
+        + " deleted"
+    )
+
 
 class Motion:
     __instance = None
+
     def __init__(self):
         # Singleton Method
         if Motion.__instance != None:
@@ -70,6 +82,7 @@ class Motion:
             self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
             self.conversion_matrix = None
+            self.origin = None
 
             # Sets these to false so that motors can move without intereference
             self.x_mot_moving = False
@@ -103,7 +116,7 @@ class Motion:
                 "o_pressed": False,
                 "shift_j": False,
                 "shift_g": False,
-                "shift_k": False
+                "shift_k": False,
             }
 
             # Set the singleton instance to self
@@ -118,7 +131,7 @@ class Motion:
         return Motion.__instance
 
     # Stops a continuoss movement
-    def stop_cont_jog(self, motor, move_type: str="continuous") -> None:
+    def stop_cont_jog(self, motor, move_type: str = "continuous") -> None:
         # Stops the motor
         if move_type == "continuous":
             motor.stop()
@@ -132,17 +145,17 @@ class Motion:
 
     # Doesn't work, but is never used, sets the speed of a continuous movement
     def set_velocity(self) -> None:
-        #clear()
-        os.system('cls')
-        velocity = float(input('New velocity (device units):'))
+        # clear()
+        os.system("cls")
+        velocity = float(input("New velocity (device units):"))
         for m in self.motors:
             m.velocity = velocity
-        #keyboard.start_recording()
+        # keyboard.start_recording()
 
     # Sets the step size of a step movement
     def set_jog_step_linear_input(self) -> None:
-        os.system('cls')
-        step = float(input('New Jog Step (mm):'))
+        os.system("cls")
+        step = float(input("New Jog Step (mm):"))
         self.x_mot.jog_step_size = step
         self.y_mot.jog_step_size = step
 
@@ -153,8 +166,8 @@ class Motion:
 
     # Sets the rotational step
     def set_jog_step_rotational(self) -> None:
-        os.system('cls')
-        step = float(input('New Jog Step (degrees):'))
+        os.system("cls")
+        step = float(input("New Jog Step (degrees):"))
         self.r_mot.jog_step_size = step
 
     # Stops All Motors, but then requires K Cubes to be restarted
@@ -178,7 +191,7 @@ class Motion:
                 motor.jog(direction)
 
     # Performs a continuous movement using a motor and direction input
-    def move_cont(self,motor, direction: str) -> None:
+    def move_cont(self, motor, direction: str) -> None:
         # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
@@ -209,7 +222,7 @@ class Motion:
 
     # Set the step size flag to true
     def set_flag_lin_step(self) -> None:
-        self.flags["shift_j"] = True  
+        self.flags["shift_j"] = True
 
     # Set the rotation step size flag to true
     def set_flag_rot_step(self) -> None:
@@ -218,7 +231,7 @@ class Motion:
     # Set the velocity speed flag to true
     def set_flag_vel(self) -> None:
         self.flags["shift_k"] = True
-            
+
     # Resets the motors to base positions
     def home_motors(self) -> None:
         print("Homing motors...")
@@ -227,51 +240,45 @@ class Motion:
         print("Done homing")
 
     # Converts GDS coordinates to chip coordinates and goes to those positions
-    def go_to_GDS_Coordinates(self, x: float, y: float) -> None: 
+    def go_to_GDS_Coordinates(self, x: float, y: float) -> None:
         # The GDS Coordinates
-        gds_pos = np.array([[x], 
-                            [y], 
-                            [1]])
+        gds_pos = np.array([[x], [y], [1]])
 
         # In case the conversion matrix has not been set
         if self.conversion_matrix is None:
             raise Exception("Set the conversion Matrix before going to GDS coordinates")
-        
+
         # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
         self.x_mot.move_to(newPoint[0][0])
         self.y_mot.move_to(newPoint[1][0])
-    
+
     # Will go to GDS y position entered in
-    def go_to_GDS_Coordinates_y(self, y_pos: float=None) -> None:
+    def go_to_GDS_Coordinates_y(self, y_pos: float = None) -> None:
         if y_pos == None:
             y_pos = float(input("Enter in Y Coordinate (mm): "))
         # The GDS Coordinates
-        gds_pos = np.array([[self.get_x_position()], 
-                            [y_pos], 
-                            [1]])
+        gds_pos = np.array([[self.get_x_position()], [y_pos], [1]])
 
         # In case the conversion matrix has not been set
         if self.conversion_matrix is None:
             raise Exception("Set the conversion Matrix before going to GDS coordinates")
-        
+
         # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
         self.y_mot.move_to(newPoint[1][0])
 
     # Will go to GDS x position entered in
-    def set_x_position(self, x_pos: float=None) -> None:
+    def set_x_position(self, x_pos: float = None) -> None:
         if x_pos == None:
             x_pos = float(input("Enter in X Coordinate (mm): "))
         # The GDS Coordinates
-        gds_pos = np.array([[x_pos], 
-                            [self.get_y_position()], 
-                            [1]])
+        gds_pos = np.array([[x_pos], [self.get_y_position()], [1]])
 
         # In case the conversion matrix has not been set
         if self.conversion_matrix is None:
             raise Exception("Set the conversion Matrix before going to GDS coordinates")
-        
+
         # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
         self.x_mot.move_to(newPoint[0][0])
@@ -309,8 +316,36 @@ class Motion:
     def get_r_position(self) -> float:
         return self.r_mot.get_position()
 
+    # Performs a rotation where you return to the spot you were looking at post rotation
+    def concentric_rotatation(self, direction: str = "forward") -> None:
+        original_point = np.array(
+            [
+                [self.get_x_position() - self.origin[0]],
+                [self.get_y_position() - self.origin[1]],
+            ]
+        )
+
+        rotation_matrix = np.array(
+            [
+                [
+                    math.cos(self.r_mot.jog_step_size),
+                    -math.sin(self.r_mot.jog_step_size),
+                ][
+                    math.sin(self.r_mot.jog_step_size),
+                    math.cos(self.r_mot.jog_step_size),
+                ]
+            ]
+        )
+
+        new_point = rotation_matrix @ original_point
+
+        self.move_step(self.r_mot, direction)
+
+        self.x_mot.move_to(new_point[0][0] + self.origin[0])
+        self.y_mot.move_to(new_point[1][0] + self.origin[1])
+
     # Will go to x position entered in
-    def set_rotation(self, r_pos: float=None) -> None:
+    def set_rotation(self, r_pos: float = None) -> None:
         if r_pos == None:
             r_pos = float(input("Enter in Rotation (deg): "))
         self.r_mot.move_to(r_pos)
@@ -318,3 +353,7 @@ class Motion:
     # Set the conversion matrix
     def set_conversion_matrix(self, matrix: np.numarray) -> None:
         self.conversion_matrix = matrix
+
+    # Set the origin
+    def set_origin(self, origin: list) -> None:
+        self.origin = origin
