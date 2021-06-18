@@ -325,15 +325,18 @@ class Motion:
             ]
         )
 
+        theta = self.r_mot.jog_step_size * (-1 if direction == "backward" else 1)
+
         rotation_matrix = np.array(
             [
                 [
                     math.cos(self.r_mot.jog_step_size),
                     -math.sin(self.r_mot.jog_step_size),
-                ][
+                ],
+                [
                     math.sin(self.r_mot.jog_step_size),
                     math.cos(self.r_mot.jog_step_size),
-                ]
+                ],
             ]
         )
 

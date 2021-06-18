@@ -81,6 +81,10 @@ class DataCache:
     def calibrate(self) -> None:
         self.calibration.calibrate()
 
+    # Origin calibration
+    def concentric_calibration(self) -> None:
+        self.calibration.rotational_calibration()
+
     def get_configuration(self) -> cfg.CoordinateConfiguration:
         return self.configuration
 

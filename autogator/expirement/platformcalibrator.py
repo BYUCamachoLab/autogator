@@ -221,6 +221,8 @@ class PlatformCalibrator:
         x = (c2 - c1) / (p1_slope - p2_slope)
         y = (p1_slope * x) + c1
 
+        self.motion.set_origin([x, y])
+
         return [x, y]
 
     # Performs motor functions to calibrate
