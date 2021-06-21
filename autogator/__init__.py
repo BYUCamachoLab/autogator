@@ -40,3 +40,4 @@ __license__ = __doc__
 __project_url__ = "https://github.com/BYUCamachoLab/autogator"
 __forum_url__ = "https://github.com/BYUCamachoLab/autogator/issues"
 __website_url__ = "https://camacholab.byu.edu/"
+__CONFIG_DIR__ = appdirs.path
