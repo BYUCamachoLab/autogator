@@ -73,6 +73,7 @@ class DataCache:
             cfg.coord_config.origin,
             cfg.coord_config.affine,
         )
+        self.motion.set_conversion_matrix(cfg.coord_config.affine)
         self.motion.set_origin(cfg.coord_config.origin)
 
     # This will set the configuration

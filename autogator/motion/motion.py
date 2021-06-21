@@ -193,8 +193,7 @@ class Motion:
             "Motor Coordinates: ("
             + str(self.get_x_position())
             + ", "
-            + str(self.get_y_position + ")")
-        )
+            + str(self.get_y_position()) + ")")
 
     # Performs a continuous movement using a motor and direction input
     def move_cont(self, motor, direction: str) -> None:
@@ -372,13 +371,13 @@ class Motion:
     def print_GDS_position(self):
         motor_coordinate_x = self.get_x_position()
         motor_coordinate_y = self.get_y_position()
-        motor_coordinate = np.array([[motor_coordinate_x], [motor_coordinate_y]])
+        motor_coordinate = np.array([[motor_coordinate_x], [motor_coordinate_y], [1]])
         gds_coordinate = np.linalg.inv(self.conversion_matrix) @ motor_coordinate
         print(
             "GDS Coordinate: ("
-            + gds_coordinate[0][0]
+            + str(gds_coordinate[0][0])
             + ", "
-            + gds_coordinate[1][0]
+            + str(gds_coordinate[1][0])
             + ")"
         )
 
