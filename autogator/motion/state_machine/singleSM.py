@@ -1,6 +1,7 @@
 import keyboard
 from enum import Enum, auto
 import autogator.motion.motion as motpy
+import autogator.dataCache as data
 
 # This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4
@@ -17,6 +18,8 @@ single_hotkeys = [
     "shift + j",
     "shift + g",
     "shift + k",
+    "shift + r",
+    "shift + t",
     "space",
     "o",
     "h",
@@ -140,6 +143,8 @@ class single_action:
             (self.hotkey == "shift + j")
             or (self.hotkey == "shift + g")
             or (self.hotkey == "shift + k")
+            or (self.hotkey == "shift + r")
+            or (self.hotkey == "shift + t")
         ):
             self.key_type = key_type.SETTER
         elif (self.hotkey == "space") or (self.hotkey == "o") or (self.hotkey == "h"):
@@ -158,6 +163,12 @@ class single_action:
                 self.motion.set_jog_step_rotational()
             elif self.hotkey == "shift + k":
                 self.motion.set_velocity()
+            elif self.hotkey == "shift + r":
+                data.DataCache.get_instance().calibrate()
+                data.DataCache.get_instance().set_configuration()
+            elif self.hotkey == "shift + t":
+                data.DataCache.get_instance().concentric_calibration()
+                data.DataCache.get_instance().set_configuration()
         elif self.key_type == key_type.INPUTLESS:
             if self.hotkey == "space":
                 self.motion.print_GDS_position()

@@ -24,6 +24,8 @@ help_txt = """\nControls\n--------\n
     \tshift + j - jog step size (linear motors)
     \tshift + g - jog step size (rotational motor)
     \tshift + k - set velocity (mm/s)
+    \tshift + r - recalibrate the conversion matrix
+    \tshift + t - recalibrate origin for concentric rotation
     \tspacebar - emergency stop all
     \to - home linear motors
     \th - help
@@ -193,7 +195,9 @@ class Motion:
             "Motor Coordinates: ("
             + str(self.get_x_position())
             + ", "
-            + str(self.get_y_position()) + ")")
+            + str(self.get_y_position())
+            + ")"
+        )
 
     # Performs a continuous movement using a motor and direction input
     def move_cont(self, motor, direction: str) -> None:
@@ -321,6 +325,22 @@ class Motion:
     def get_r_position(self) -> float:
         return self.r_mot.get_position()
 
+    def rotate_conversion_matrix(self, direction: str = "forward") -> None:
+        # Converts degrees to radians and determines the direction of the rotation
+        theta = math.radians(self.r_mot.jog_step_size)
+        sign = 1 if direction == "forward" else -1
+
+        # The rotation matrix, which will predict the new location
+        rotation_matrix = np.array(
+            [
+                [math.cos(theta), sign * math.sin(theta), 0],
+                [-sign * math.sin(theta), math.cos(theta), 0],
+                [0, 0, 1],
+            ]
+        )
+
+        self.conversion_matrix = rotation_matrix @ self.conversion_matrix
+
     # Performs a rotation where you return to the spot you were looking at post rotation
     def concentric_rotatation(self, direction: str = "forward") -> None:
         # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
@@ -352,6 +372,7 @@ class Motion:
         self.x_mot.move_to(x_pos)
         self.y_mot.move_to(y_pos)
         self.move_step(self.r_mot, direction)
+        self.rotate_conversion_matrix(direction)
 
     # Will go to x position entered in
     def set_rotation(self, r_pos: float = None) -> None:
@@ -368,10 +389,14 @@ class Motion:
         self.origin = origin
 
     # Prints the Current GDS Coordinate
-    def print_GDS_position(self):
+    def print_GDS_position(self) -> None:
+        # Get the Motor Coordinates
         motor_coordinate_x = self.get_x_position()
         motor_coordinate_y = self.get_y_position()
         motor_coordinate = np.array([[motor_coordinate_x], [motor_coordinate_y], [1]])
+
+        # Invert Conversion Matrix to convert from Motor to GDS, instead of GDS to Motor
+        # Matrix Multiply New Matrix with Motor Coordinates to get GDS Coordinates
         gds_coordinate = np.linalg.inv(self.conversion_matrix) @ motor_coordinate
         print(
             "GDS Coordinate: ("
