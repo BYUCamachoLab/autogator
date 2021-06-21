@@ -318,11 +318,9 @@ class Motion:
 
     # Performs a rotation where you return to the spot you were looking at post rotation
     def concentric_rotatation(self, direction: str = "forward") -> None:
+        point = [self.get_x_position(), self.get_y_position()]
         original_point = np.array(
-            [
-                [self.get_x_position() - self.origin[0]],
-                [self.get_y_position() - self.origin[1]],
-            ]
+            [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
         )
 
         print("Step Size is " + str(self.r_mot.jog_step_size))
@@ -331,32 +329,32 @@ class Motion:
         sign = 1 if direction == "forward" else -1
         rotation_matrix = np.array(
             [
-                [
-                    math.cos(theta),
-                    sign * math.sin(theta),
-                ],
-                [
-                    -sign * math.sin(theta),
-                    math.cos(theta),
-                ],
+                [math.cos(theta), sign * math.sin(theta),],
+                [-sign * math.sin(theta), math.cos(theta),],
             ]
         )
 
         new_point = rotation_matrix @ original_point
-
-        self.move_step(self.r_mot, direction)
+        print(point)
+        print()
         print(original_point)
         print()
         print(rotation_matrix)
         print()
         print(new_point)
 
-        delta_x = -original_point[0][0] + new_point[0][0]
-        delta_y = -original_point[1][0] + new_point[1][0]
-        x_pos = original_point[0][0] - delta_x + self.origin[0]
-        y_pos = original_point[1][0] + (delta_y / 2.0) + self.origin[1]
+        delta_x = new_point[0][0]
+        delta_y = new_point[1][0]
+
+        x_pos = delta_x + self.origin[0]
+        y_pos = delta_y + self.origin[1]
+
+        print()
+        print([[x_pos], [y_pos]])
+
         self.x_mot.move_to(x_pos)
         self.y_mot.move_to(y_pos)
+        self.move_step(self.r_mot, direction)
 
     # Will go to x position entered in
     def set_rotation(self, r_pos: float = None) -> None:
