@@ -189,6 +189,12 @@ class Motion:
         if motor == self.r_mot:
             if self.r_mot_moving == False:
                 motor.jog(direction)
+        print(
+            "Motor Coordinates: ("
+            + str(self.get_x_position())
+            + ", "
+            + str(self.get_y_position + ")")
+        )
 
     # Performs a continuous movement using a motor and direction input
     def move_cont(self, motor, direction: str) -> None:
@@ -269,7 +275,7 @@ class Motion:
         self.y_mot.move_to(newPoint[1][0])
 
     # Will go to GDS x position entered in
-    def set_x_position(self, x_pos: float = None) -> None:
+    def go_to_GDS_Coordinates_x(self, x_pos: float = None) -> None:
         if x_pos == None:
             x_pos = float(input("Enter in X Coordinate (mm): "))
         # The GDS Coordinates
@@ -318,15 +324,18 @@ class Motion:
 
     # Performs a rotation where you return to the spot you were looking at post rotation
     def concentric_rotatation(self, direction: str = "forward") -> None:
+        # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
         point = [self.get_x_position(), self.get_y_position()]
+        # This is the point in reference to the calibrated origin
         original_point = np.array(
             [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
         )
 
-        print("Step Size is " + str(self.r_mot.jog_step_size))
-
+        # Converts degrees to radians and determines the direction of the rotation
         theta = math.radians(self.r_mot.jog_step_size)
         sign = 1 if direction == "forward" else -1
+
+        # The rotation matrix, which will predict the new location
         rotation_matrix = np.array(
             [
                 [math.cos(theta), sign * math.sin(theta),],
@@ -334,23 +343,12 @@ class Motion:
             ]
         )
 
+        # The Next Point is calculated by matrix multiplying the rotation matrix by the point in reference to the calibrated origin
         new_point = rotation_matrix @ original_point
-        print(point)
-        print()
-        print(original_point)
-        print()
-        print(rotation_matrix)
-        print()
-        print(new_point)
 
-        delta_x = new_point[0][0]
-        delta_y = new_point[1][0]
-
-        x_pos = delta_x + self.origin[0]
-        y_pos = delta_y + self.origin[1]
-
-        print()
-        print([[x_pos], [y_pos]])
+        # The new Motor Coordinates
+        x_pos = new_point[0][0] + self.origin[0]
+        y_pos = new_point[1][0] + self.origin[1]
 
         self.x_mot.move_to(x_pos)
         self.y_mot.move_to(y_pos)
@@ -369,3 +367,18 @@ class Motion:
     # Set the origin
     def set_origin(self, origin: list) -> None:
         self.origin = origin
+
+    # Prints the Current GDS Coordinate
+    def print_GDS_position(self):
+        motor_coordinate_x = self.get_x_position()
+        motor_coordinate_y = self.get_y_position()
+        motor_coordinate = np.array([[motor_coordinate_x], [motor_coordinate_y]])
+        gds_coordinate = np.linalg.inv(self.conversion_matrix) @ motor_coordinate
+        print(
+            "GDS Coordinate: ("
+            + gds_coordinate[0][0]
+            + ", "
+            + gds_coordinate[1][0]
+            + ")"
+        )
+
