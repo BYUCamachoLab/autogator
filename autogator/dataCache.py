@@ -65,17 +65,20 @@ class DataCache:
     # This will load the configuration
     def load_configuration(self) -> None:
         cfg.load_config()
+        print(cfg.coord_config.to_dict())
         self.calibration.set_config_parameters(
-            self.configuration.coordinate_1,
-            self.configuration.coordinate_2,
-            self.configuration.coordinate_3,
-            self.configuration.origin,
-            self.configuration.affine,
+            cfg.coord_config.coordinate_1,
+            cfg.coord_config.coordinate_2,
+            cfg.coord_config.coordinate_3,
+            cfg.coord_config.origin,
+            cfg.coord_config.affine,
         )
+        self.motion.set_origin(cfg.coord_config.origin)
 
     # This will set the configuration
     def set_configuration(self) -> None:
-        cfg.save_config(self.calibration.get_config_parameters())
+        rotation, point1, point2, point3, origin, affine = self.calibration.get_config_parameters()
+        cfg.save_config(rotation, point1, point2, point3, origin, affine)
 
     # This will run the motion control state machine
     def run_sm(self) -> None:

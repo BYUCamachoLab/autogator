@@ -325,16 +325,18 @@ class Motion:
             ]
         )
 
-        theta = self.r_mot.jog_step_size * (-1 if direction == "backward" else 1)
+        print("Step Size is " + str(self.r_mot.jog_step_size))
 
+        theta = math.radians(self.r_mot.jog_step_size)
+        sign = 1 if direction == "forward" else -1
         rotation_matrix = np.array(
             [
                 [
                     math.cos(theta),
-                    -math.sin(theta),
+                    sign * math.sin(theta),
                 ],
                 [
-                    math.sin(theta),
+                    -sign * math.sin(theta),
                     math.cos(theta),
                 ],
             ]
@@ -343,9 +345,18 @@ class Motion:
         new_point = rotation_matrix @ original_point
 
         self.move_step(self.r_mot, direction)
+        print(original_point)
+        print()
+        print(rotation_matrix)
+        print()
+        print(new_point)
 
-        self.x_mot.move_to(new_point[0][0] + self.origin[0])
-        self.y_mot.move_to(new_point[1][0] + self.origin[1])
+        delta_x = -original_point[0][0] + new_point[0][0]
+        delta_y = -original_point[1][0] + new_point[1][0]
+        x_pos = original_point[0][0] - delta_x + self.origin[0]
+        y_pos = original_point[1][0] + (delta_y / 2.0) + self.origin[1]
+        self.x_mot.move_to(x_pos)
+        self.y_mot.move_to(y_pos)
 
     # Will go to x position entered in
     def set_rotation(self, r_pos: float = None) -> None:
