@@ -3,7 +3,7 @@ import numpy as np
 import time
 import keyboard
 import os
-import autogator.map.map as map
+import autogator.map as map
 import math
 
 from pyrolab.api import locate_ns, Proxy

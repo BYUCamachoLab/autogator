@@ -1,5 +1,5 @@
-import autogator.dataCache as dataCache
+import autogator.data_cache as cache
 
-cal = dataCache.DataCache.get_instance()
+cal = cache.DataCache.get_instance()
 cal.calibrate()
 cal.set_configuration()

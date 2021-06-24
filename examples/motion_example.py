@@ -1,5 +1,5 @@
-from autogator.map.map import Map
-import autogator.dataCache as data
+from autogator.map import Map
+import autogator.data_cache as data
 
 # Accesses the Data Cache Instance and calibrates
 dataCache = data.DataCache.get_instance()

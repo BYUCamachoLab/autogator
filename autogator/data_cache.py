@@ -7,9 +7,9 @@ This file will also perform simple actions such as:
 """
 
 from typing import Any
-import autogator.expirement.platformcalibrator as cal
+import autogator.expirement.platform_calibrator as cal
 import autogator.config as cfg
-import autogator.motion.state_machine.keyboardTesting as control
+import autogator.motion.state_machine.sync_sm as control
 from pyrolab.api import locate_ns
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
@@ -78,7 +78,14 @@ class DataCache:
 
     # This will set the configuration
     def set_configuration(self) -> None:
-        rotation, point1, point2, point3, origin, affine = self.calibration.get_config_parameters()
+        (
+            rotation,
+            point1,
+            point2,
+            point3,
+            origin,
+            affine,
+        ) = self.calibration.get_config_parameters()
         cfg.save_config(rotation, point1, point2, point3, origin, affine)
 
     # This will run the motion control state machine

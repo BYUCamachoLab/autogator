@@ -1,4 +1,4 @@
-import autogator.dataCache as dataCache
+import autogator.data_cache as dc
 
 # Will test the calibration function
-dataCache.DataCache.get_instance().calibrate()
+dc.DataCache.get_instance().calibrate()
