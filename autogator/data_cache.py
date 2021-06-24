@@ -7,7 +7,7 @@ This file will also perform simple actions such as:
 """
 
 from typing import Any
-import autogator.expirement.platform_calibrator as cal
+import autogator.experiment.platform_calibrator as cal
 import autogator.config as cfg
 import autogator.motion.state_machine.sync_sm as control
 from pyrolab.api import locate_ns

@@ -1,7 +1,7 @@
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
 from autogator.map import Map
-from autogator.expirement.data_scanner import DataScanner
+from autogator.experiment.data_scanner import DataScanner
 import numpy as np
 import autogator.motion.state_machine.sync_sm as key_test
 import time
