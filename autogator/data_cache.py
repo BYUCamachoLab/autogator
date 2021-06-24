@@ -10,9 +10,10 @@ from typing import Any
 import autogator.experiment.platform_calibrator as cal
 import autogator.config as cfg
 import autogator.motion.state_machine.sync_sm as control
-from pyrolab.api import locate_ns
+from pyrolab.api import locate_ns, Proxy
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
+from autogator import map
 
 """
 Various Parameters to setup the nameserver object and Oscilliscope
@@ -20,7 +21,7 @@ Various Parameters to setup the nameserver object and Oscilliscope
 NAMESERVER_HOST = "camacholab.ee.byu.edu"
 OSCILLISCOPE_IP_ADDRESS = "10.32.112.162"
 OSCILLISCOPE_PROTOCOL = "INSTR"
-PLATFORM_CALIBRATION_TEXT_FILE = "circuits_test.txt"
+CIRCUIT_TEXT_FILE = "circuits_test.txt"
 
 # A Singleton Class that holds persistent data
 class DataCache:
@@ -35,22 +36,23 @@ class DataCache:
             self.configuration = cfg.coord_config
             cfg.load_config()
             self.state_machine = control
+            self.laser = None
             self.nameserver = locate_ns(host=NAMESERVER_HOST)
-            laser_available = (
+            o_scope_available = (
                 True
-                if input("Is The Laser Available for use? (y/n) \n") == "y"
+                if input("Is The Oscilliscope Available for use? (y/n) \n") == "y"
                 else False
             )
-            if laser_available:
+            if o_scope_available:
                 self.oscilliscope = RTO(
                     OSCILLISCOPE_IP_ADDRESS, protocol=OSCILLISCOPE_PROTOCOL
                 )
             else:
                 self.oscilliscope = None
             self.calibration = cal.PlatformCalibrator(
-                text_file_name=PLATFORM_CALIBRATION_TEXT_FILE,
-                oscilliscope=self.oscilliscope,
+                text_file_name=CIRCUIT_TEXT_FILE, oscilliscope=self.oscilliscope,
             )
+            self.circuit_map = map.Map(CIRCUIT_TEXT_FILE)
             self.motion = motion.Motion.get_instance()
             DataCache.__instance = self
 
@@ -112,8 +114,17 @@ class DataCache:
     def get_oscilliscope(self) -> RTO:
         return self.oscilliscope
 
+    def get_laser(self):
+        if self.laser == None:
+            self.laser = Proxy(self.nameserver.lookup("TSL550"))
+        return self.laser
+
     def get_calibration(self) -> cal.PlatformCalibrator:
         return self.calibration
 
     def get_motion(self) -> motion.Motion:
         return self.motion
+
+    def get_circuit_map(self) -> map.Map:
+        return self.circuit_map
+

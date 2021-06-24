@@ -36,7 +36,7 @@ class PlatformCalibrator:
             self.do_scan = "n"
             print("Data Scanner is not Initialized, unable to perform Auto Scan")
 
-        do_home = input("Do you want tohome the motors? (y/n) Press Enter\n")
+        do_home = input("Do you want to home the motors? (y/n) Press Enter\n")
         # Reset the Motors to base location
         if do_home.lower() == "y":
             self.motion.home_motors()
