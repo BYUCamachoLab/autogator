@@ -341,8 +341,22 @@ class Motion:
 
         self.conversion_matrix = rotation_matrix @ self.conversion_matrix
 
+    # Performs a continuos concentric rotation to keep the same center over the microscope
+    def smooth_concentric_rotation(self, direction: str = "forward", angle: float = None) -> None:
+        # Default angle change
+        if angle == None:
+            angle = self.r_mot.jog_step_size
+        delta_angle = .01
+        steps = math.floor(angle / .01)
+        for step in range(steps):
+            self.concentric_rotatation(direction, delta_angle)
+        
+
     # Performs a rotation where you return to the spot you were looking at post rotation
-    def concentric_rotatation(self, direction: str = "forward") -> None:
+    def concentric_rotatation(self, direction: str = "forward", angle: float = None) -> None:
+        # Default angle change
+        if angle == None:
+            angle = self.r_mot.jog_step_size
         # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
         point = [self.get_x_position(), self.get_y_position()]
         # This is the point in reference to the calibrated origin
@@ -351,7 +365,7 @@ class Motion:
         )
 
         # Converts degrees to radians and determines the direction of the rotation
-        theta = math.radians(self.r_mot.jog_step_size)
+        theta = math.radians(angle)
         sign = 1 if direction == "forward" else -1
 
         # The rotation matrix, which will predict the new location
@@ -371,8 +385,11 @@ class Motion:
 
         self.x_mot.move_to(x_pos)
         self.y_mot.move_to(y_pos)
+        original_angle = self.r_mot.jog_step_size
+        self.r_mot.jog_step_size = angle
         self.move_step(self.r_mot, direction)
         self.rotate_conversion_matrix(direction)
+        self.r_mot.jog_step_size = original_angle
 
     # Will go to x position entered in
     def set_rotation(self, r_pos: float = None) -> None:

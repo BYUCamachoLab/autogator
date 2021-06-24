@@ -3,7 +3,7 @@ import autogator.dataCache as data
 
 # Accesses the Data Cache Instance and calibrates
 dataCache = data.DataCache.get_instance()
-dataCache.calibrate()
+dataCache.load_configuration()
 
 # Accesses the Map of Circuits
 map = Map("circuits_test.txt")
