@@ -178,19 +178,19 @@ class Motion:
             m.stop()
 
     # Does a single Movement using a motor and direction input
-    def move_step(self, motor, direction: str) -> None:
+    def move_step(self, motor, direction: str, wait: bool = True) -> None:
         # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
-                motor.jog(direction)
+                motor.jog(direction, wait)
         # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
-                motor.jog(direction)
+                motor.jog(direction, wait)
         # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
-                motor.jog(direction)
+                motor.jog(direction, wait)
         print(
             "Motor Coordinates: ("
             + str(self.get_x_position())
@@ -342,18 +342,63 @@ class Motion:
         self.conversion_matrix = rotation_matrix @ self.conversion_matrix
 
     # Performs a continuos concentric rotation to keep the same center over the microscope
-    def smooth_concentric_rotation(self, direction: str = "forward", angle: float = None) -> None:
+    def unblocked_rotation(
+        self, direction: str = "forward", angle: float = None
+    ) -> None:
         # Default angle change
         if angle == None:
             angle = self.r_mot.jog_step_size
-        delta_angle = .01
-        steps = math.floor(angle / .01)
-        for step in range(steps):
-            self.concentric_rotatation(direction, delta_angle)
-        
+        # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
+        point = [self.get_x_position(), self.get_y_position()]
+        # This is the point in reference to the calibrated origin
+        original_point = np.array(
+            [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
+        )
+
+        # Converts degrees to radians and determines the direction of the rotation
+        theta = math.radians(angle)
+        sign = 1 if direction == "forward" else -1
+
+        # The rotation matrix, which will predict the new location
+        rotation_matrix = np.array(
+            [
+                [math.cos(theta), sign * math.sin(theta),],
+                [-sign * math.sin(theta), math.cos(theta),],
+            ]
+        )
+
+        # The Next Point is calculated by matrix multiplying the rotation matrix by the point in reference to the calibrated origin
+        new_point = rotation_matrix @ original_point
+
+        # The new Motor Coordinates
+        x_pos = new_point[0][0] + self.origin[0]
+        y_pos = new_point[1][0] + self.origin[1]
+
+        original_angle = self.r_mot.jog_step_size
+        self.r_mot.jog_step_size = angle
+
+        # Will move the motors without a blocking function
+        self.x_mot.move_to(x_pos, False)
+        self.y_mot.move_to(y_pos, False)
+        self.move_step(self.r_mot, direction, False)
+
+        # Will determine whether the action was completed
+        x_mot_completed = False
+        y_mot_completed = False
+        r_mot_completed = False
+
+        while not (x_mot_completed and y_mot_completed and r_mot_completed):
+            x_mot_completed |= self.motors[0].check_for_completion("moved")
+            y_mot_completed |= self.motors[1].check_for_completion("moved")
+            r_mot_completed |= self.motors[2].check_for_completion("moved")
+
+        self.rotate_conversion_matrix(direction)
+        self.r_mot.jog_step_size = original_angle
 
     # Performs a rotation where you return to the spot you were looking at post rotation
-    def concentric_rotatation(self, direction: str = "forward", angle: float = None) -> None:
+    def concentric_rotatation(
+        self, direction: str = "forward", angle: float = None
+    ) -> None:
         # Default angle change
         if angle == None:
             angle = self.r_mot.jog_step_size

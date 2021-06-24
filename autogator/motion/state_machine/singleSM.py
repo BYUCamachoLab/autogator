@@ -20,6 +20,7 @@ single_hotkeys = [
     "shift + k",
     "shift + r",
     "shift + t",
+    "shift + f",
     "space",
     "o",
     "h",
@@ -145,6 +146,7 @@ class single_action:
             or (self.hotkey == "shift + k")
             or (self.hotkey == "shift + r")
             or (self.hotkey == "shift + t")
+            or (self.hotkey == "shift + f")
         ):
             self.key_type = key_type.SETTER
         elif (self.hotkey == "space") or (self.hotkey == "o") or (self.hotkey == "h"):
@@ -169,6 +171,8 @@ class single_action:
             elif self.hotkey == "shift + t":
                 data.DataCache.get_instance().concentric_calibration()
                 data.DataCache.get_instance().set_configuration()
+            elif self.hotkey == "shift + f":
+                self.go_to_GDS_coordinate()
         elif self.key_type == key_type.INPUTLESS:
             if self.hotkey == "space":
                 self.motion.print_GDS_position()
@@ -176,6 +180,13 @@ class single_action:
                 self.motion.help_me()
             elif self.hotkey == "o":
                 self.motion.home_motors()
+
+    # Will go to the GDS coordinate typed in
+    def go_to_GDS_coordinate(self) -> None:
+        print("Type in GDS Coordinates")
+        x = float(input("X Coordinate: "))
+        y = float(input("Y Coordinate: "))
+        self.motion.go_to_GDS_Coordinates(x, y)
 
 
 # Single Press State Machine
