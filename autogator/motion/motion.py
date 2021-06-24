@@ -151,7 +151,7 @@ class Motion:
         os.system("cls")
         velocity = float(input("New velocity (device units):"))
         for m in self.motors:
-            m.velocity = velocity
+            m.move_velocity = velocity
         # keyboard.start_recording()
 
     # Sets the step size of a step movement
