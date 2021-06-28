@@ -1,7 +1,7 @@
 import keyboard
 from enum import Enum, auto
 import autogator.motion.motion as motpy
-import autogator.dataCache as data
+import autogator.data_cache as data
 
 # This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4

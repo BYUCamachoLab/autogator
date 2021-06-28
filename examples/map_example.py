@@ -1,4 +1,4 @@
-from autogator.map.map import Map
+from autogator.map import Map
 
 map = Map("circuits_test.txt")
 print("This is every circuit on the chip")

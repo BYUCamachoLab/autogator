@@ -1,10 +1,9 @@
-from autogator.GDSReader.gdsReader import Circuit
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
-from autogator.map.map import Map
-from autogator.expirement.datascanner import DataScanner
+from autogator.map import Map
+from autogator.experiment.data_scanner import DataScanner
 import numpy as np
-import autogator.motion.state_machine.keyboardTesting as key_test
+import autogator.motion.state_machine.sync_sm as key_test
 import time
 
 ### Add lasor controls later, assume on for now
@@ -37,7 +36,7 @@ class PlatformCalibrator:
             self.do_scan = "n"
             print("Data Scanner is not Initialized, unable to perform Auto Scan")
 
-        do_home = input("Do you want tohome the motors? (y/n) Press Enter\n")
+        do_home = input("Do you want to home the motors? (y/n) Press Enter\n")
         # Reset the Motors to base location
         if do_home.lower() == "y":
             self.motion.home_motors()

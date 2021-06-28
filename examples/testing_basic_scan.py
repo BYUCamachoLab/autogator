@@ -1,6 +1,6 @@
 from pyrolab.api import locate_ns, Proxy
 
-from autogator.expirement.platformcalibrator import PlatformCalibrator
+from autogator.experiment.platform_calibrator import PlatformCalibrator
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 
 ns = locate_ns(host="camacholab.ee.byu.edu")

@@ -1,7 +1,7 @@
-import autogator.dataCache
+import autogator.data_cache as data_cache
 
 # Get the Data Cache
-cache = autogator.dataCache.DataCache.get_instance()
+cache = data_cache.DataCache.get_instance()
 cache.load_configuration()
 mot = cache.motion.get_instance()
 
