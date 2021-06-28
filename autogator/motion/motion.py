@@ -26,6 +26,7 @@ help_txt = """\nControls\n--------\n
     \tshift + k - set velocity (mm/s)
     \tshift + r - recalibrate the conversion matrix
     \tshift + t - recalibrate origin for concentric rotation
+    \tshift + f - Go To GDS Coordinate
     \tspacebar - emergency stop all
     \to - home linear motors
     \th - help
@@ -82,6 +83,9 @@ class Motion:
             self.y_mot = Proxy(ns.lookup("KCUBE_LON"))
             self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
             self.motors = [self.x_mot, self.y_mot, self.r_mot]
+
+            for motor in self.motors:
+                motor.autoconnect()
 
             self.conversion_matrix = None
             self.origin = None
@@ -182,15 +186,15 @@ class Motion:
         # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
-                motor.jog(direction, wait)
+                motor.jog(direction)
         # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
-                motor.jog(direction, wait)
+                motor.jog(direction)
         # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
-                motor.jog(direction, wait)
+                motor.jog(direction)
         print(
             "Motor Coordinates: ("
             + str(self.get_x_position())
