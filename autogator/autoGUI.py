@@ -1,4 +1,5 @@
 import sys
+import PyQt5
 from PyQt5.QtWidgets import QToolButton, QPushButton, QLabel, QTextEdit, QGridLayout, QApplication, QWidget
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
@@ -11,6 +12,7 @@ class Example(QWidget):
         super().__init__()
 
         self.initUI()
+        self.motion = Motion()
 
     def initUI(self):
         upContLatArrow = QToolButton()
@@ -41,18 +43,24 @@ class Example(QWidget):
         rightJogRotArrow = QToolButton()
         rightJogRotArrow.setArrowType(Qt.RightArrow)
 
-        upContLatArrow.clicked.connect(self.upContLatButtonClicked)
-        downContLatArrow.clicked.connect(self.downContLatButtonClicked)
-        leftContLatArrow.clicked.connect(self.leftContLatButtonClicked)
-        rightContLatArrow.clicked.connect(self.rightContLatButtonClicked)
+        upContLatArrow.pressed.connect(self.upContLatButtonPressed)
+        upContLatArrow.released.connect(self.upContLatButtonReleased)
+        downContLatArrow.pressed.connect(self.downContLatButtonPressed)
+        downContLatArrow.released.connect(self.downContLatButtonReleased)
+        leftContLatArrow.pressed.connect(self.leftContLatButtonPressed)
+        leftContLatArrow.released.connect(self.leftContLatButtonReleased)
+        rightContLatArrow.pressed.connect(self.rightContLatButtonPressed)
+        rightContLatArrow.released.connect(self.rightContLatButtonReleased)
 
         upJogLatArrow.clicked.connect(self.upJogLatButtonClicked)
         downJogLatArrow.clicked.connect(self.downJogLatButtonClicked)
         leftJogLatArrow.clicked.connect(self.leftJogLatButtonClicked)
         rightJogLatArrow.clicked.connect(self.rightJogLatButtonClicked)
 
-        leftContRotArrow.clicked.connect(self.leftContRotButtonClicked)
-        rightContRotArrow.clicked.connect(self.rightContRotButtonClicked)
+        leftContRotArrow.pressed.connect(self.leftContRotButtonPressed)
+        leftContRotArrow.released.connect(self.leftContRotButtonReleased)
+        rightContRotArrow.pressed.connect(self.rightContRotButtonPressed)
+        rightContRotArrow.released.connect(self.rightContRotButtonReleased)
 
         leftJogRotArrow.clicked.connect(self.leftJogRotButtonClicked)
         rightJogRotArrow.clicked.connect(self.rightJogRotButtonClicked)
@@ -119,14 +127,23 @@ class Example(QWidget):
         self.setWindowTitle('Review')
         self.show()
 
-    def upContLatButtonClicked(self):
-        print("up cont")
-    def downContLatButtonClicked(self):
-        print("down cont")
-    def leftContLatButtonClicked(self):
-        print("left cont")
-    def rightContLatButtonClicked(self):
-        print("right cont")
+    def upContLatButtonPressed(self):
+        print("up cont go")
+    def upContLatButtonReleased(self):
+        print("up cont stop")
+    def downContLatButtonPressed(self):
+        print("down cont go")
+    def downContLatButtonReleased(self):
+        print("down cont stop")
+    def leftContLatButtonPressed(self):
+        print("left cont go")
+    def leftContLatButtonReleased(self):
+        print("left cont stop")
+    def rightContLatButtonPressed(self):
+        print("right cont go")
+    def rightContLatButtonReleased(self):
+        print("right cont stop")
+
 
     def upJogLatButtonClicked(self):
         print("up Jog")
@@ -137,9 +154,13 @@ class Example(QWidget):
     def rightJogLatButtonClicked(self):
         print("right Jog")
 
-    def leftContRotButtonClicked(self):
+    def leftContRotButtonPressed(self):
         print("left cont rot")
-    def rightContRotButtonClicked(self):
+    def leftContRotButtonReleased(self):
+        print("left cont rot")
+    def rightContRotButtonPressed(self):
+        print("right cont rot")
+    def rightContRotButtonReleased(self):
         print("right cont rot")
 
     def leftJogRotButtonClicked(self):
@@ -156,10 +177,15 @@ class Example(QWidget):
         print("Velocity set to ^")
 
 
+def Start():
+    m = Example()
+    m.show()
+    return m
+
 def main():
     app = QApplication(sys.argv)
-    Example()
-    sys.exit(app.exec_())
+    window = Start()
+    app.exec_()
 
 
 if __name__ == '__main__':

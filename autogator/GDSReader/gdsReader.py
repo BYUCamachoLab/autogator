@@ -5,8 +5,8 @@ import gdstk
 gcString = "gc"
 
 #Library to Read
-lib = gdstk.read_gds("C:\\Users\\mcg63\\autogator\\fabrun5.gds")
-lib1 = lib.cells
+# lib = gdstk.read_gds("C:\\Users\\mcg63\\autogator\\fabrun5.gds")
+# lib1 = lib.cells
 
 #Initialize Array for storing Circuits
 circuits = []
@@ -111,39 +111,39 @@ def dig(Units, dependencies, circuits, isFirst):
 dependencies = []
 
 #Populate dependencies list with dependency objects for each type of cell
-cells = lib1[-1].dependencies(True)
-for i in cells:
-    if contains_GC(i):
-        dependencies.append(Dependency(create_ref_objects(i, namesUsed), True, i.name))   
-    else:
-        dependencies.append(Dependency(create_ref_objects(i, namesUsed), False, i.name))
+# cells = lib1[-1].dependencies(True)
+# for i in cells:
+#     if contains_GC(i):
+#         dependencies.append(Dependency(create_ref_objects(i, namesUsed), True, i.name))   
+#     else:
+#         dependencies.append(Dependency(create_ref_objects(i, namesUsed), False, i.name))
 
 #Calculating starting Cells to build off of
 Units = []
 UnitsEdge = []
-beforeUnits = lib1[-1].references
-beforeUnits = [x for x in beforeUnits if len(get_name(x)) > 2]
-beforeUnits = [x for x in beforeUnits if "gc" not in get_name(x) and "Wave" not in get_name(x)]
+# beforeUnits = lib1[-1].references
+# beforeUnits = [x for x in beforeUnits if len(get_name(x)) > 2]
+# beforeUnits = [x for x in beforeUnits if "gc" not in get_name(x) and "Wave" not in get_name(x)]
 
 
-for i in beforeUnits:
-    if (str(i.repetition) != "No Repetition"):
-        rows = i.repetition.rows
-        columns = i.repetition.columns
-        spacing = i.repetition.spacing
-        origin = i.origin
-        num = 1
-        for c in range(columns):
-            for r in range(rows):
-                Units.append(Unit(get_name(i) + "_" + str(num), [i.origin[0] + (c * spacing[0]), i.origin[1] + (r * spacing[1])]))
-                num = num + 1
-    else:
-        Units.append(Unit(get_name(i), i.origin))
+# for i in beforeUnits:
+#     if (str(i.repetition) != "No Repetition"):
+#         rows = i.repetition.rows
+#         columns = i.repetition.columns
+#         spacing = i.repetition.spacing
+#         origin = i.origin
+#         num = 1
+#         for c in range(columns):
+#             for r in range(rows):
+#                 Units.append(Unit(get_name(i) + "_" + str(num), [i.origin[0] + (c * spacing[0]), i.origin[1] + (r * spacing[1])]))
+#                 num = num + 1
+#     else:
+#         Units.append(Unit(get_name(i), i.origin))
 
 
-dig(Units, dependencies, circuits, True)
+# dig(Units, dependencies, circuits, True)
 
-f = open("circuits_test.txt", "w")
-for h in circuits:
-    f.write(h.print() + "\n")
-f.close()
+# f = open("circuits_test.txt", "w")
+# for h in circuits:
+#     f.write(h.print() + "\n")
+# f.close()

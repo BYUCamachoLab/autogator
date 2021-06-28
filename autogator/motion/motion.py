@@ -81,6 +81,9 @@ class Motion:
             self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
             self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
+            for motor in self.motors:
+                motor.autoconnect()
+
             self.conversion_matrix = None
             self.origin = None
 
