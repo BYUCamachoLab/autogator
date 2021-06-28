@@ -5,7 +5,7 @@ import gdstk
 gcString = "gc"
 
 #Library to Read
-lib = gdstk.read_gds('fabrun5.gds')
+lib = gdstk.read_gds("C:\\Users\\mcg63\\autogator\\fabrun5.gds")
 lib1 = lib.cells
 
 #Initialize Array for storing Circuits

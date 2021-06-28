@@ -1,4 +1,4 @@
-from typing import Any, NamedTuple, overload
+from typing import Any, NamedTuple, overload, List
 
 
 class Circuit:
@@ -143,11 +143,11 @@ class Map:
         return map
 
     # Sets the circuits of the Map
-    def set_circuits(self, circuits: list[Circuit]) -> None:
+    def set_circuits(self, circuits: List[Circuit]) -> None:
         self.circuits = circuits
 
     # Returns the the circuits in the map
-    def get_circuits(self) -> list[Circuit]:
+    def get_circuits(self) -> List[Circuit]:
         return self.circuits
 
     # Gets a specific item in the circuit using the ID
@@ -159,7 +159,7 @@ class Map:
         return None
 
     # Gets the Test Circuit Components
-    def get_test_circuits(self) -> list[Circuit, Circuit, Circuit]:
+    def get_test_circuits(self) -> List[Circuit]:
         # Empty Result
         test_circuits = [self.circuits[0], self.circuits[0], self.circuits[0]]
 

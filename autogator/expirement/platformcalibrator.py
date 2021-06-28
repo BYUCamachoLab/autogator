@@ -6,6 +6,7 @@ from autogator.expirement.datascanner import DataScanner
 import numpy as np
 import autogator.motion.state_machine.keyboardTesting as key_test
 import time
+from typing import List
 
 ### Add lasor controls later, assume on for now
 class PlatformCalibrator:
@@ -192,7 +193,7 @@ class PlatformCalibrator:
         return self.origin
 
     # Performs motor functions to calibrate
-    def keyloop_for_calibration(self) -> list[float]:
+    def keyloop_for_calibration(self) -> List[float]:
         key_test.run(self.motion)
         if self.do_scan.lower == "y" and self.dataScanner != None:
             print("Optimizing data...")

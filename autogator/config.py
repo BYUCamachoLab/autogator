@@ -4,7 +4,7 @@
 # Licensed under the terms of the GNU GPLv3+ License
 # (see pyrolab/__init__.py for details)
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 from pathlib import Path
 import numpy as np
 import os
@@ -98,10 +98,10 @@ def load_config():
 
 def save_config(
     input_rotation: float = 0.0,
-    input_coordinate_1: list[float] = [0.0, 0.0],
-    input_coordinate_2: list[float] = [0.0, 0.0],
-    input_coordinate_3: list[float] = [0.0, 0.0],
-    input_origin: list[float] = [0.0, 0.0],
+    input_coordinate_1: List[float] = [0.0, 0.0],
+    input_coordinate_2: List[float] = [0.0, 0.0],
+    input_coordinate_3: List[float] = [0.0, 0.0],
+    input_origin: List[float] = [0.0, 0.0],
     input_affine: np.array = np.array(
         object=[[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
     ),
