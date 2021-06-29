@@ -7,9 +7,6 @@ import numpy as np
 import autogator.motion.state_machine.sync_sm as key_test
 import time
 
-GDS = np.array()
-CHIP = np.array()
-
 ### Add lasor controls later, assume on for now
 class PlatformCalibrator:
     def __init__(self, text_file_name: str, oscilliscope: RTO = None) -> None:
@@ -99,10 +96,8 @@ class PlatformCalibrator:
         print(self.point2)
         print(self.point3)
 
-        global GDS, CHIP
-
         # Affine Matrix Transformation of two vector spaces with different origins
-        GDS = np.array(
+        self.gds_matrix = np.array(
             [
                 [float(location1[0]), float(location1[1]), 1, 0, 0, 0],
                 [0, 0, 0, float(location1[0]), float(location1[1]), 1],
@@ -113,7 +108,7 @@ class PlatformCalibrator:
             ]
         )
 
-        CHIP = np.array(
+        self.chip_matrix = np.array(
             [
                 [self.point1[0]],
                 [self.point1[1]],
@@ -124,7 +119,7 @@ class PlatformCalibrator:
             ]
         )
 
-        a = np.linalg.inv(GDS) @ CHIP
+        a = np.linalg.inv(self.gds_matrix) @ self.chip_matrix
 
         self.conversion_matrix = np.array(
             [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
@@ -233,3 +228,9 @@ class PlatformCalibrator:
         self.motion.set_rotation(r_motor)
         self.conversion_matrix = affine
         self.motion.set_conversion_matrix(affine)
+
+    def get_gds_matrix(self) -> np.array:
+        return self.gds_matrix
+    
+    def get_chip_matrix(self) -> np.array:
+        return self.chip_matrix

@@ -6,7 +6,6 @@ import os
 import autogator.map as map
 import math
 
-from autogator.experiment.platform_calibrator import GDS, CHIP
 from pyrolab.api import locate_ns, Proxy
 
 ns = locate_ns(host="camacholab.ee.byu.edu")
@@ -96,6 +95,12 @@ class Motion:
             self.x_mot_moving = False
             self.y_mot_moving = False
             self.r_mot_moving = False
+
+            # Used for rotating the conversion Matrix
+            self.gds_matrix = None
+            self.point1 = None
+            self.point2 = None
+            self.point3 = None
 
             # key flags, boolean of whether they are pressed
             self.flags = {
@@ -345,7 +350,7 @@ class Motion:
             ]
         )
 
-        a = np.linalg.inv(GDS) @ CHIP
+        a = np.linalg.inv() @ CHIP
         self.conversion_matrix = np.array(
             [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
         )
@@ -471,4 +476,10 @@ class Motion:
             + str(gds_coordinate[1][0])
             + ")"
         )
+
+        def set_conversion_matrix_rotation_variables(self, gds_matrix, point1, point2, point3) -> None:
+            self.gds_matrix = gds_matrix
+            self.point1 = point1
+            self.point2 = point2
+            self.point3 = point3
 
