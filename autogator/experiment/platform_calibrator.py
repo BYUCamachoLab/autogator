@@ -82,49 +82,7 @@ class PlatformCalibrator:
         print(
             "Point 3 set to (" + str(self.point3[0]) + "," + str(self.point3[1]) + ")"
         )
-
-        # Getting Locations and Showing Results
-        location1 = self.circuit1.location
-        location2 = self.circuit2.location
-        location3 = self.circuit3.location
-        print("GDS locations:")
-        print(location1)
-        print(location2)
-        print(location3)
-        print("Chip locations:")
-        print(self.point1)
-        print(self.point2)
-        print(self.point3)
-
-        # Affine Matrix Transformation of two vector spaces with different origins
-        self.gds_matrix = np.array(
-            [
-                [float(location1[0]), float(location1[1]), 1, 0, 0, 0],
-                [0, 0, 0, float(location1[0]), float(location1[1]), 1],
-                [float(location2[0]), float(location2[1]), 1, 0, 0, 0],
-                [0, 0, 0, float(location2[0]), float(location2[1]), 1],
-                [float(location3[0]), float(location3[1]), 1, 0, 0, 0],
-                [0, 0, 0, float(location3[0]), float(location3[1]), 1],
-            ]
-        )
-
-        self.chip_matrix = np.array(
-            [
-                [self.point1[0]],
-                [self.point1[1]],
-                [self.point2[0]],
-                [self.point2[1]],
-                [self.point3[0]],
-                [self.point3[1]],
-            ]
-        )
-
-        a = np.linalg.inv(self.gds_matrix) @ self.chip_matrix
-
-        self.conversion_matrix = np.array(
-            [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
-        )
-        self.motion.set_conversion_matrix(self.conversion_matrix)
+        self.calculate_conversion_matrix()
 
     def rotational_calibration(self) -> None:
         if self.dataScanner != None:
@@ -186,7 +144,7 @@ class PlatformCalibrator:
         x = (c2 - c1) / (p1_slope - p2_slope)
         y = (p1_slope * x) + c1
 
-        self.origin = [x, y]
+        self.origin = (x, y)
         self.motion.set_origin(self.origin)
 
         return self.origin
@@ -198,7 +156,7 @@ class PlatformCalibrator:
             print("Optimizing data...")
             self.dataScanner.auto_scan()
         print("Done.")
-        return [self.motion.get_x_position(), self.motion.get_y_position()]
+        return (self.motion.get_x_position(), self.motion.get_y_position())
 
     # Returns the conversion matrix
     def get_conversions_matrix(self) -> np.array:
@@ -214,6 +172,9 @@ class PlatformCalibrator:
             self.origin,
             self.conversion_matrix,
         )
+
+    def get_points(self):
+        return self.point1, self.point2, self.point3
 
     # Sets Parameters used in the configuration
     def set_config_parameters(self, point1, point2, point3, origin, conversion_matrix):
@@ -231,6 +192,61 @@ class PlatformCalibrator:
 
     def get_gds_matrix(self) -> np.array:
         return self.gds_matrix
-    
+
     def get_chip_matrix(self) -> np.array:
         return self.chip_matrix
+
+    def calculate_conversion_matrix(
+        self,
+        point1: Tuple[float, float] = None,
+        point2: Tuple[float, float] = None,
+        point3: Tuple[float, float] = None,
+    ) -> np.array:
+        if point1 is not None:
+            self.point1 = point1
+        if point2 is not None:
+            self.point2 = point2
+        if point3 is not None:
+            self.point3 = point3
+        # Getting Locations and Showing Results
+        location1 = self.circuit1.location
+        location2 = self.circuit2.location
+        location3 = self.circuit3.location
+        print("GDS locations:")
+        print(location1)
+        print(location2)
+        print(location3)
+        print("Chip locations:")
+        print(self.point1)
+        print(self.point2)
+        print(self.point3)
+
+        # Affine Matrix Transformation of two vector spaces with different origins
+        self.gds_matrix = np.array(
+            [
+                [float(location1[0]), float(location1[1]), 1, 0, 0, 0],
+                [0, 0, 0, float(location1[0]), float(location1[1]), 1],
+                [float(location2[0]), float(location2[1]), 1, 0, 0, 0],
+                [0, 0, 0, float(location2[0]), float(location2[1]), 1],
+                [float(location3[0]), float(location3[1]), 1, 0, 0, 0],
+                [0, 0, 0, float(location3[0]), float(location3[1]), 1],
+            ]
+        )
+
+        self.chip_matrix = np.array(
+            [
+                [self.point1[0]],
+                [self.point1[1]],
+                [self.point2[0]],
+                [self.point2[1]],
+                [self.point3[0]],
+                [self.point3[1]],
+            ]
+        )
+
+        a = np.linalg.inv(self.gds_matrix) @ self.chip_matrix
+
+        self.conversion_matrix = np.array(
+            [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
+        )
+        self.motion.set_conversion_matrix(self.conversion_matrix)

@@ -5,6 +5,7 @@ import keyboard
 import os
 import autogator.map as map
 import math
+from autogator.data_cache import DataCache
 
 from pyrolab.api import locate_ns, Proxy
 
@@ -337,6 +338,13 @@ class Motion:
         return self.r_mot.get_position()
 
     def rotate_conversion_matrix(self, direction: str = "forward") -> None:
+        # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
+        point = [self.get_x_position(), self.get_y_position()]
+        # This is the point in reference to the calibrated origin
+        original_point = np.array(
+            [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
+        )
+
         # Converts degrees to radians and determines the direction of the rotation
         theta = math.radians(self.r_mot.jog_step_size)
         sign = 1 if direction == "forward" else -1
@@ -344,17 +352,22 @@ class Motion:
         # The rotation matrix, which will predict the new location
         rotation_matrix = np.array(
             [
-                [math.cos(theta), sign * math.sin(theta), 0],
-                [-sign * math.sin(theta), math.cos(theta), 0],
-                [0, 0, 1],
+                [math.cos(theta), sign * math.sin(theta),],
+                [-sign * math.sin(theta), math.cos(theta),],
             ]
         )
 
-        a = np.linalg.inv() @ CHIP
-        self.conversion_matrix = np.array(
-            [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
-        )
-        self.conversion_matrix = rotation_matrix @ self.conversion_matrix
+        # Get the calibration from the data cache and then get the points
+        calibration = DataCache.get_instance().get_calibration()
+        point1, point2, point3 = calibration.get_points()
+
+        # Calculate the new points
+        new_point1 = rotation_matrix @ point1
+        new_point2 = rotation_matrix @ point2
+        new_point3 = rotation_matrix @ point3
+
+        # Get the new conversion matrix, which automatically sets the conversion matrix in motion
+        calibration.calculate_conversion_matrix(new_point1, new_point2, new_point3)
 
     # Performs a continuos concentric rotation to keep the same center over the microscope
     def unblocked_rotation(
@@ -477,7 +490,9 @@ class Motion:
             + ")"
         )
 
-        def set_conversion_matrix_rotation_variables(self, gds_matrix, point1, point2, point3) -> None:
+        def set_conversion_matrix_rotation_variables(
+            self, gds_matrix, point1, point2, point3
+        ) -> None:
             self.gds_matrix = gds_matrix
             self.point1 = point1
             self.point2 = point2
