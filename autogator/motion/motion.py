@@ -182,7 +182,7 @@ class Motion:
             m.stop()
 
     # Does a single Movement using a motor and direction input
-    def move_step(self, motor, direction: str, wait: bool = False) -> None:
+    def move_step(self, motor, direction: str) -> None:
         # Checks if it is the x motor and whether the x motor is already moving before moving it
         if motor == self.x_mot:
             if self.x_mot_moving == False:
@@ -263,8 +263,8 @@ class Motion:
 
         # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
-        self.x_mot.move_to(newPoint[0][0], False)
-        self.y_mot.move_to(newPoint[1][0], False)
+        self.x_mot.move_to_unblocked(newPoint[0][0])
+        self.y_mot.move_to_unblocked(newPoint[1][0])
 
     # Will go to GDS y position entered in
     def go_to_GDS_Coordinates_y(self, y_pos: float = None) -> None:
@@ -298,8 +298,8 @@ class Motion:
 
     # Goes to Chip Coordinates, which are more undefined
     def go_to_chip_coordinates(self, x: float, y: float) -> None:
-        self.x_mot.move_to(x)
-        self.y_mot.move_to(y)
+        self.x_mot.move_to_unblocked(x)
+        self.y_mot.move_to_unblocked(y)
 
     # Goes to the Chip y coordinate entered in
     def go_to_chip_coordinates_y(self, y: float) -> None:
@@ -382,19 +382,9 @@ class Motion:
         self.r_mot.jog_step_size = angle
 
         # Will move the motors without a blocking function
-        self.x_mot.move_to(x_pos, False)
-        self.y_mot.move_to(y_pos, False)
-        self.move_step(self.r_mot, direction, False)
-
-        # Will determine whether the action was completed
-        x_mot_completed = False
-        y_mot_completed = False
-        r_mot_completed = False
-        
-        # while not (x_mot_completed and y_mot_completed and r_mot_completed):
-        #     x_mot_completed |= self.motors[0].check_for_completion("moved")
-        #     y_mot_completed |= self.motors[1].check_for_completion("moved")
-        #     r_mot_completed |= self.motors[2].check_for_completion("moved")
+        self.x_mot.move_to_unblocked(x_pos)
+        self.y_mot.move_to_unblocked(y_pos)
+        self.move_step(self.r_mot, direction)
 
         self.rotate_conversion_matrix(direction)
         self.r_mot.jog_step_size = original_angle
@@ -433,9 +423,9 @@ class Motion:
         y_pos = new_point[1][0] + self.origin[1]
 
         print("x motor moving...")
-        self.x_mot.move_to(x_pos, False)
+        self.x_mot.move_to(x_pos)
         print("y motor moving...")
-        self.y_mot.move_to(y_pos, False)
+        self.y_mot.move_to(y_pos)
         original_angle = self.r_mot.jog_step_size
         self.r_mot.jog_step_size = angle
         print("r motor moving...")
