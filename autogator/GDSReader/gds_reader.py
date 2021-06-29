@@ -3,7 +3,6 @@ import gdstk
 
 # Substring known to be found in grading cupler cells
 GC_STRING = "gc"
-
 GDS_FILE = "fabrun5.gds"
 
 # End class for each Circuit

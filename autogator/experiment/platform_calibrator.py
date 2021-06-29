@@ -1,3 +1,4 @@
+from typing import Tuple
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from autogator.motion import motion
 from autogator.map import Map
@@ -5,6 +6,9 @@ from autogator.experiment.data_scanner import DataScanner
 import numpy as np
 import autogator.motion.state_machine.sync_sm as key_test
 import time
+
+GDS = np.array()
+CHIP = np.array()
 
 ### Add lasor controls later, assume on for now
 class PlatformCalibrator:
@@ -94,6 +98,8 @@ class PlatformCalibrator:
         print(self.point1)
         print(self.point2)
         print(self.point3)
+
+        global GDS, CHIP
 
         # Affine Matrix Transformation of two vector spaces with different origins
         GDS = np.array(

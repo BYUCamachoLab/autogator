@@ -6,6 +6,7 @@ import os
 import autogator.map as map
 import math
 
+from autogator.experiment.platform_calibrator import GDS, CHIP
 from pyrolab.api import locate_ns, Proxy
 
 ns = locate_ns(host="camacholab.ee.byu.edu")
@@ -343,6 +344,10 @@ class Motion:
             ]
         )
 
+        a = np.linalg.inv(GDS) @ CHIP
+        self.conversion_matrix = np.array(
+            [[a[0][0], a[1][0], a[2][0]], [a[3][0], a[4][0], a[5][0]], [0, 0, 1]]
+        )
         self.conversion_matrix = rotation_matrix @ self.conversion_matrix
 
     # Performs a continuos concentric rotation to keep the same center over the microscope
