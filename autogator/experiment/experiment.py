@@ -5,11 +5,11 @@ from scipy.signal import find_peaks
 
 
 class ExperimentInterface:
-    def __init__(self) -> None:
+    def __init__(self, circuits) -> None:
         self.cache = data_cache.DataCache.get_instance()
         self.laser = self.cache.get_laser()
         self.oscilliscope = self.cache.get_oscilliscope()
-        self.circuits = self.cache.get_circuit_map().circuits
+        self.circuits = circuits
 
     def run(self):
         raise NotImplementedError
