@@ -98,10 +98,10 @@ class Map:
     # Gets every circuit that is not filtered out and returns a new map
     def filter(self, key: str, value: Any) -> Any:
         filtered_circuits = []
-        for x in self.circuits:
-            valueInCircuit = x.params.get(key, 0)
+        for circuit in self.circuits:
+            valueInCircuit = circuit.params.get(key, 0)
             if str(valueInCircuit) == str(value):
-                filtered_circuits.append(x)
+                filtered_circuits.append(circuit)
         map = Map()
         map.set_circuits(filtered_circuits)
         return map
@@ -116,6 +116,69 @@ class Map:
         map = Map()
         map.set_circuits(filtered_out_circuits)
         return map
+
+    def simple_search(self, search_argument: str) -> Any:
+        filtered_circuits = []
+        for circuit in self.circuits:
+            # Gets the ID which contains the group
+            circuit_id = circuit.params.get("ID", 0)
+            # Checks the ID for the group
+            if search_argument in circuit_id:
+                filtered_circuits.append(circuit)
+        map = Map()
+        map.set_circuits(filtered_circuits)
+        return map
+
+    def search(self, search_argument: str) -> Any:
+        # Seperates the search groups we want
+        search_clusters = search_argument.lower().strip().split(",")
+        # an output list
+        filtered_circuits = []
+        # Goes through the different sets of circuits desired
+        for search_cluster in search_clusters:
+            # performs a search on inclusive and exclusive parameters
+            filtered_circuits.extend(self.sub_search(search_cluster))
+        # Makes the list unique
+        filtered_circuits = list(set(filtered_circuits))
+
+        # Produces a map that contains the circuits
+        map = Map()
+        map.set_circuits(filtered_circuits)
+        return map
+
+    def sub_search(self, search_argument: str) -> list:
+        # An output list
+        filtered_circuits = []
+        # The desried search terms appended to negative terms
+        positive_terms = search_argument.strip().split("+")
+        for circuit in self.circuits:
+            meets_criteria = True
+            # Iterates through the desired terms
+            for search_terms in positive_terms:
+                # Splits up the terms, the desired term will be on the left
+                terms = search_terms.strip().split("-")
+                # Gets the desired term
+                positive_term = terms[0].strip()
+                # Gets any appended excluded terms
+                negative_terms = []
+                if len(terms) > 1:
+                    negative_terms = terms[1:]
+                # Gets the ID which contains the circuit type
+                circuit_id = circuit.params.get("ID", 0)
+                # Checks if the ID conatins the positive search term
+                if positive_term in circuit_id.lower():
+                    for negative_term in negative_terms:
+                        if negative_term.strip() in circuit_id.lower():
+                            meets_criteria = False
+                            break
+                else:
+                    meets_criteria = False
+                    break
+            # If the
+            if meets_criteria:
+                filtered_circuits.append(circuit)
+
+        return filtered_circuits
 
     # Returns a map with every circuit in this map that are in the specified group
     def filter_by_group(self, group: int = None) -> Any:
@@ -144,6 +207,7 @@ class Map:
 
     # Sets the circuits of the Map
     def set_circuits(self, circuits: list[Circuit]) -> None:
+        circuits.sort(key=lambda circuit: circuit.ID, reverse=False)
         self.circuits = circuits
 
     # Returns the the circuits in the map
