@@ -5,7 +5,6 @@ import keyboard
 import os
 import autogator.map as map
 import math
-from autogator.data_cache import DataCache
 
 from pyrolab.api import locate_ns, Proxy
 
@@ -83,11 +82,14 @@ class Motion:
             self.x_mot = Proxy(ns.lookup("KCUBE_LAT"))
             self.y_mot = Proxy(ns.lookup("KCUBE_LON"))
             self.r_mot = Proxy(ns.lookup("KCUBE_ROT"))
+            # print(self.x_mot)
+            # print(self.y_mot)
+            # print(self.r_mot)
             self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-            for motor in self.motors:
-                motor.autoconnect()
-                motor.lock()
+            # for motor in self.motors:
+            #     motor.autoconnect()
+            #     motor.lock()
 
             self.conversion_matrix = None
             self.origin = None
@@ -337,37 +339,37 @@ class Motion:
     def get_r_position(self) -> float:
         return self.r_mot.get_position()
 
-    def rotate_conversion_matrix(self, direction: str = "forward") -> None:
-        # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
-        point = [self.get_x_position(), self.get_y_position()]
-        # This is the point in reference to the calibrated origin
-        original_point = np.array(
-            [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
-        )
+    # def rotate_conversion_matrix(self, direction: str = "forward") -> None:
+    #     # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
+    #     point = [self.get_x_position(), self.get_y_position()]
+    #     # This is the point in reference to the calibrated origin
+    #     original_point = np.array(
+    #         [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
+    #     )
 
-        # Converts degrees to radians and determines the direction of the rotation
-        theta = math.radians(self.r_mot.jog_step_size)
-        sign = 1 if direction == "forward" else -1
+    #     # Converts degrees to radians and determines the direction of the rotation
+    #     theta = math.radians(self.r_mot.jog_step_size)
+    #     sign = 1 if direction == "forward" else -1
 
-        # The rotation matrix, which will predict the new location
-        rotation_matrix = np.array(
-            [
-                [math.cos(theta), sign * math.sin(theta),],
-                [-sign * math.sin(theta), math.cos(theta),],
-            ]
-        )
+    #     # The rotation matrix, which will predict the new location
+    #     rotation_matrix = np.array(
+    #         [
+    #             [math.cos(theta), sign * math.sin(theta),],
+    #             [-sign * math.sin(theta), math.cos(theta),],
+    #         ]
+    #     )
 
-        # Get the calibration from the data cache and then get the points
-        calibration = DataCache.get_instance().get_calibration()
-        point1, point2, point3 = calibration.get_points()
+    #     # Get the calibration from the data cache and then get the points
+    #     calibration = DataCache.get_instance().get_calibration()
+    #     point1, point2, point3 = calibration.get_points()
 
-        # Calculate the new points
-        new_point1 = rotation_matrix @ point1
-        new_point2 = rotation_matrix @ point2
-        new_point3 = rotation_matrix @ point3
+    #     # Calculate the new points
+    #     new_point1 = rotation_matrix @ point1
+    #     new_point2 = rotation_matrix @ point2
+    #     new_point3 = rotation_matrix @ point3
 
-        # Get the new conversion matrix, which automatically sets the conversion matrix in motion
-        calibration.calculate_conversion_matrix(new_point1, new_point2, new_point3)
+    #     # Get the new conversion matrix, which automatically sets the conversion matrix in motion
+    #     calibration.calculate_conversion_matrix(new_point1, new_point2, new_point3)
 
     # # Performs a continuos concentric rotation to keep the same center over the microscope
     # def unblocked_rotation(
@@ -455,7 +457,7 @@ class Motion:
         print("r motor moving...")
         self.move_step(self.r_mot, direction)
         print("Rotating Matrix...")
-        self.rotate_conversion_matrix(direction)
+        # self.rotate_conversion_matrix(direction)
         self.r_mot.jog_step_size = original_angle
 
     # Will go to x position entered in
@@ -490,11 +492,11 @@ class Motion:
             + ")"
         )
 
-        def set_conversion_matrix_rotation_variables(
-            self, gds_matrix, point1, point2, point3
-        ) -> None:
-            self.gds_matrix = gds_matrix
-            self.point1 = point1
-            self.point2 = point2
-            self.point3 = point3
+    # def set_conversion_matrix_rotation_variables(
+    #     self, gds_matrix, point1, point2, point3
+    # ) -> None:
+    #     self.gds_matrix = gds_matrix
+    #     self.point1 = point1
+    #     self.point2 = point2
+    #     self.point3 = point3
 
