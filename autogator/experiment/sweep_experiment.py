@@ -1,13 +1,22 @@
 from autogator.experiment.experiment import ExperimentInterface, WavelengthAnalyzer
 from autogator.data_cache import DataCache
 from pathlib import Path
+import numpy as np
 from autogator import SITE_CONFIG_DIR
 
 COORDINATE_DIR = SITE_CONFIG_DIR / "sweep_data"
 COORDINATE_DIR.mkdir(parents=True, exist_ok=True)
+TIMEOUT = 5
 
 
 class SweepExperiment(ExperimentInterface):
+    def __init__(self, circuits, lambda_start, lambda_stop, duration, power):
+        super(circuits)
+        self.lambda_start = lambda_start
+        self.lambda_stop = lambda_stop
+        self.duration = duration
+        self.power = power
+
     def run(self):
         print("Running...")
         # autogator
@@ -15,9 +24,9 @@ class SweepExperiment(ExperimentInterface):
         motion = cache.get_motion()
 
         # Laser Sweep
-        lambda_start = float(input("Starting Wavelength: "))
-        lambda_stop = float(input("Stopping Wavelength: "))
-        duration = float(input("Duration: "))
+        lambda_start = self.lambda_start
+        lambda_stop = self.lambda_stop
+        duration = self.duration
 
         # Data Collection
         sample_rate = 10e09
@@ -31,11 +40,10 @@ class SweepExperiment(ExperimentInterface):
         active_channels = [1, 2, 3, 4]  # Channels to activate and use.
         trigger_channel = 1  # Channel for trigger signal.
 
-        # Data Collection Folder
-        folderName = COORDINATE_DIR
-
         for circuit in self.circuits:
             motion.go_to_circuit(circuit)
+            # Data Collection Folder
+            folderName = COORDINATE_DIR / circuit.ID
             # ---------------------------------------------------------------------------- #
             # Collect Data
             # ---------------------------------------------------------------------------- #
@@ -43,6 +51,7 @@ class SweepExperiment(ExperimentInterface):
             self.oscilliscope.start_acquisition(timeout=duration * 3)
 
             print("Sweeping Laser")
+            self.laser.power_dBm(self.power)
             self.laser.sweep_wavelength(lambda_start, lambda_stop, duration)
 
             print("Waiting for acquisition to complete.")
@@ -52,10 +61,9 @@ class SweepExperiment(ExperimentInterface):
                 self.oscilliscope.screenshot(folderName + "screenshot.png")
 
             # Acquire Data
-            rawData = [None]  # Ugly hack to make the numbers line up nicely.
-            rawData[1:] = [
-                self.oscilliscope.get_data_ascii(channel) for channel in active_channels
-            ]
+            rawData = []
+            for channel_num in active_channels:
+                rawData.append(self.scope.get_data(channel_num, form="real"))
             wavelengthLog = self.laser.wavelength_logging()
             wavelengthLogSize = self.laser.wavelength_logging_number()
 
@@ -92,6 +100,12 @@ class SweepExperiment(ExperimentInterface):
                 analysis.process_data(rawData[channel])
                 for channel in active_channels
             ]
-
+            for channel in active_channels:
+                np.savez(
+                    Path(folderName, f"Channel{channel}.npz"),
+                    wavelength=np.array(data[channel]["wavelengths"]),
+                    power=np.array(data[channel]["data"]),
+                )
             print("Raw Datasets: {}".format(len(rawData)))
             print("Datasets Returned: {}".format((len(data))))
+

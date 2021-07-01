@@ -1,4 +1,5 @@
 from autogator.map import Map
+from autogator.experiment.sweep_experiment import SweepExperiment
 
 circuit_types = [
     "DC_top",
@@ -14,7 +15,8 @@ circuit_types = [
 
 map = Map("circuits_test.txt")
 
-map2 = map.search(circuit_types[1] + " + jogs_0 - grouping_6 - grouping_2")
+map2 = map.search("MZIs_1 + MZI2")
 print(map2)
 print()
-# print(map.simple_search(circuit_types[1]))
+SweepExperiment(map2.circuits, 1500, 1600, 15, 12)
+
