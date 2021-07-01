@@ -271,8 +271,8 @@ class Motion:
 
         # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
-        self.x_mot.move_to_unblocked(newPoint[0][0])
-        self.y_mot.move_to_unblocked(newPoint[1][0])
+        self.x_mot.move_to(newPoint[0][0])
+        self.y_mot.move_to(newPoint[1][0])
 
     # Will go to GDS y position entered in
     def go_to_GDS_Coordinates_y(self, y_pos: float = None) -> None:
@@ -306,8 +306,8 @@ class Motion:
 
     # Goes to Chip Coordinates, which are more undefined
     def go_to_chip_coordinates(self, x: float, y: float) -> None:
-        self.x_mot.move_to_unblocked(x)
-        self.y_mot.move_to_unblocked(y)
+        self.x_mot.move_to(x)
+        self.y_mot.move_to(y)
 
     # Goes to the Chip y coordinate entered in
     def go_to_chip_coordinates_y(self, y: float) -> None:
@@ -369,49 +369,49 @@ class Motion:
         # Get the new conversion matrix, which automatically sets the conversion matrix in motion
         calibration.calculate_conversion_matrix(new_point1, new_point2, new_point3)
 
-    # Performs a continuos concentric rotation to keep the same center over the microscope
-    def unblocked_rotation(
-        self, direction: str = "forward", angle: float = None
-    ) -> None:
-        # Default angle change
-        if angle == None:
-            angle = self.r_mot.jog_step_size
-        # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
-        point = [self.get_x_position(), self.get_y_position()]
-        # This is the point in reference to the calibrated origin
-        original_point = np.array(
-            [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
-        )
+    # # Performs a continuos concentric rotation to keep the same center over the microscope
+    # def unblocked_rotation(
+    #     self, direction: str = "forward", angle: float = None
+    # ) -> None:
+    #     # Default angle change
+    #     if angle == None:
+    #         angle = self.r_mot.jog_step_size
+    #     # This is more for debugging, but it holds the x and y positions of the motors at the current viewing location
+    #     point = [self.get_x_position(), self.get_y_position()]
+    #     # This is the point in reference to the calibrated origin
+    #     original_point = np.array(
+    #         [[point[0] - self.origin[0]], [point[1] - self.origin[1]],]
+    #     )
 
-        # Converts degrees to radians and determines the direction of the rotation
-        theta = math.radians(angle)
-        sign = 1 if direction == "forward" else -1
+    #     # Converts degrees to radians and determines the direction of the rotation
+    #     theta = math.radians(angle)
+    #     sign = 1 if direction == "forward" else -1
 
-        # The rotation matrix, which will predict the new location
-        rotation_matrix = np.array(
-            [
-                [math.cos(theta), sign * math.sin(theta),],
-                [-sign * math.sin(theta), math.cos(theta),],
-            ]
-        )
+    #     # The rotation matrix, which will predict the new location
+    #     rotation_matrix = np.array(
+    #         [
+    #             [math.cos(theta), sign * math.sin(theta),],
+    #             [-sign * math.sin(theta), math.cos(theta),],
+    #         ]
+    #     )
 
-        # The Next Point is calculated by matrix multiplying the rotation matrix by the point in reference to the calibrated origin
-        new_point = rotation_matrix @ original_point
+    #     # The Next Point is calculated by matrix multiplying the rotation matrix by the point in reference to the calibrated origin
+    #     new_point = rotation_matrix @ original_point
 
-        # The new Motor Coordinates
-        x_pos = new_point[0][0] + self.origin[0]
-        y_pos = new_point[1][0] + self.origin[1]
+    #     # The new Motor Coordinates
+    #     x_pos = new_point[0][0] + self.origin[0]
+    #     y_pos = new_point[1][0] + self.origin[1]
 
-        original_angle = self.r_mot.jog_step_size
-        self.r_mot.jog_step_size = angle
+    #     original_angle = self.r_mot.jog_step_size
+    #     self.r_mot.jog_step_size = angle
 
-        # Will move the motors without a blocking function
-        self.x_mot.move_to_unblocked(x_pos)
-        self.y_mot.move_to_unblocked(y_pos)
-        self.move_step(self.r_mot, direction)
+    #     # Will move the motors without a blocking function
+    #     self.x_mot.move_to_unblocked(x_pos)
+    #     self.y_mot.move_to_unblocked(y_pos)
+    #     self.move_step(self.r_mot, direction)
 
-        self.rotate_conversion_matrix(direction)
-        self.r_mot.jog_step_size = original_angle
+    #     self.rotate_conversion_matrix(direction)
+    #     self.r_mot.jog_step_size = original_angle
 
     # Performs a rotation where you return to the spot you were looking at post rotation
     def concentric_rotatation(
