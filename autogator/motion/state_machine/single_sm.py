@@ -2,6 +2,7 @@ import keyboard
 from enum import Enum, auto
 import autogator.motion.motion as motpy
 import autogator.data_cache as data
+from autogator.experiment.data_scanner import DataScanner
 
 # This will be used to debounce the key press
 SINGLE_MAX_ADC_COUNTER = 4
@@ -21,6 +22,7 @@ single_hotkeys = [
     "shift + r",
     "shift + t",
     "shift + f",
+    "shift + a",
     "space",
     "o",
     "h",
@@ -147,6 +149,7 @@ class single_action:
             or (self.hotkey == "shift + r")
             or (self.hotkey == "shift + t")
             or (self.hotkey == "shift + f")
+            or (self.hotkey == "shift + a")
         ):
             self.key_type = key_type.SETTER
         elif (self.hotkey == "space") or (self.hotkey == "o") or (self.hotkey == "h"):
@@ -173,6 +176,11 @@ class single_action:
                 data.DataCache.get_instance().set_configuration()
             elif self.hotkey == "shift + f":
                 self.go_to_GDS_coordinate()
+            elif self.hotkey == "shift + a":
+                scope = data.DataCache.get_instance().get_oscilliscope()
+                if scope is not None:
+                    dataScanner = DataScanner(scope, self.motion)
+                    dataScanner.auto_scan()
         elif self.key_type == key_type.INPUTLESS:
             if self.hotkey == "space":
                 self.motion.print_GDS_position()

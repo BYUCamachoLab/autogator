@@ -87,9 +87,9 @@ class Motion:
             # print(self.r_mot)
             self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-            # for motor in self.motors:
-            #     motor.autoconnect()
-            #     motor.lock()
+            for motor in self.motors:
+                motor.autoconnect()
+                motor.lock()
 
             self.conversion_matrix = None
             self.origin = None

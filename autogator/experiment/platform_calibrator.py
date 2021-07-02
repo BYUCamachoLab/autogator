@@ -152,7 +152,7 @@ class PlatformCalibrator:
     # Performs motor functions to calibrate
     def keyloop_for_calibration(self) -> list[float]:
         key_test.run(self.motion)
-        if self.do_scan.lower == "y" and self.dataScanner != None:
+        if (self.do_scan.lower() == "y") and (self.dataScanner is not None):
             print("Optimizing data...")
             self.dataScanner.auto_scan()
         print("Done.")

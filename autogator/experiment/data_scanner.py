@@ -6,8 +6,10 @@ class DataScanner:
     def __init__(self, oscilloscope, motion, channel=1):
         self.oscope = oscilloscope
         self.mot = motion
-        self.oscope.set_timescale(1e-9)
-        self.oscope.set_channel(channel, range=.4, coupling="DCLimit", position=0)
+        self.oscope.set_timescale(1e-6)
+        self.oscope.set_channel(channel, range=1, coupling="DCLimit", position=-4)
+        self.oscope.write(f"CHAN{channel}:DIGF:STAT ON")
+        self.oscope.write(f"CHAN{channel}:DIGF:CUT 100E+3")
         self.oscope.set_auto_measurement(1)
         self.oscope.wait_for_device()
 
@@ -23,12 +25,13 @@ class DataScanner:
         print("Max Data Location: ({}, {})".format(self.mot.get_x_position(), self.mot.get_y_position()))
 
     def basic_scan(self, sweep_distance, step_size, plot=False):
-        max_data = 0
-        max_data_loc = 0
 
         x_start_place = self.mot.get_x_position() + sweep_distance/2
         y_start_place = self.mot.get_y_position() + sweep_distance/2
         self.mot.go_to_chip_coordinates(x_start_place, y_start_place)
+
+        max_data = float(self.oscope.measure())
+        max_data_loc = (x_start_place, y_start_place)
 
         self.mot.set_jog_step_linear(step_size)
 
@@ -44,11 +47,11 @@ class DataScanner:
 
         for i in range(rows):
             for j in range(cols):
-                data[i, j] = self.oscope.measure()
-
+                data[i, j] = float(self.oscope.measure())
+                print(data[i, j])
                 if data[i, j] > max_data:
                     max_data = data[i, j]
-                    max_data_loc = [self.mot.get_x_position(), self.mot.get_y_position()]
+                    max_data_loc = (self.mot.get_x_position(), self.mot.get_y_position())
 
                 if moving_down:
                     self.mot.move_step(self.mot.y_mot, "backward")
@@ -66,7 +69,7 @@ class DataScanner:
             else:
                 moving_down = True
             #I cannot tell what this line is doing
-            self.mot.x_mot.move_step(self.mot, "forward")
+            self.mot.move_step(self.mot.x_mot, "forward")
 
         self.mot.go_to_chip_coordinates(max_data_loc[0], max_data_loc[1])
         if plot:
