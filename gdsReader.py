@@ -5,8 +5,8 @@ import gdstk
 gcString = "gc"
 
 #Library to Read
-# lib = gdstk.read_gds("C:\\Users\\mcg63\\autogator\\fabrun5.gds")
-# lib1 = lib.cells
+lib = gdstk.read_gds("C:\\Users\\mcgeo\\OneDrive\\Documents\\Research\\fabrun5.gds")
+lib1 = lib.cells
 
 #Initialize Array for storing Circuits
 circuits = []
@@ -27,14 +27,14 @@ class Circuit:
       return "(" + str(self.origin[0]) + "," + str(self.origin[1]) + ") " + self.name + " name=" + self.find_second_name() + " ports=" + self.ports + " mode=TE submitter='sequoiac'"
         
 
-#Each cell is stored by name with their references and whether or not they are a circuit
+# Each cell is stored by name with their references and whether or not they are a circuit
 class Dependency:
     def __init__(self, refs=[], isCircuit=False, name=""):
         self.refs = refs
         self.isCircuit = isCircuit
         self.name = name
 
-#Working Class for creating circuit objects
+# Working Class for creating circuit objects
 class Unit:
     def __init__(self, name="", origin=[]):
         self.name = name
@@ -42,13 +42,13 @@ class Unit:
     def __str__(self):
         return self.name + ": (" + str(self.origin[0]) + "," + str(self.origin[1]) + ")"
 
-#More simple version of Dependeny
+# Each cell is stored with its name and origin
 class RefObject:
     def __init__(self, name="", origin=[]):
         self.name = name
         self.origin = origin
 
-#Test if cell is circuit by if it contains a Grading Cupler in its references
+# Test if cell is circuit by if it contains a Grading Cupler in its references
 def contains_GC(cell):
     references = cell.references
     for i in references:
@@ -56,14 +56,14 @@ def contains_GC(cell):
             return True
     return False
 
-#Getting name from toString property of gdstk reference object
+# Getting name from toString property of gdstk reference object
 def get_name(referenceString):
     string = str(referenceString)[19:]
     num = string.find("'")
     string = string[:num]
     return string
 
-#Creating reference objects for a given cell
+# Creating reference objects for a given cell
 def create_ref_objects(cell, namesUsed):
     RefObjects = []
     refs = cell.references

@@ -9,6 +9,7 @@ import configparser
 import atexit
 
 from autogator.mainwindow import start_gui
+from autogator.autoGui import GUI
 
 
 def onstart():
@@ -19,6 +20,11 @@ def onstart():
 def onclose():
     from autogator.controllers.shutdown import shutdown
     shutdown()
+
+def Start(circuitsFile):
+    m = GUI(circuitsFile) 
+    m.show() 
+    return m
     
 
 if __name__ == "__main__":
@@ -26,4 +32,8 @@ if __name__ == "__main__":
     print("© 2019-{}, CamachoLab".format(date.today().year))
     onstart()
 
-    start_gui()
+    app = QApplication(sys.argv)
+    window = Start("C:\\Users\\mcgeo\\source\\repos\\autogator\\examples\\circuits.txt")
+    app.exec_()
+
+    #start_gui()

@@ -61,7 +61,7 @@ class single_action:
         self.motor = None
         self.direction = None
         if self.init_printing == False:
-            print("Initialized")
+            #print("Initialized")
             self.init_printing = True
     
     # This will wait for a key to be pressed and will reset variables
@@ -73,14 +73,14 @@ class single_action:
         self.motor = None
         self.direction = None
         if self.wait_printing == False:
-            print("Waiting")
+            #print("Waiting")
             self.wait_printing = True
     
     # This will be activated when a key is pressed
     def press(self):
         self.wait_printing = False
         if self.press_printing == False:
-            print("Pressing " + self.hotkey)
+            #print("Pressing " + self.hotkey)
             self.process_key_type()
             self.press_printing = True
     
@@ -88,7 +88,7 @@ class single_action:
     def release(self):
         self.press_printing = False
         if self.release_printing == False:
-            print("Releasing " + self.hotkey)
+            #print("Releasing " + self.hotkey)
             self.process_key_command()
             self.release_printing = True
     

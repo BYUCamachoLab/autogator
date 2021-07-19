@@ -1,4 +1,4 @@
-from autogator.map.map import Map
+from autogator.circuitMap import CircuitMap
 import autogator.dataCache as data
 
 # Accesses the Data Cache Instance and calibrates
@@ -6,11 +6,11 @@ dataCache = data.DataCache.get_instance()
 dataCache.calibrate()
 
 # Accesses the Map of Circuits
-map = Map("circuits_test.txt")
+circuitMap = Map("circuits_test.txt")
 
-circuits_to_go_to = map.filter_out("ports", "test")
+circuits_to_go_to = circuitMap.filter_out("ports", "test")
 
-for circuit in map.circuits:
+for circuit in circuitMap.circuits:
     dataCache.get_motion().go_to_circuit(circuit)
     print(circuit.ID)
     print(circuit.name)

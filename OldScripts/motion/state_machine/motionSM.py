@@ -51,7 +51,7 @@ class motion_action:
         self.motor = None
         self.direction = None
         if self.init_printing == False:
-            print("Initialized")
+            #print("Initialized")
             self.init_printing = True
 
     # Waits for a key press
@@ -66,14 +66,14 @@ class motion_action:
         self.motor = None
         self.direction = None
         if self.wait_printing == False:
-            print("Waiting")
+            #print("Waiting")
             self.wait_printing = True
     
     # The SM is choosing between a step and a jog and grabs the direction and motor
     def move_type(self):
         self.wait_printing = False
         if self.move_type_printing == False:
-            print("Choosing Movement")
+            #print("Choosing Movement")
             self.motor, self.direction = self.process_key(self.hotkey)
             self.move_type_printing = True
     
@@ -82,14 +82,14 @@ class motion_action:
         self.move_type_printing = False
         self.cont_printing = False
         if self.buffer_printing == False:
-            print("ADC Wait Buffer")
+            #print("ADC Wait Buffer")
             self.buffer_printing = True
     
     # A Single Step Movement
     def move(self):
         self.move_type_printing = False
         if self.move_printing == False:
-            print("Moving " + self.hotkey)
+            #print("Moving " + self.hotkey)
             self.motion.move_step(self.motor, self.direction)
             self.move_printing = True
     
@@ -97,7 +97,7 @@ class motion_action:
     def cont(self):
         self.buffer_printing = False
         if self.cont_printing == False:
-            print("ADC Continuos Movement " + self.hotkey)
+            #print("ADC Continuos Movement " + self.hotkey)
             self.motion.move_cont(self.motor, self.direction)
             self.cont_printing = True
     
@@ -106,7 +106,7 @@ class motion_action:
         self.buffer_printing = False
         self.cont_printing = False
         if self.stop_printing == False:
-            print("Stopping")
+            #print("Stopping")
             self.motion.stop_cont_jog(self.motor, "continuous")
             self.stop_printing = True
     # This will process the key pressed and return values corresponding to the pressed key
