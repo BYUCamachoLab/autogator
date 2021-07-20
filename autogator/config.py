@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Autogator Project Contributors
+# Licensed under the terms of the GNU GPLv3+ License
+# (see autogator/__init__.py for details)
+
+"""
+Configuration Class
+-------------------------------------
+
+Stores configuration information for setup.
+"""
+
 from typing import Optional, Tuple, List
 from pathlib import Path
 import numpy as np
@@ -5,6 +18,15 @@ import os
 from yaml import dump, safe_load
 
 class Configuration:
+    """
+    Reads and writes key word argument configuration information with a yaml file.
+    ...
+
+    Attributes
+    ----------
+    file_path : str
+        Direct file path to configuration yaml file.
+    """
     def __init__(self, file_path) -> None:
         self.file_path = file_path
         if not file_path.exists():
@@ -37,5 +59,8 @@ class Configuration:
                 self.attrs[key] = value
 
     def save(self):
+        """
+        Saves key words arguments in Configuration to yaml file.
+        """
         with self.file_path.open("w") as fout:
             fout.write(dump(self.attrs))

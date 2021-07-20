@@ -1,11 +1,22 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Autogator Project Contributors
+# Licensed under the terms of the GNU GPLv3+ License
+# (see autogator/__init__.py for details)
+
+"""
+PlatformCalibrator Class
+-------------------------------------
+
+Contains logic for calculating the affine transformation between GDS and Stage coordinates.
+"""
+
 import numpy as np
 import time
 from typing import List
 
-### Add lasor controls later, assume on for now
 class PlatformCalibrator:
     def __init__(self, circuitMap=None, oscilliscope=None, dataScanner=None, motion=None) -> None:
-        # Resets Basic Values
         self.oscope = oscilliscope
         self.circuitMap = circuitMap
         self.motion = motion
@@ -21,8 +32,17 @@ class PlatformCalibrator:
         self.conversion_matrix = None
         self.do_scan = "n"
 
-    # Runs the calibration
     def calibrate(self) -> None:
+        """
+        Accepts the coordinates 
+
+        .. note:: Will ask to use dataScanner to optimize alignment, defaults to no if dataScanner not initialized. 
+
+        Returns
+        -------
+        conversion_matrix : np.array
+            Affine tranformation to convert between GDS and Stage coordinates.
+        """
         if self.dataScanner != None:
             self.do_scan = input("Do you want to do use autoscan? (y/n) Press Enter\n")
         else:
@@ -30,27 +50,21 @@ class PlatformCalibrator:
             print("Data Scanner is not Initialized, unable to perform Auto Scan")
 
         do_home = input("Do you want tohome the motors? (y/n) Press Enter\n")
-        # Reset the Motors to base location
         if do_home.lower() == "y":
             self.motion.home_motors()
 
         print("Starting calibration process...")
 
-        # Getting the First point of Calibration
         self.point1 = self.keyloop_for_calibration(self.circuit1.ID)
         time.sleep(1)
-        # Getting the Second point of Calibration
         self.point2 = self.keyloop_for_calibration(self.circuit2.ID)
         time.sleep(1)
-        # Getting the Third point of Calibration
         self.point3 = self.keyloop_for_calibration(self.circuit3.ID)
 
-        # Getting Locations
         loc_1 = self.circuit1.location
         loc_2 = self.circuit2.location
         loc_3 = self.circuit3.location
 
-        # Affine Matrix Transformation of two vector spaces with different origins
         gds = np.array(
             [
                 [float(loc_1[0]), float(loc_1[1]), 1, 0, 0, 0],
@@ -145,7 +159,6 @@ class PlatformCalibrator:
 
         return self.origin
 
-    # Performs motor functions to calibrate
     def keyloop_for_calibration(self, circuit_id) -> List[float]:
         print("Move " + circuit_id + " into Crosshairs, then press q")
         self.motion.keyloop()

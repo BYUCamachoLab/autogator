@@ -36,10 +36,8 @@ class Circuit:
     def __getattr__(self, key):
         return self.params[key]
 
-    # Adds a parameter
     def add_param(self, key, value):
         self.params[key] = value
-
 
 class Location(NamedTuple):
     """
@@ -49,7 +47,6 @@ class Location(NamedTuple):
     y: float
     def __str__(self) -> str:
         return "(" + str(self.x) + ", " + str(self.y) + ")"
-
 
 class CircuitMap:
     """
@@ -65,10 +62,10 @@ class CircuitMap:
         if text_file_path == None:
             return
 
-        circuitMap_file = open(text_file_path, "r")
-        circuitMap_circuits = []
+        circuit_map_file = open(text_file_path, "r")
+        circuit_map_circuits = []
 
-        for line in circuitMap_file:
+        for line in circuit_map_file:
             if line is not None:
                 line = line[:-1]
                 new_circuit = Circuit()
@@ -82,11 +79,11 @@ class CircuitMap:
                 new_circuit.add_param("ID", ID)  
 
                 for chunk in chunks:
-                    keyValues = chunk.split("=")
-                    new_circuit.add_param(keyValues[0], keyValues[1])
-                circuitMap_circuits.append(new_circuit)
+                    key_values = chunk.split("=")
+                    new_circuit.add_param(key_values[0], key_values[1])
+                circuit_map_circuits.append(new_circuit)
 
-        self.circuits = circuitMap_circuits
+        self.circuits = circuit_map_circuits
 
     def __add__(self, o: Any) -> Any:
         joined_circuits = []
@@ -96,9 +93,9 @@ class CircuitMap:
         for circuit in o.circuits:
             if circuit not in joined_circuits:
                 joined_circuits.append(circuit)
-        circuitMap = CircuitMap()
-        circuitMap.set_circuits(joined_circuits)
-        return circuitMap
+        circuit_map = CircuitMap()
+        circuit_map.set_circuits(joined_circuits)
+        return circuit_map
 
     def __str__(self) -> str:
         string = ""
@@ -108,7 +105,6 @@ class CircuitMap:
             string += "\n"
         return string
 
-    # Filters map to only include circuits with a specific value for a specific key
     def filter(self, **kwargs) -> Any:
         """
         Filters CircuitMap to only include circuits that match the key, values pairs provided.
@@ -117,7 +113,7 @@ class CircuitMap:
 
         Parameters
         ----------
-        **kwargs : **kwargs
+        **kwargs : dict
             The key, value pairs to filter on.
 
         Returns
@@ -130,16 +126,15 @@ class CircuitMap:
             filtered_circuits = []
             for circuit in starting_circuits:
                 if key in circuit.params.keys():
-                    valueInCircuit = circuit.params.get(key, 0)
-                    if str(valueInCircuit) == str(value):
+                    value_in_circuit = circuit.params.get(key, 0)
+                    if str(value_in_circuit) == str(value):
                         filtered_circuits.append(circuit)
             starting_circuits.clear()
             starting_circuits.extend(filtered_circuits)
-        circuitMap = CircuitMap()
-        circuitMap.set_circuits(filtered_circuits)
-        return circuitMap
+        circuit_map = CircuitMap()
+        circuit_map.set_circuits(filtered_circuits)
+        return circuit_map
 
-    # Filters map to exclude circuits with a specific value for a specific key
     def filter_out(self, **kwargs) -> Any:
         """
         Filters CircuitMap to exclude circuits that match the key, values pairs provided.
@@ -148,7 +143,7 @@ class CircuitMap:
 
         Parameters
         ----------
-        **kwargs : **kwargs
+        **kwargs : dict
             The key, value pairs to filter out on.
 
         Returns
@@ -161,25 +156,24 @@ class CircuitMap:
             filtered_circuits = []
             for circuit in starting_circuits:
                 if key in circuit.params.keys():
-                    valueInCircuit = circuit.params.get(key, 0)
-                    if str(valueInCircuit) != str(value):
+                    value_in_circuit = circuit.params.get(key, 0)
+                    if str(value_in_circuit) != str(value):
                         filtered_circuits.append(circuit)
                 else:
                     filtered_circuits.append(circuit)
             starting_circuits.clear()
             starting_circuits.extend(filtered_circuits)
-        circuitMap = CircuitMap()
-        circuitMap.set_circuits(filtered_circuits)
-        return circuitMap
+        circuit_map = CircuitMap()
+        circuit_map.set_circuits(filtered_circuits)
+        return circuit_map
 
-    # Adds a new parameter to the circuits in the circuitMap
     def add_new_param(self, **kwargs) -> Any:
         """
         Adds new parameters to each circuit in CircuitMap based on key, value pairs provided.
 
         Parameters
         ----------
-        **kwargs : **kwargs
+        **kwargs : dict
             The key, value pairs to add as parameters.
 
         Returns
@@ -189,15 +183,13 @@ class CircuitMap:
         """
         new_circuits = []
         for circuit in self.circuits:
-            # Gets the Arguments in the function call and adds them to the circuit
             for key, value in kwargs.items():
                 circuit.add_param(key, value)
             new_circuits.append(circuit)
-        circuitMap = CircuitMap()
-        circuitMap.set_circuits(new_circuits)
-        return circuitMap
+        circuit_map = CircuitMap()
+        circuit_map.set_circuits(new_circuits)
+        return circuit_map
 
-    # Sets the circuits of the CircuitMap
     def set_circuits(self, circuits: List[Circuit]) -> None:
         """
         Sets the list of circuits in CircuitMap to provided list.
@@ -209,7 +201,6 @@ class CircuitMap:
         """
         self.circuits = circuits
 
-    # Returns the the circuits in the circuitMap
     def get_circuits(self) -> List[Circuit]:
         """
         Returns to list of circuits in CircuitMap.
@@ -221,8 +212,6 @@ class CircuitMap:
         """
         return self.circuits
 
-    # Returns single circuit with specific value for a specific key
-    # Defaults to ID key
     def get_circuit(self, key: str = "ID", value: str = "") -> Circuit:
         """
         Returns circuit that matches key, value pair provided.
@@ -239,18 +228,23 @@ class CircuitMap:
         Returns
         -------
         circuit : Circuit
-            List of circuits in CircuitMap.
+            Circuit whos parameters match the key, value pair provided; None if no matches are found.
         """
         for circuit in self.circuits:
-            valueInCircuit = circuit.params.get(key, 0)
-            if valueInCircuit == value:
+            value_in_circuit = circuit.params.get(key, 0)
+            if value_in_circuit == value:
                 return circuit
         return None
 
-    # Returns test circuits for calibration
-    # Very left, bottom
-    # Very top, left
-    # Very right, top
-    # Based on coordinates
     def get_test_circuits(self) -> List[Circuit]:
+        """
+        Returns circuits that are used for stage calibration.
+
+        .. note:: Will be the bottom left, top left, and top right circuits relative to the entire gds file.
+
+        Returns
+        -------
+        test_circuits : List[Circuit]
+            Circuits that have "testing_circuit=True" as a parameter.
+        """
         return self.filter(testing_circuit="True").get_circuits()

@@ -31,8 +31,13 @@ class Motion:
         self.r_mot = r_mot
         self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-        for motor in self.motors:
-            motor.autoconnect()
+        try:
+            for motor in self.motors:
+                motor.autoconnect()
+        except:
+            self.x_mot.connect(serialno=27504851)
+            self.y_mot.connect(serialno=27003497)
+            self.r_mot.connect(serialno=27003366)
 
         self.conversion_matrix = conversion_matrix
         # self.origin = None
