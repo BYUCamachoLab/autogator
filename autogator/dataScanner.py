@@ -8,7 +8,7 @@ class DataScanner:
         self.oscope = oscilloscope
         self.motion = motion
         self.oscope.set_timescale(1e-9)
-        self.oscope.set_channel(channel, range=.4, coupling="DCLimit", position=0)
+        self.oscope.set_channel(channel, range=5.5, coupling="DCLimit", position=-5)
         self.oscope.set_auto_measurement()
         self.oscope.wait_for_device()
 
@@ -16,14 +16,18 @@ class DataScanner:
         self.basic_scan(sweep_distance=.025, step_size=.005)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
-        self.basic_scan(sweep_distance=.01, step_size=.001)
+        self.basic_scan(sweep_distance=.01, step_size=.002)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
         self.basic_scan(sweep_distance=.001, step_size=.0005)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
 
-    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=.5):
+    def auto_scan_small(self):
+        self.basic_scan(sweep_distance=.01, step_size=.002)
+        self.basic_scan(sweep_distance=.001, step_size=.0005)
+
+    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=.2):
         max_data = 0
         max_data_loc = 0
 
@@ -47,6 +51,7 @@ class DataScanner:
         for i in range(rows):
             for j in range(cols):
                 data[i, j] = self.oscope.measure()
+                print(data[i, j])
                 if data[i, j] > max_data:
                     max_data = data[i, j]
                     max_data_loc = [self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)]

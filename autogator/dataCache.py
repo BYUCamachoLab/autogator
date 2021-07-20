@@ -79,9 +79,9 @@ class DataCache:
             self.scope = RTO(self.scope_IP, protocol=self.scope_protocol, timeout=self.scope_timeout)
             self.laser = Proxy(ns.lookup(self.laser_name))
             self.circuitMap = CircuitMap(text_file_path=self.circuitMap_file_path)
-            self.motion = Motion(x_mot=Z825B(), y_mot=Z825B(), r_mot=PRM1Z8(), conversion_matrix=self.conversion_matrix)
-                # x_mot=Proxy(ns.lookup(self.x_mot_name)), y_mot=Proxy(ns.lookup(self.y_mot_name)), 
-                # r_mot=Proxy(ns.lookup(self.r_mot_name)), conversion_matrix=self.conversion_matrix)
+            self.motion = Motion(x_mot=Proxy(ns.lookup(self.x_mot_name)), y_mot=Proxy(ns.lookup(self.y_mot_name)), 
+                r_mot=Proxy(ns.lookup(self.r_mot_name)), conversion_matrix=self.conversion_matrix)
+                #x_mot=Z825B(), y_mot=Z825B(), r_mot=PRM1Z8(), conversion_matrix=self.conversion_matrix)
             self.dataScanner = DataScanner(self.scope, self.motion)
             self.platformCalibrator = PlatformCalibrator(self.circuitMap, self.scope, self.dataScanner, self.motion)
             DataCache.__instance = self

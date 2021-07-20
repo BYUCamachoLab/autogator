@@ -40,9 +40,8 @@ class Motion:
             self.r_mot.connect(serialno=27003366)
 
         self.conversion_matrix = conversion_matrix
-        # self.origin = None
+        self.origin = None
 
-        # Sets these to false so that motors can move without intereference
         self.x_mot_moving = False
         self.y_mot_moving = False
         self.r_mot_moving = False
@@ -76,12 +75,19 @@ class Motion:
             "shift_g": False
         }
 
-    # Stops a continuos movement
     def stop_motion(self, motor, move_type: str = "continuous") -> None:
-        # Stops the motor
+        """
+        Stops motor motion is it is moving conintuously and marks motor as not moving.
+
+        Parameters
+        ----------
+        motor : Z825B
+            Which motor needs to be stopped and marked not moving.
+        move_type : str
+            Whether the motor is currently moving continuously or stepped.
+        """
         if move_type == "continuous":
             motor.stop()
-        # Sets the movement boolean to false
         if motor == self.x_mot:
             self.x_mot_moving = False
         if motor == self.y_mot:
@@ -89,96 +95,178 @@ class Motion:
         if motor == self.r_mot:
             self.r_mot_moving = False
 
-    # Sets the step size with a function call
     def set_jog_step_linear(self, step_size: float = None) -> None:
+        """
+        Sets jog step of linear motors.
+        
+        .. note:: Asks for user input if step_size isn't provided in function call.
+
+        Parameters
+        ----------
+        step_size : float, default=None
+            New jog step size for linear motors.
+        """
         if step_size is None:
             os.system("cls")
             step_size = float(input("New Jog Step (mm):"))
         self.x_mot.jog_step_size = step_size
         self.y_mot.jog_step_size = step_size
 
-    # Returns the step size with a function call
     def get_jog_step_linear(self) -> float:
+        """
+        Returns the jog step size of the linear motors.
+
+        Returns
+        -------
+        jog_step_size : float
+            Current jog step size of linear motors.
+        """
         return self.x_mot.jog_step_size
 
-    # Sets the rotational step
     def set_jog_step_rotational(self, step_size: float=None) -> None:
+        """
+        Sets jog step of rotational motor.
+        
+        .. note:: Asks for user input if step_size isn't provided in function call.
+
+        Parameters
+        ----------
+        step_size : float, default=None
+            New jog step size for rotational motor.
+        """
         if step_size is None:
             os.system("cls")
             step_size = float(input("New Jog Step (degrees):"))
         self.r_mot.jog_step_size = step_size
 
-    # Returns the step size with a function call
     def get_jog_step_rotational(self) -> float:
+        """
+        Returns the jog step size of the rotational motor.
+
+        Returns
+        -------
+        jog_step_size : float
+            Current jog step size of rotational motor.
+        """
         return self.r_mot.jog_step_size
 
-    # Stops All Motors, but then requires K Cubes to be restarted
     def stop_all(self) -> None:
+        """
+        Stops all motors from moving
+
+        .. note:: Requires K-Cubes to be manually restarted after called.
+        """
         for m in self.motors:
             m.stop()
 
-    # Does a single Movement using a motor and direction input
     def move_step(self, motor, direction: str) -> None:
-        # Checks if it is the x motor and whether the x motor is already moving before moving it
+        """
+        Moves a motor one jog based on current jog step size.
+
+        .. note:: Motor must not be currently moving for function to be called.
+
+        Parameters
+        ----------
+        motor : Z825B
+            The motor that will move one jog.
+        direction : str
+            The direction the motor will move (Must be "forward" or "backward").
+        """
         if motor == self.x_mot:
             if self.x_mot_moving == False:
                 motor.jog(direction)
-        # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
                 motor.jog(direction)
-        # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
                 motor.jog(direction)
 
-    # Performs a continuous movement using a motor and direction input
     def move_cont(self, motor, direction: str) -> None:
-        # Checks if it is the x motor and whether the x motor is already moving before moving it
+        """
+        Starts a continuous movement of a motor and marks it as currently moving.
+
+        Parameters
+        ----------
+        motor : Z825B
+            The motor that will move.
+        direction : str
+            The direction the motor will move (Must be "forward" or "backward").
+        """
         if motor == self.x_mot:
             if self.x_mot_moving == False:
                 motor.move_continuous(direction)
-                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.x_mot_moving = True
-        # Checks if it is the y motor and whether the y motor is already moving before moving it
         if motor == self.y_mot:
             if self.y_mot_moving == False:
                 motor.move_continuous(direction)
-                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.y_mot_moving = True
-        # Checks if it is the rotational motor and whether the rotational motor is already moving before moving it
         if motor == self.r_mot:
             if self.r_mot_moving == False:
                 motor.move_continuous(direction)
-                # sets the movement boolean to true so it will not perform another movement before finishing the current movement
                 self.r_mot_moving = True
 
-    # Prints the keys and their function
     def help_me(self) -> None:
+        """
+        Prints help text to terminal to inform user of commands available.
+        """
         global help_txt
         print(help_txt)
 
-    # Set the flag value true
     def set_flag(self, flag: str) -> None:
+        """
+        Sets a flags value to True
+
+        Parameters
+        ----------
+        flag : str
+            Flag to be set to True.
+        """
         self.flags[flag] = True
 
-    # Set the step size flag to true
     def set_flag_lin_step(self) -> None:
+        """
+        Sets a linear step flag value to True
+
+        .. note:: Seperate function from set_flag() because "shift + button" commands are called differently.
+        """
         self.flags["shift_j"] = True
 
-    # Set the rotation step size flag to true
     def set_flag_rot_step(self) -> None:
+        """
+        Sets a rotational step flag value to True
+
+        .. note:: Seperate function from set_flag() because "shift + button" commands are called differently.
+        """
         self.flags["shift_g"] = True
 
-    # Resets the motors to base positions
     def home_motors(self) -> None:
+        """
+        Moves linear motors to home position.
+        """
         print("Homing motors...")
         self.x_mot.go_home()
         self.y_mot.go_home()
         print("Done homing")
 
-    # Converts GDS coordinates to chip coordinates and goes to those positions
     def go_to_gds_coordinates(self, x: float=None, y: float=None) -> None:
+        """
+        Converts GDS coordinates to stage coordinates and moves to position.
+
+        .. note:: If x or y variable isn't passed it will only move to positions given.
+
+        Parameters
+        ----------
+        x : float, default=None
+            x part of GDS coordinate to go to.
+        y : float, default=None
+            y part of GDS coordinate to go to.
+
+        Raises
+        ------
+        Exception
+            If conversion matrix is null it cannot calculate the stage coordinates.
+        """
         go_to_x = True
         go_to_y = True
 
@@ -190,26 +278,47 @@ class Motion:
             go_to_y = False
         gds_pos = np.array([[x], [y], [1]])
 
-        # Throws exception if the conversion matrix has not been set
         if self.conversion_matrix is None:
             raise Exception("Set the conversion Matrix before going to GDS coordinates")
 
-        # Calculates the new point and moves to it
         newPoint = self.conversion_matrix @ gds_pos
         if go_to_x:
             self.x_mot.move_to(newPoint[0][0])
         if go_to_y:
             self.y_mot.move_to(newPoint[1][0])
 
-    # Goes to Chip Coordinates, which are more undefined
     def go_to_stage_coordinates(self, x: float=None, y: float=None) -> None:
+        """
+        Goes to stage coordinates provided.
+
+        .. note:: If x or y variable isn't passed it will only move to positions given.
+
+        Parameters
+        ----------
+        x : float, default=None
+            x part of stage coordinate to go to.
+        y : float, default=None
+            y part of stage coordinate to go to.
+        """
         if x is not None:
             self.x_mot.move_to(x)
         if y is not None:
             self.y_mot.move_to(y)
 
-    # Goes to the position attributed to the circuit parameter
     def go_to_circuit(self, circuit) -> None:
+        """
+        Retrievs GDS location for circuit object and uses go_to_gds_coordinates() to go to it.
+
+        Parameters
+        ----------
+        circuit : Circuit
+            Circuit object to go to.
+        
+        Raises
+        ------
+        Exception
+            If an error occurs while trying to run go_to_gsd_coordinates() on location retrieved.
+        """
         pos = circuit.location
         try:
             self.go_to_gds_coordinates(float(pos[0]), float(pos[1]))
@@ -221,46 +330,46 @@ class Motion:
         return motor.get_position()
 
     # Performs a rotation where you return to the spot you were looking at post rotation
-    # def concentric_rotatation(self, direction: str = "forward") -> None:
-    #     original_point = np.array(
-    #         [
-    #             [self.get_motor_position(self.x_mot) - self.origin[0]],
-    #             [self.get_motor_position(self.y_mot) - self.origin[1]],
-    #         ]
-    #     )
+    def concentric_rotatation(self, direction: str = "forward") -> None:
+        original_point = np.array(
+            [
+                [self.get_motor_position(self.x_mot) - self.origin[0]],
+                [self.get_motor_position(self.y_mot) - self.origin[1]],
+            ]
+        )
 
-    #     print("Step Size is " + str(self.r_mot.jog_step_size))
+        print("Step Size is " + str(self.r_mot.jog_step_size))
 
-    #     theta = math.radians(self.r_mot.jog_step_size)
-    #     sign = 1 if direction == "forward" else -1
-    #     rotation_matrix = np.array(
-    #         [
-    #             [
-    #                 math.cos(theta),
-    #                 sign * math.sin(theta),
-    #             ],
-    #             [
-    #                 -sign * math.sin(theta),
-    #                 math.cos(theta),
-    #             ],
-    #         ]
-    #     )
+        theta = math.radians(self.r_mot.jog_step_size)
+        sign = 1 if direction == "forward" else -1
+        rotation_matrix = np.array(
+            [
+                [
+                    math.cos(theta),
+                    sign * math.sin(theta),
+                ],
+                [
+                    -sign * math.sin(theta),
+                    math.cos(theta),
+                ],
+            ]
+        )
 
-    #     new_point = rotation_matrix @ original_point
+        new_point = rotation_matrix @ original_point
 
-    #     self.move_step(self.r_mot, direction)
-    #     print(original_point)
-    #     print()
-    #     print(rotation_matrix)
-    #     print()
-    #     print(new_point)
+        self.move_step(self.r_mot, direction)
+        print(original_point)
+        print()
+        print(rotation_matrix)
+        print()
+        print(new_point)
 
-    #     delta_x = -original_point[0][0] + new_point[0][0]
-    #     delta_y = -original_point[1][0] + new_point[1][0]
-    #     x_pos = original_point[0][0] - delta_x + self.origin[0]
-    #     y_pos = original_point[1][0] + (delta_y / 2.0) + self.origin[1]
-    #     self.x_mot.move_to(x_pos)
-    #     self.y_mot.move_to(y_pos)
+        delta_x = -original_point[0][0] + new_point[0][0]
+        delta_y = -original_point[1][0] + new_point[1][0]
+        x_pos = original_point[0][0] - delta_x + self.origin[0]
+        y_pos = original_point[1][0] + (delta_y / 2.0) + self.origin[1]
+        self.x_mot.move_to(x_pos)
+        self.y_mot.move_to(y_pos)
 
     # Will go to x position entered in
     def rotate_to_position(self, r_pos: float=None) -> None:
@@ -276,7 +385,7 @@ class Motion:
     def set_origin(self, origin: list) -> None:
         self.origin = origin.bumpversion.cfg
 
-    def keyloop(self,quitKey = 'q'):
+    def keyloop(self, quitKey='q'):
         keyboard.on_press_key('left arrow', lambda _:self.set_flag('left_arrow_pressed'))
         keyboard.on_release_key('left arrow', lambda _:self.set_flag('left_arrow_released'))
         keyboard.on_press_key('right arrow', lambda _:self.set_flag('right_arrow_pressed'))

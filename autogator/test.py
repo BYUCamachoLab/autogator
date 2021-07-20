@@ -18,10 +18,4 @@ from autogator.dataCache import DataCache
 
 dataCache = DataCache()
 
-# from autogator.circuitMap import CircuitMap
-
-# new_map = CircuitMap("C:\\Users\\mcgeo\\source\\repos\\autogator\\autogator\\circuit_files\\fabrun5.txt")
-
-# new_new_map = new_map.filter_out(grouping=1, ports="DDDD")
-
-# print(new_new_map)
+dataCache.get_dataScanner().auto_scan()

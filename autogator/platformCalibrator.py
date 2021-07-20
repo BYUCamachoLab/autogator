@@ -162,7 +162,7 @@ class PlatformCalibrator:
     def keyloop_for_calibration(self, circuit_id) -> List[float]:
         print("Move " + circuit_id + " into Crosshairs, then press q")
         self.motion.keyloop()
-        if self.do_scan.lower == "y" and self.dataScanner != None:
+        if self.do_scan == "y" and self.dataScanner != None:
             print("Optimizing alignment...")
             self.dataScanner.auto_scan()
             print("Done.")
