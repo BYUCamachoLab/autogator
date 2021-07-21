@@ -15,8 +15,11 @@ import numpy as np
 import time
 from typing import List
 
+
 class PlatformCalibrator:
-    def __init__(self, circuitMap=None, oscilliscope=None, dataScanner=None, motion=None) -> None:
+    def __init__(
+        self, circuitMap=None, oscilliscope=None, dataScanner=None, motion=None
+    ) -> None:
         self.oscope = oscilliscope
         self.circuitMap = circuitMap
         self.motion = motion
@@ -34,9 +37,9 @@ class PlatformCalibrator:
 
     def calibrate(self) -> None:
         """
-        Accepts the coordinates 
+        Accepts the coordinates
 
-        .. note:: Will ask to use dataScanner to optimize alignment, defaults to no if dataScanner not initialized. 
+        .. note:: Will ask to use dataScanner to optimize alignment, defaults to no if dataScanner not initialized.
 
         Returns
         -------
@@ -184,4 +187,7 @@ class PlatformCalibrator:
             print("Done.")
         else:
             print("No DataScanner initialized, cannot optimize alignment.")
-        return [self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)]
+        return [
+            self.motion.get_motor_position(self.motion.x_mot),
+            self.motion.get_motor_position(self.motion.y_mot),
+        ]

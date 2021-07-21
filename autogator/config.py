@@ -17,6 +17,7 @@ import numpy as np
 import os
 from yaml import dump, safe_load
 
+
 class Configuration:
     """
     Reads and writes key word argument configuration information with a yaml file.
@@ -27,6 +28,7 @@ class Configuration:
     file_path : str
         Direct file path to configuration yaml file.
     """
+
     def __init__(self, file_path) -> None:
         self.file_path = file_path
         if not file_path.exists():
@@ -51,12 +53,12 @@ class Configuration:
         return self.__dict__
 
     def add_attr(self, key, value):
-            if value.__class__ == np.ndarray:
-                self.attrs[key] = value.tolist()
-            elif value.__class__ == tuple:
-                self.attrs[key] = list(value)
-            else:
-                self.attrs[key] = value
+        if value.__class__ == np.ndarray:
+            self.attrs[key] = value.tolist()
+        elif value.__class__ == tuple:
+            self.attrs[key] = list(value)
+        else:
+            self.attrs[key] = value
 
     def save(self):
         """

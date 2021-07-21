@@ -1,5 +1,15 @@
 import sys
-from PyQt5.QtWidgets import QToolButton, QPushButton, QLabel, QTextEdit, QGridLayout, QApplication, QWidget, QComboBox, QFileDialog
+from PyQt5.QtWidgets import (
+    QToolButton,
+    QPushButton,
+    QLabel,
+    QTextEdit,
+    QGridLayout,
+    QApplication,
+    QWidget,
+    QComboBox,
+    QFileDialog,
+)
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 import keyboard
@@ -7,8 +17,8 @@ from PyQt5.QtCore import QTimer
 import numpy as np
 import autogator.dataCache as glob
 
-class GUI(QWidget):
 
+class GUI(QWidget):
     def __init__(self):
         super().__init__()
         self.dataCache = glob.DataCache.get_instance()
@@ -18,7 +28,6 @@ class GUI(QWidget):
         self.dataScanner = self.dataCache.get_dataScanner()
         self.initUI()
 
- 
     def initUI(self):
         upContLatArrow = QToolButton()
         upContLatArrow.setArrowType(Qt.UpArrow)
@@ -74,7 +83,7 @@ class GUI(QWidget):
         self.jogSizeEditText.setFixedHeight(30)
         self.jogSizeEditText.setFixedWidth(100)
 
-        #Current Jog
+        # Current Jog
         self.jogSizeEditText.setText(str(self.motion.get_jog_step_linear()))
         self.jogSizeSetButton = QPushButton("Set Jog Size")
         self.jogSizeSetButton.clicked.connect(self.jogSizeSetButtonClicked)
@@ -127,15 +136,15 @@ class GUI(QWidget):
         grid.setSpacing(10)
 
         QLabelCont = QLabel("Cont Motion")
-        QLabelCont.setFont(QFont('Arial', 10))
+        QLabelCont.setFont(QFont("Arial", 10))
         QLabelJog = QLabel("Jog Motion")
-        QLabelJog.setFont(QFont('Arial', 10))
+        QLabelJog.setFont(QFont("Arial", 10))
         QLabelLocation = QLabel("Location")
-        QLabelLocation.setFont(QFont('Arial', 10))
+        QLabelLocation.setFont(QFont("Arial", 10))
         QLabelGoTo = QLabel("Go To")
-        QLabelGoTo.setFont(QFont('Arial', 10))
+        QLabelGoTo.setFont(QFont("Arial", 10))
 
-        #First Column
+        # First Column
         grid.addWidget(QLabelCont, 0, 0)
         grid.addWidget(QLabel("Lateral"), 1, 0)
         grid.addWidget(upContLatArrow, 2, 1)
@@ -163,7 +172,7 @@ class GUI(QWidget):
         grid.addWidget(self.jogSizeEditText, 16, 0)
         grid.addWidget(self.jogSizeSetButton, 16, 1)
 
-        #Second Column
+        # Second Column
         grid.addWidget(QLabel(""), 0, 3)
         grid.addWidget(QLabel(""), 1, 3)
 
@@ -195,76 +204,109 @@ class GUI(QWidget):
         self.setLayout(grid)
 
         self.setGeometry(200, 200, 700, 400)
-        self.setWindowTitle('AutoGUI')
+        self.setWindowTitle("AutoGUI")
         self.show()
 
     def upContLatButtonPressed(self):
         self.motion.move_cont(self.motion.y_mot, "forward")
+
     def upContLatButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.y_mot)
+
     def downContLatButtonPressed(self):
         self.motion.move_cont(self.motion.y_mot, "backward")
+
     def downContLatButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.y_mot)
+
     def leftContLatButtonPressed(self):
         self.motion.move_cont(self.motion.x_mot, "backward")
+
     def leftContLatButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.x_mot)
+
     def rightContLatButtonPressed(self):
         self.motion.move_cont(self.motion.x_mot, "forward")
+
     def rightContLatButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.x_mot)
 
     def upJogLatButtonClicked(self):
         self.motion.move_step(self.motion.y_mot, "forward")
+
     def downJogLatButtonClicked(self):
         self.motion.move_step(self.motion.y_mot, "backward")
+
     def leftJogLatButtonClicked(self):
         self.motion.move_step(self.motion.x_mot, "backward")
+
     def rightJogLatButtonClicked(self):
         self.motion.move_step(self.motion.x_mot, "forward")
 
     def leftContRotButtonPressed(self):
         self.motion.move_cont(self.motion.r_mot, "backward")
+
     def leftContRotButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.r_mot)
+
     def rightContRotButtonPressed(self):
         self.motion.move_cont(self.motion.r_mot, "forward")
+
     def rightContRotButtonReleased(self):
         self.motion.stop_cont_jog(self.motion.r_mot)
 
     def leftJogRotButtonClicked(self):
         self.motion.move_step(self.motion.r_mot, "backward")
+
     def rightJogRotButtonClicked(self):
         self.motion.move_step(self.motion.r_mot, "forward")
 
     def jogSizeSetButtonClicked(self):
         if check_float(self.jogSizeEditText.toPlainText()):
             new_jog_size = float(self.jogSizeEditText.toPlainText())
-            if new_jog_size < 2 and new_jog_size > .00001:
+            if new_jog_size < 2 and new_jog_size > 0.00001:
                 self.motion.set_jog_step_linear(new_jog_size)
         print(self.jogSizeEditText.toPlainText())
         print("Jog size set to ^")
 
     def gdsGoToButtonClicked(self):
-        self.motion.go_to_gds_coordinates(float(self.gds_x_coordinate.toPlainText()), float(self.gds_y_coordinate.toPlainText()))
+        self.motion.go_to_gds_coordinates(
+            float(self.gds_x_coordinate.toPlainText()),
+            float(self.gds_y_coordinate.toPlainText()),
+        )
 
     def circuitGoToButtonClicked(self):
         if self.circuitsMenu.currentText() != "":
-            locationToGo = self.circuitMap.get_circuit("ID", self.circuitsMenu.currentText()).location
-            self.motion.go_to_gds_coordinates(float(locationToGo[0]), float(locationToGo[1]))
+            locationToGo = self.circuitMap.get_circuit(
+                "ID", self.circuitsMenu.currentText()
+            ).location
+            self.motion.go_to_gds_coordinates(
+                float(locationToGo[0]), float(locationToGo[1])
+            )
 
     def printPosition(self):
         if self.motion.conversion_matrix is not None:
-            stage_pos = np.array([[self.motion.get_motor_position(self.motion.x_mot)], [self.motion.get_motor_position(self.motion.y_mot)], [1]])
+            stage_pos = np.array(
+                [
+                    [self.motion.get_motor_position(self.motion.x_mot)],
+                    [self.motion.get_motor_position(self.motion.y_mot)],
+                    [1],
+                ]
+            )
             newPoint = np.linalg.inv(self.motion.conversion_matrix) @ stage_pos
-            self.cur_x_position_label.setText(str(newPoint[0][0])) 
+            self.cur_x_position_label.setText(str(newPoint[0][0]))
             self.cur_y_position_label.setText(str(newPoint[1][0]))
 
     def openFileNameDialog(self):
         options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        fileName, _ = QFileDialog.getOpenFileName(self,"QFileDialog.getOpenFileName()", "","All Files (*);;Text Files (*.txt)", options=options)
+        fileName, _ = QFileDialog.getOpenFileName(
+            self,
+            "QFileDialog.getOpenFileName()",
+            "",
+            "All Files (*);;Text Files (*.txt)",
+            options=options,
+        )
         if fileName:
             self.dataCache.set_circuitMap_path(fileName)
             self.circuitMap = self.dataCache.get_circuitMap()
@@ -274,11 +316,12 @@ class GUI(QWidget):
                 self.circuitsMenu.addItem(circuit.ID)
 
     def calibrateSystem(self):
-        #self.data_cache.calibrate()
+        # self.data_cache.calibrate()
         pass
 
     def auto_scan(self):
         self.dataScanner.auto_scan()
+
 
 def check_float(potential_float):
     try:
@@ -287,15 +330,18 @@ def check_float(potential_float):
     except ValueError:
         return False
 
+
 def Start():
-    m = GUI() 
+    m = GUI()
     m.show()
     return m
+
 
 def main():
     app = QApplication(sys.argv)
     window = Start()
     app.exec_()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

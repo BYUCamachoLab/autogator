@@ -14,18 +14,22 @@ from autogator.autoGui import GUI
 
 def onstart():
     from autogator.controllers.startup import startup
+
     startup()
+
 
 @atexit.register
 def onclose():
     from autogator.controllers.shutdown import shutdown
+
     shutdown()
 
+
 def Start(circuitsFile):
-    m = GUI(circuitsFile) 
-    m.show() 
+    m = GUI(circuitsFile)
+    m.show()
     return m
-    
+
 
 if __name__ == "__main__":
     print("Welcome to Autogator!")
@@ -36,4 +40,4 @@ if __name__ == "__main__":
     window = Start("C:\\Users\\mcgeo\\source\\repos\\autogator\\examples\\circuits.txt")
     app.exec_()
 
-    #start_gui()
+    # start_gui()

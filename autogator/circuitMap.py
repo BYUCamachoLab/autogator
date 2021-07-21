@@ -14,6 +14,7 @@ Circuit Map: Utility for storing and manipulating a group of circuit objects
 
 from typing import Any, NamedTuple, overload, List
 
+
 class Circuit:
     """
     Stores dictionary of information on a circuit.
@@ -24,6 +25,7 @@ class Circuit:
     params : dict
         key, word arguments of circuit information
     """
+
     def __init__(self):
         self.params = {}
 
@@ -39,14 +41,18 @@ class Circuit:
     def add_param(self, key, value):
         self.params[key] = value
 
+
 class Location(NamedTuple):
     """
     Stores x and y coordinate of a location.
     """
+
     x: float
     y: float
+
     def __str__(self) -> str:
         return "(" + str(self.x) + ", " + str(self.y) + ")"
+
 
 class CircuitMap:
     """
@@ -56,8 +62,9 @@ class CircuitMap:
     Attributes
     ----------
     text_file_path : str
-        Direct file path to text file of circuits to be parsed into a CircuitMap 
+        Direct file path to text file of circuits to be parsed into a CircuitMap
     """
+
     def __init__(self, text_file_path: str = None):
         if text_file_path == None:
             return
@@ -69,14 +76,16 @@ class CircuitMap:
             if line is not None:
                 line = line[:-1]
                 new_circuit = Circuit()
-                chunks = line.split(" ")  
-                location = chunks.pop(0)  
-                coordinates = location.split(",")  
-                coordinates[0] = (coordinates[0])[1:]  
-                coordinates[1] = (coordinates[1])[:-1]  
-                new_circuit.add_param("location", Location(float(coordinates[0]), float(coordinates[1])))  
-                ID = chunks.pop(0)  
-                new_circuit.add_param("ID", ID)  
+                chunks = line.split(" ")
+                location = chunks.pop(0)
+                coordinates = location.split(",")
+                coordinates[0] = (coordinates[0])[1:]
+                coordinates[1] = (coordinates[1])[:-1]
+                new_circuit.add_param(
+                    "location", Location(float(coordinates[0]), float(coordinates[1]))
+                )
+                ID = chunks.pop(0)
+                new_circuit.add_param("ID", ID)
 
                 for chunk in chunks:
                     key_values = chunk.split("=")

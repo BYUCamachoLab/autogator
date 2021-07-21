@@ -37,6 +37,7 @@ help_txt = """\nControls\n--------\n
     \tq - quit
     """
 
+
 class Motion:
     def __init__(self, x_mot, y_mot, r_mot, conversion_matrix=None):
         self.x_mot = x_mot
@@ -85,7 +86,7 @@ class Motion:
             "h_pressed": False,
             "o_pressed": False,
             "shift_j": False,
-            "shift_g": False
+            "shift_g": False,
         }
 
     def stop_motion(self, motor, move_type: str = "continuous") -> None:
@@ -111,7 +112,7 @@ class Motion:
     def set_jog_step_linear(self, step_size: float = None) -> None:
         """
         Sets jog step of linear motors.
-        
+
         .. note:: Asks for user input if step_size isn't provided in function call.
 
         Parameters
@@ -136,10 +137,10 @@ class Motion:
         """
         return self.x_mot.jog_step_size
 
-    def set_jog_step_rotational(self, step_size: float=None) -> None:
+    def set_jog_step_rotational(self, step_size: float = None) -> None:
         """
         Sets jog step of rotational motor.
-        
+
         .. note:: Asks for user input if step_size isn't provided in function call.
 
         Parameters
@@ -262,7 +263,7 @@ class Motion:
         self.y_mot.go_home()
         print("Done homing")
 
-    def go_to_gds_coordinates(self, x: float=None, y: float=None) -> None:
+    def go_to_gds_coordinates(self, x: float = None, y: float = None) -> None:
         """
         Converts GDS coordinates to stage coordinates and moves to position.
 
@@ -300,7 +301,7 @@ class Motion:
         if go_to_y:
             self.y_mot.move_to(newPoint[1][0])
 
-    def go_to_stage_coordinates(self, x: float=None, y: float=None) -> None:
+    def go_to_stage_coordinates(self, x: float = None, y: float = None) -> None:
         """
         Goes to stage coordinates provided.
 
@@ -326,7 +327,7 @@ class Motion:
         ----------
         circuit : Circuit
             Circuit object to go to.
-        
+
         Raises
         ------
         Exception
@@ -346,11 +347,11 @@ class Motion:
         ----------
         motor : Z825B
             The motor who's position is being returned.
-        
+
         Returns
         -------
         motor_position : float
-            Stage coordinate of motor position. 
+            Stage coordinate of motor position.
         """
         return motor.get_position()
 
@@ -397,12 +398,12 @@ class Motion:
         self.y_mot.move_to(y_pos)
 
     # Will go to x position entered in (don't know if works)
-    def rotate_to_position(self, r_pos: float=None) -> None:
+    def rotate_to_position(self, r_pos: float = None) -> None:
         if r_pos == None:
             r_pos = float(input("Enter in Rotation (deg): "))
         self.r_mot.move_to(r_pos)
 
-    def keyloop(self, quit_key='q'):
+    def keyloop(self, quit_key="q"):
         """
         Starts keyboard logic that controls the motors through key presses.
 
@@ -413,31 +414,45 @@ class Motion:
         quit_key = char, default='q'
             The character refering to which key being pressed will quit the keyloop.
         """
-        keyboard.on_press_key('left arrow', lambda _:self.set_flag('left_arrow_pressed'))
-        keyboard.on_release_key('left arrow', lambda _:self.set_flag('left_arrow_released'))
-        keyboard.on_press_key('right arrow', lambda _:self.set_flag('right_arrow_pressed'))
-        keyboard.on_release_key('right arrow', lambda _:self.set_flag('right_arrow_released'))
-        keyboard.on_press_key('up arrow', lambda _:self.set_flag('up_arrow_pressed'))
-        keyboard.on_release_key('up arrow', lambda _:self.set_flag('up_arrow_released'))
-        keyboard.on_press_key('down arrow', lambda _:self.set_flag('down_arrow_pressed'))
-        keyboard.on_release_key('down arrow', lambda _:self.set_flag('down_arrow_released'))
-        keyboard.on_press_key('c', lambda _:self.set_flag('c_pressed'))
-        keyboard.on_release_key('c', lambda _:self.set_flag('c_released'))
-        keyboard.on_press_key('x', lambda _:self.set_flag('x_pressed'))
-        keyboard.on_release_key('x', lambda _:self.set_flag('x_released'))
-        keyboard.on_press_key('a', lambda _:self.set_flag('a_pressed'))
-        keyboard.on_release_key('a', lambda _:self.set_flag("a_released"))
-        keyboard.on_press_key('d', lambda _:self.set_flag("d_pressed"))
-        keyboard.on_release_key('d', lambda _:self.set_flag("d_released"))
-        keyboard.on_press_key('w', lambda _:self.set_flag("w_pressed"))
-        keyboard.on_release_key('w', lambda _:self.set_flag("w_released"))
-        keyboard.on_press_key('s', lambda _:self.set_flag("s_pressed"))
-        keyboard.on_release_key('s', lambda _:self.set_flag("s_released"))
-        keyboard.add_hotkey('shift + j', self.set_flag_lin_step)
-        keyboard.add_hotkey('shift + g', self.set_flag_rot_step)      
-        keyboard.on_press_key('space', lambda _:self.set_flag("space_pressed"))
-        keyboard.on_press_key('h', lambda _:self.set_flag("h_pressed"))
-        keyboard.on_press_key('o', lambda _:self.set_flag("o_pressed"))
+        keyboard.on_press_key(
+            "left arrow", lambda _: self.set_flag("left_arrow_pressed")
+        )
+        keyboard.on_release_key(
+            "left arrow", lambda _: self.set_flag("left_arrow_released")
+        )
+        keyboard.on_press_key(
+            "right arrow", lambda _: self.set_flag("right_arrow_pressed")
+        )
+        keyboard.on_release_key(
+            "right arrow", lambda _: self.set_flag("right_arrow_released")
+        )
+        keyboard.on_press_key("up arrow", lambda _: self.set_flag("up_arrow_pressed"))
+        keyboard.on_release_key(
+            "up arrow", lambda _: self.set_flag("up_arrow_released")
+        )
+        keyboard.on_press_key(
+            "down arrow", lambda _: self.set_flag("down_arrow_pressed")
+        )
+        keyboard.on_release_key(
+            "down arrow", lambda _: self.set_flag("down_arrow_released")
+        )
+        keyboard.on_press_key("c", lambda _: self.set_flag("c_pressed"))
+        keyboard.on_release_key("c", lambda _: self.set_flag("c_released"))
+        keyboard.on_press_key("x", lambda _: self.set_flag("x_pressed"))
+        keyboard.on_release_key("x", lambda _: self.set_flag("x_released"))
+        keyboard.on_press_key("a", lambda _: self.set_flag("a_pressed"))
+        keyboard.on_release_key("a", lambda _: self.set_flag("a_released"))
+        keyboard.on_press_key("d", lambda _: self.set_flag("d_pressed"))
+        keyboard.on_release_key("d", lambda _: self.set_flag("d_released"))
+        keyboard.on_press_key("w", lambda _: self.set_flag("w_pressed"))
+        keyboard.on_release_key("w", lambda _: self.set_flag("w_released"))
+        keyboard.on_press_key("s", lambda _: self.set_flag("s_pressed"))
+        keyboard.on_release_key("s", lambda _: self.set_flag("s_released"))
+        keyboard.add_hotkey("shift + j", self.set_flag_lin_step)
+        keyboard.add_hotkey("shift + g", self.set_flag_rot_step)
+        keyboard.on_press_key("space", lambda _: self.set_flag("space_pressed"))
+        keyboard.on_press_key("h", lambda _: self.set_flag("h_pressed"))
+        keyboard.on_press_key("o", lambda _: self.set_flag("o_pressed"))
 
         print(help_txt)
 
@@ -498,5 +513,5 @@ class Motion:
                         self.set_jog_step_linear()
                     elif flag == "shift_g":
                         self.set_jog_step_rotational()
-                    
+
                     self.flags[flag] = False

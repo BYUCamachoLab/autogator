@@ -16,6 +16,7 @@ import numpy as np
 from pathlib import Path
 import time
 
+
 class DataScanner:
     def __init__(self, oscilloscope, motion, channel=1):
         self.oscope = oscilloscope
@@ -29,24 +30,39 @@ class DataScanner:
         """
         Performs basic scans of varying sizes to find location where highest readings are returned.
         """
-        self.basic_scan(sweep_distance=.025, step_size=.005)
+        self.basic_scan(sweep_distance=0.025, step_size=0.005)
         print("Max Data Reading: {}".format(self.oscope.measure()))
-        print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
-        self.basic_scan(sweep_distance=.01, step_size=.002)
+        print(
+            "Max Data Location: ({}, {})".format(
+                self.motion.get_motor_position(self.motion.x_mot),
+                self.motion.get_motor_position(self.motion.y_mot),
+            )
+        )
+        self.basic_scan(sweep_distance=0.01, step_size=0.002)
         print("Max Data Reading: {}".format(self.oscope.measure()))
-        print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
-        self.basic_scan(sweep_distance=.001, step_size=.0005)
+        print(
+            "Max Data Location: ({}, {})".format(
+                self.motion.get_motor_position(self.motion.x_mot),
+                self.motion.get_motor_position(self.motion.y_mot),
+            )
+        )
+        self.basic_scan(sweep_distance=0.001, step_size=0.0005)
         print("Max Data Reading: {}".format(self.oscope.measure()))
-        print("Max Data Location: ({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
+        print(
+            "Max Data Location: ({}, {})".format(
+                self.motion.get_motor_position(self.motion.x_mot),
+                self.motion.get_motor_position(self.motion.y_mot),
+            )
+        )
 
     def auto_scan_small(self):
         """
         Performs basic scans of varying sizes to find location where highest readings are returned on a small scale.
         """
-        self.basic_scan(sweep_distance=.01, step_size=.002)
-        self.basic_scan(sweep_distance=.001, step_size=.0005)
+        self.basic_scan(sweep_distance=0.01, step_size=0.002)
+        self.basic_scan(sweep_distance=0.001, step_size=0.0005)
 
-    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=.2):
+    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.2):
         """
         Performs a box scan of given dimensions and goes to position of highest readings returned.
 
@@ -64,8 +80,12 @@ class DataScanner:
         max_data = 0
         max_data_loc = 0
 
-        x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (sweep_distance/2.0)
-        y_start_place = self.motion.get_motor_position(self.motion.y_mot) - (sweep_distance/2.0)
+        x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (
+            sweep_distance / 2.0
+        )
+        y_start_place = self.motion.get_motor_position(self.motion.y_mot) - (
+            sweep_distance / 2.0
+        )
         self.motion.go_to_stage_coordinates(x_start_place, y_start_place)
         time.sleep(sleep_time)
 
@@ -76,8 +96,8 @@ class DataScanner:
         rows, cols = data.shape
 
         if plot:
-            fig, ax = plt.subplots(1,1)
-            im = ax.imshow(data, cmap='hot') 
+            fig, ax = plt.subplots(1, 1)
+            im = ax.imshow(data, cmap="hot")
 
         moving_down = False
 
@@ -87,7 +107,10 @@ class DataScanner:
                 print(data[i, j])
                 if data[i, j] > max_data:
                     max_data = data[i, j]
-                    max_data_loc = [self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)]
+                    max_data_loc = [
+                        self.motion.get_motor_position(self.motion.x_mot),
+                        self.motion.get_motor_position(self.motion.y_mot),
+                    ]
 
                 if moving_down:
                     self.motion.move_step(self.motion.y_mot, "backward")
