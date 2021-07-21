@@ -1,3 +1,16 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Autogator Project Contributors
+# Licensed under the terms of the GNU GPLv3+ License
+# (see autogator/__init__.py for details)
+
+"""
+Motion Class
+-------------------------------------
+
+Instructs movement of motors.
+"""
+
 from ctypes import c_int, c_double, byref, pointer
 import numpy as np
 import time
@@ -325,11 +338,23 @@ class Motion:
         except Exception as e:
             print("Error: Tried to call go_to_gds_coordinates()\n" + str(e))
 
-    # Get the position of a motor
     def get_motor_position(self, motor) -> float:
+        """
+        Returns stage coordinates of a motor's current position.
+
+        Parameters
+        ----------
+        motor : Z825B
+            The motor who's position is being returned.
+        
+        Returns
+        -------
+        motor_position : float
+            Stage coordinate of motor position. 
+        """
         return motor.get_position()
 
-    # Performs a rotation where you return to the spot you were looking at post rotation
+    # Performs a rotation where you return to the spot you were looking at post rotation (don't know if works)
     def concentric_rotatation(self, direction: str = "forward") -> None:
         original_point = np.array(
             [
@@ -371,21 +396,23 @@ class Motion:
         self.x_mot.move_to(x_pos)
         self.y_mot.move_to(y_pos)
 
-    # Will go to x position entered in
+    # Will go to x position entered in (don't know if works)
     def rotate_to_position(self, r_pos: float=None) -> None:
         if r_pos == None:
             r_pos = float(input("Enter in Rotation (deg): "))
         self.r_mot.move_to(r_pos)
 
-    # Set the conversion matrix
-    def set_conversion_matrix(self, matrix: np.numarray) -> None:
-        self.conversion_matrix = matrix
+    def keyloop(self, quit_key='q'):
+        """
+        Starts keyboard logic that controls the motors through key presses.
 
-    # Set the origin
-    def set_origin(self, origin: list) -> None:
-        self.origin = origin.bumpversion.cfg
+        .. note:: Refer to help_txt for command information
 
-    def keyloop(self, quitKey='q'):
+        Parameters
+        ----------
+        quit_key = char, default='q'
+            The character refering to which key being pressed will quit the keyloop.
+        """
         keyboard.on_press_key('left arrow', lambda _:self.set_flag('left_arrow_pressed'))
         keyboard.on_release_key('left arrow', lambda _:self.set_flag('left_arrow_released'))
         keyboard.on_press_key('right arrow', lambda _:self.set_flag('right_arrow_pressed'))
@@ -415,7 +442,7 @@ class Motion:
         print(help_txt)
 
         while True:
-            if keyboard.is_pressed(quitKey):
+            if keyboard.is_pressed(quit_key):
                 print("QUIT")
                 os.system("cls")
                 break

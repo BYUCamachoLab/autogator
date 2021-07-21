@@ -171,7 +171,7 @@ class DataCache:
         Calls calibrate function of platformCalibrator and sets new conversion matrix to motion and configuration
         """
         self.configuration.attrs["conversion_matrix"] = self.platformCalibrator.calibrate().tolist()
-        self.motion.set_conversion_matrix(self.configuration.attrs["conversion_matrix"])
+        self.motion.conversion_matrix = self.configuration.attrs["conversion_matrix"]
         self.configuration.save()
 
     def set_circuitMap_path(self, new_path):

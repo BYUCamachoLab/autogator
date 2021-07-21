@@ -94,6 +94,7 @@ class PlatformCalibrator:
         )
         return self.conversion_matrix
 
+    # Don't know if works
     def rotational_calibration(self) -> None:
         if self.dataScanner != None:
             self.do_scan = input("Do you want to do use autoscan? (y/n) Press Enter\n")
@@ -155,11 +156,26 @@ class PlatformCalibrator:
         y = (p1_slope * x) + c1
 
         self.origin = [x, y]
-        self.motion.set_origin(self.origin)
+        self.motion.origin = self.origin
 
         return self.origin
 
     def keyloop_for_calibration(self, circuit_id) -> List[float]:
+        """
+        Logic for moving to a specified circuit, optimizing alignment, and returning location.
+
+        .. note:: Will not perform auto_scan if specified by do_scan or dataScanner is not intialized.
+
+        Parameters
+        ----------
+        circuit_id : str
+            The ID of the circuit to be moved to.
+
+        Returns
+        -------
+        motor_coordinates : List[float]
+            x and y coordinates of stage location after moving and optimizing.
+        """
         print("Move " + circuit_id + " into Crosshairs, then press q")
         self.motion.keyloop()
         if self.do_scan == "y" and self.dataScanner != None:
