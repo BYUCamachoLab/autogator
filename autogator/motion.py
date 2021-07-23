@@ -100,14 +100,17 @@ class Motion:
         move_type : str
             Whether the motor is currently moving continuously or stepped.
         """
-        if move_type == "continuous":
-            motor.stop()
-        if motor == self.x_mot:
+        if move_type != "continuous":
+            return
+        if motor == self.x_mot and self.x_mot_moving:
             self.x_mot_moving = False
-        if motor == self.y_mot:
+            motor.stop()
+        if motor == self.y_mot and self.y_mot_moving:
             self.y_mot_moving = False
-        if motor == self.r_mot:
+            motor.stop()
+        if motor == self.r_mot and self.r_mot_moving:
             self.r_mot_moving = False
+            motor.stop()
 
     def set_jog_step_linear(self, step_size: float = None) -> None:
         """
