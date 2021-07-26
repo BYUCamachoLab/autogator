@@ -77,8 +77,6 @@ class DataScanner:
         sleep_time : float, default=.2
             Amount of time in seconds the motors will pause inbetween movements to improve data reliability.
         """
-        max_data = 0
-        max_data_loc = 0
 
         x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (
             sweep_distance / 2.0
@@ -89,6 +87,9 @@ class DataScanner:
         self.motion.go_to_stage_coordinates(x_start_place, y_start_place)
         time.sleep(sleep_time)
 
+        max_data = self.oscope.measure()
+        max_data_loc = [x_start_place, y_start_place]
+        
         self.motion.set_jog_step_linear(step_size)
 
         edge_Num = round(sweep_distance / step_size)
@@ -132,7 +133,7 @@ class DataScanner:
             self.motion.move_step(self.motion.x_mot, "forward")
             time.sleep(sleep_time)
 
-        self.motion.go_to_stage_coordinates(max_data_loc[0], max_data_loc[1])
+        self.motion.go_to_stage_coordinates(float(max_data_loc[0]), float(max_data_loc[1]))
         time.sleep(sleep_time)
         if plot:
             plt.show()

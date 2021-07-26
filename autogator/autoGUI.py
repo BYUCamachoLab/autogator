@@ -104,8 +104,8 @@ class GUI(QWidget):
         self.x_label2 = QLabel("X:")
         self.y_label2 = QLabel("Y:")
 
-        self.cur_x_position_label = QLabel(str(self.motion.get_x_position()))
-        self.cur_y_position_label = QLabel(str(self.motion.get_y_position()))
+        self.cur_x_position_label = QLabel(str(self.motion.get_motor_position(self.motion.x_mot)))
+        self.cur_y_position_label = QLabel(str(self.motion.get_motor_position(self.motion.y_mot)))
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.printPosition)
@@ -123,7 +123,7 @@ class GUI(QWidget):
         self.calibrateButton = QPushButton("Re-Calibrate")
         self.calibrateButton.clicked.connect(self.calibrateSystem)
 
-        self.auto_scan_button = QPushButton("Re-Calibrate")
+        self.auto_scan_button = QPushButton("Auto Scan")
         self.auto_scan_button.clicked.connect(self.auto_scan)
 
         if self.circuitMap is not None:
@@ -211,25 +211,25 @@ class GUI(QWidget):
         self.motion.move_cont(self.motion.y_mot, "forward")
 
     def upContLatButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.y_mot)
+        self.motion.stop_motion(self.motion.y_mot)
 
     def downContLatButtonPressed(self):
         self.motion.move_cont(self.motion.y_mot, "backward")
 
     def downContLatButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.y_mot)
+        self.motion.stop_motion(self.motion.y_mot)
 
     def leftContLatButtonPressed(self):
         self.motion.move_cont(self.motion.x_mot, "backward")
 
     def leftContLatButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.x_mot)
+        self.motion.stop_motion(self.motion.x_mot)
 
     def rightContLatButtonPressed(self):
         self.motion.move_cont(self.motion.x_mot, "forward")
 
     def rightContLatButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.x_mot)
+        self.motion.stop_motion(self.motion.x_mot)
 
     def upJogLatButtonClicked(self):
         self.motion.move_step(self.motion.y_mot, "forward")
@@ -247,13 +247,13 @@ class GUI(QWidget):
         self.motion.move_cont(self.motion.r_mot, "backward")
 
     def leftContRotButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.r_mot)
+        self.motion.stop_motion(self.motion.r_mot)
 
     def rightContRotButtonPressed(self):
         self.motion.move_cont(self.motion.r_mot, "forward")
 
     def rightContRotButtonReleased(self):
-        self.motion.stop_cont_jog(self.motion.r_mot)
+        self.motion.stop_motion(self.motion.r_mot)
 
     def leftJogRotButtonClicked(self):
         self.motion.move_step(self.motion.r_mot, "backward")

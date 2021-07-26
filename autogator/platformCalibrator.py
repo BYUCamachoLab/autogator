@@ -184,6 +184,10 @@ class PlatformCalibrator:
         if self.do_scan == "y" and self.dataScanner != None:
             print("Optimizing alignment...")
             self.dataScanner.auto_scan()
+            scan_again = input("Scan again? (y/n) Press Enter\n")
+            while scan_again == "y":
+                self.dataScanner.auto_scan()
+                scan_again = input("Scan again? (y/n) Press Enter\n")
             print("Done.")
         else:
             print("No DataScanner initialized, cannot optimize alignment.")
