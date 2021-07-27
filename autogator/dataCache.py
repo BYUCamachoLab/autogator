@@ -12,6 +12,7 @@ Instantiates and holds objects of remote instruments to be used by files that im
 """
 
 import numpy as np
+import sys
 from typing import Any
 from pathlib import Path
 from autogator.platformCalibrator import PlatformCalibrator
@@ -33,6 +34,14 @@ COORD_FILE = "config.yaml"
 CONFIG_FILE_PATH = COORDINATE_DIR / COORD_FILE
 
 
+def do_nothing(*args, **kwargs):
+    return None
+
+class Void:
+    def __getattr__(self, key):
+        return do_nothing
+
+
 class DataCache:
     """
     Reads and writes key word argument configuration information with a yaml file.
@@ -48,53 +57,109 @@ class DataCache:
 
     __instance = None
 
-    def __init__(self):
+    def __init__(self, omits=[]):
         if self.__instance != None:
             raise Exception("This Class is a Singleton")
         else:
             self.configuration = Configuration(CONFIG_FILE_PATH)
 
-            # self.configuration.add_attr("name_server", "camacholab.ee.byu.edu")
-            # self.configuration.add_attr("scope_IP", "10.32.112.162")
-            # self.configuration.add_attr("scope_protocol", "INSTR")
-            # self.configuration.add_attr("scope_timeout", 10000)
-            # self.configuration.add_attr("laser_name", "TSL550")
-            # self.configuration.add_attr("circuitMap_file_path", "C:\\Users\\mcgeo\\source\\repos\\autogator\\examples\\circuits.txt")
-            # self.configuration.add_attr("x_mot_name", "asgard.captainamerica")
-            # self.configuration.add_attr("y_mot_name", "asgard.hulk")
-            # self.configuration.add_attr("r_mot_name","asgard.wolverine" )
-            # self.configuration.add_attr("conversion_matrix", np.array([[-20.0010097705223880598, 1.3603921568627669e-05, 7.52609524692713],
-            #     [-1.3085820895522213e-05, -0.0010064993464052288, 6.455855622622184], [0.0, 0.0, 1.0]]))
-
-            # self.configuration.save()
-
+            if "name_server" not in self.configuration.attrs.keys():
+                self.configuration.attrs["name_server"] = input("Enter name_server:")
             ns = locate_ns(self.configuration.attrs["name_server"])
-            self.scope_IP = self.configuration.attrs["scope_IP"]
-            self.scope_protocol = self.configuration.attrs["scope_protocol"]
-            self.scope_timeout = self.configuration.attrs["scope_timeout"]
-            self.laser_name = self.configuration.attrs["laser_name"]
-            self.circuitMap_file_path = self.configuration.attrs["circuitMap_file_path"]
-            self.x_mot_name = self.configuration.attrs["x_mot_name"]
-            self.y_mot_name = self.configuration.attrs["y_mot_name"]
-            self.r_mot_name = self.configuration.attrs["r_mot_name"]
-            self.conversion_matrix = self.configuration.attrs["conversion_matrix"]
 
-            self.scope = RTO(
-                self.scope_IP, protocol=self.scope_protocol, timeout=self.scope_timeout
-            )
-            self.laser = Proxy(ns.lookup(self.laser_name))
+            if "scope" not in omits and "s" not in omits:
+                if "scope_IP" not in self.configuration.attrs.keys():
+                    self.configuration.attrs["scope_IP"] = float(input("Enter scope_IP:"))
+                self.scope_IP = self.configuration.attrs["scope_IP"]
+
+                if "scope_protocol" not in self.configuration.attrs.keys():
+                    self.configuration.attrs["scope_protocol"] = input("Enter scope_protocol:")
+                self.scope_protocol = self.configuration.attrs["scope_protocol"]
+
+                if "scope_timeout" not in self.configuration.attrs.keys():
+                    self.configuration.attrs["scope_timeout"] = float(input("Enter scope_timeout:"))
+                self.scope_timeout = self.configuration.attrs["scope_timeout"]
+
+                self.scope = RTO(
+                    self.scope_IP, protocol=self.scope_protocol, timeout=self.scope_timeout
+                )
+            else:
+                self.scope = Void()
+
+            if "laser" not in omits and "l" not in omits:
+                if "laser_name" not in self.configuration.attrs.keys():
+                    self.configuration.attrs["laser_name"] = float(input("Enter laser_name:"))
+                self.laser_name = self.configuration.attrs["laser_name"]
+                self.laser = Proxy(ns.lookup(self.laser_name))
+            else:
+                self.laser = Void()
+
+            if "conversion_matrix" in self.configuration.attrs.keys():
+                self.conversion_matrix = self.configuration.attrs["conversion_matrix"]
+            else:
+                self.conversion_matrix = None
+
+            if "motors" not in omits and "m" not in omits:
+                if "x_mot" not in omits and "x" not in omits:
+                    if "x_mot_name" not in self.configuration.attrs.keys():
+                        self.configuration.attrs["x_mot_name"] = float(input("Enter x_mot_name:"))
+                    self.x_mot_name = self.configuration.attrs["x_mot_name"]
+                    x_mot = Proxy(ns.lookup(self.x_mot_name))
+                else:
+                    x_mot = Void()
+                
+                if "y_mot" not in omits and "y" not in omits:
+                    if "y_mot_name" not in self.configuration.attrs.keys():
+                        self.configuration.attrs["y_mot_name"] = float(input("Enter y_mot_name:"))
+                    self.y_mot_name = self.configuration.attrs["y_mot_name"]
+                    y_mot = Proxy(ns.lookup(self.y_mot_name))
+                else:
+                    y_mot = Void()
+
+                if "r_mot" not in omits and "r" not in omits:
+                    if "r_mot_name" not in self.configuration.attrs.keys():
+                        self.configuration.attrs["r_mot_name"] = float(input("Enter r_mot_name:"))
+                    self.r_mot_name = self.configuration.attrs["r_mot_name"]
+                    r_mot = Proxy(ns.lookup(self.r_mot_name))
+                else:
+                    r_mot = Void()
+
+                self.motion = Motion(
+                    x_mot=x_mot,
+                    y_mot=y_mot,
+                    r_mot=r_mot,
+                    conversion_matrix=self.conversion_matrix,
+                )
+            else:
+                self.motion = Void()   
+            
+            if "circuitMap_file_path" in self.configuration.attrs.keys():
+                self.circuitMap_file_path = self.configuration.attrs["circuitMap_file_path"]
+            else:
+                self.circuitMap_file_path = None
             self.circuitMap = CircuitMap(text_file_path=self.circuitMap_file_path)
-            self.motion = Motion(
-                x_mot=Proxy(ns.lookup(self.x_mot_name)),
-                y_mot=Proxy(ns.lookup(self.y_mot_name)),
-                r_mot=Proxy(ns.lookup(self.r_mot_name)),
-                conversion_matrix=self.conversion_matrix,
-            )
-            # x_mot=Z825B(), y_mot=Z825B(), r_mot=PRM1Z8(), conversion_matrix=self.conversion_matrix)
-            self.dataScanner = DataScanner(self.scope, self.motion)
-            self.platformCalibrator = PlatformCalibrator(
-                self.circuitMap, self.scope, self.dataScanner, self.motion
-            )
+
+            if "load_position" in self.configuration.attrs.keys():
+                self.load_position = self.configuration.attrs["load_position"]
+            else:
+                self.load_position = None
+            
+            if "unload_position" in self.configuration.attrs.keys():
+                self.unload_position = self.configuration.attrs["unload_position"]
+            else:
+                self.unload_position = None
+
+            if not isinstance(self.motion, Void) and not isinstance(self.scope, Void):
+                self.dataScanner = DataScanner(self.scope, self.motion)
+                self.platformCalibrator = PlatformCalibrator(
+                    self.circuitMap, self.scope, self.dataScanner, self.motion
+                )
+            else:
+                self.dataScanner = Void()
+                self.platformCalibrator = Void()
+
+            self.configuration.save()
+
             DataCache.__instance = self
 
     @staticmethod
@@ -108,7 +173,7 @@ class DataCache:
             Singleton instance of dataCache.
         """
         if DataCache.__instance == None:
-            DataCache()
+            DataCache(omits=sys.argv)
         return DataCache.__instance
 
     def get_motion(self):
