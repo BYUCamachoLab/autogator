@@ -15,7 +15,7 @@ from PyQt5.QtCore import Qt
 import keyboard
 from PyQt5.QtCore import QTimer
 import numpy as np
-import autogator.dataCache as glob
+import autogator.datacache as glob
 
 
 class GUI(QWidget):

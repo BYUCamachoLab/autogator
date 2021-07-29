@@ -15,16 +15,17 @@ import numpy as np
 import sys
 from typing import Any
 from pathlib import Path
-from autogator.platformCalibrator import PlatformCalibrator
+from autogator.platformcalibrator import PlatformCalibrator
 from autogator.config import Configuration
 from autogator.motion import Motion
-from autogator.dataScanner import DataScanner
-from autogator.circuitMap import CircuitMap
+from autogator.datascanner import DataScanner
+from autogator.circuitmap import CircuitMap
 from pyrolab.api import locate_ns, Proxy
 from pyrolab.drivers.scopes.rohdeschwarz import RTO
 from pyrolab.drivers.lasers.tsl550 import TSL550
 from pyrolab.drivers.motion.z825b import Z825B
 from pyrolab.drivers.motion.prm1z8 import PRM1Z8
+from Pyro5.api import locate_ns, Proxy
 
 from autogator import SITE_CONFIG_DIR
 
@@ -67,6 +68,8 @@ class DataCache:
                 self.configuration.attrs["name_server"] = input("Enter name_server:")
             ns = locate_ns(self.configuration.attrs["name_server"])
 
+            available_device_list = ns.list()
+
             if "scope" not in omits and "s" not in omits:
                 if "scope_IP" not in self.configuration.attrs.keys():
                     self.configuration.attrs["scope_IP"] = float(input("Enter scope_IP:"))
@@ -90,7 +93,11 @@ class DataCache:
                 if "laser_name" not in self.configuration.attrs.keys():
                     self.configuration.attrs["laser_name"] = float(input("Enter laser_name:"))
                 self.laser_name = self.configuration.attrs["laser_name"]
-                self.laser = Proxy(ns.lookup(self.laser_name))
+                if self.laser_name in available_device_list.keys():
+                    self.laser = Proxy(ns.lookup(self.laser_name))
+                else:
+                    print("Laser not found/available on server")
+                    self.laser = Void()
             else:
                 self.laser = Void()
 
@@ -104,7 +111,11 @@ class DataCache:
                     if "x_mot_name" not in self.configuration.attrs.keys():
                         self.configuration.attrs["x_mot_name"] = float(input("Enter x_mot_name:"))
                     self.x_mot_name = self.configuration.attrs["x_mot_name"]
-                    x_mot = Proxy(ns.lookup(self.x_mot_name))
+                    if self.x_mot_name in available_device_list.keys():
+                        x_mot = Proxy(ns.lookup(self.x_mot_name))
+                    else:
+                        print("X motor not found/available on server")
+                        x_mot = Void()
                 else:
                     x_mot = Void()
                 
@@ -112,7 +123,11 @@ class DataCache:
                     if "y_mot_name" not in self.configuration.attrs.keys():
                         self.configuration.attrs["y_mot_name"] = float(input("Enter y_mot_name:"))
                     self.y_mot_name = self.configuration.attrs["y_mot_name"]
-                    y_mot = Proxy(ns.lookup(self.y_mot_name))
+                    if self.y_mot_name in available_device_list.keys():
+                        y_mot = Proxy(ns.lookup(self.y_mot_name))
+                    else:
+                        print("Y motor not found/available on server")
+                        y_mot = Void()
                 else:
                     y_mot = Void()
 
@@ -120,7 +135,11 @@ class DataCache:
                     if "r_mot_name" not in self.configuration.attrs.keys():
                         self.configuration.attrs["r_mot_name"] = float(input("Enter r_mot_name:"))
                     self.r_mot_name = self.configuration.attrs["r_mot_name"]
-                    r_mot = Proxy(ns.lookup(self.r_mot_name))
+                    if self.r_mot_name in available_device_list.keys():
+                        r_mot = Proxy(ns.lookup(self.r_mot_name))
+                    else:
+                        print("R motor not found/available on server")
+                        r_mot = Void()
                 else:
                     r_mot = Void()
 

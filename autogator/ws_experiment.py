@@ -1,28 +1,34 @@
-from typing import Dict
+from typing import Dict, Any
 
-from autogator.Experiment import Experiment
+from autogator.experiment import Experiment
 from pyrolab.analysis import WavelengthAnalyzer
+from datetime import datetime
 
 
 class WavelengthSweepExperiment(Experiment):
     def __init__(
         self,
-        wl_start=1500: float,
-        wl_stop=1600: float,
-        duration=15.0: float,
-        sample_rate=10e09: float,
-        trigger_step=0.01: float,
-        power_dBm=12.0: float,
-        buffer=2.0: float,
-        active_channels=[1, 2, 3, 4]: List[int],
-        trigger_channel=1: int,
-        trigger_level=1: int,
-        output_dir="C:\\Users\\mcgeo\\source\\repos\\autogator\\autogator\\data\\": str,
-        take_screenshot=True: bool,
-        save_raw_data=False: bool,
+        wl_start: float=1500,
+        wl_stop: float=1600,
+        duration: float=2.0,
+        sample_rate: float=5e09, 
+        trigger_step: float=0.01,
+        power_dBm: float=12.0,
+        buffer: float=4.0,
+        active_channels: list[int]=[1, 2, 3, 4],
+        trigger_channel: int=1,
+        trigger_level: int=1,
+        output_dir: str="C:\\Users\\mcgeo\\source\\repos\\autogator\\autogator\\data\\",
+        take_screenshot: bool=True,
+        save_raw_data: bool=True,
     ):
         super().__init__()
-        self.channel_settings = {}
+        self.channel_settings = {
+            1: {"range": 10, "position": 2}, 
+            2: {"range": 5, "position": -4},
+            3: {"range": 5, "position": -2},
+            4: {"range": 5, "position": 0.5},
+        }
         self.wl_start = wl_start
         self.wl_stop = wl_stop
         self.duration = duration
@@ -41,18 +47,19 @@ class WavelengthSweepExperiment(Experiment):
         self.filename = datePrefix + ".Wavelength_Sweep"
 
     def configure_channel(self, channel: int, params: Dict[str, Any]):
-        self.channel_setting[channel] = params
+        self.channel_settings[channel] = params
 
     def run(self):
         laser = self.dataCache.get_laser()
         scope = self.dataCache.get_scope()
 
-        sweep_rate = (lambda_stop - lambda_start) / duration
+        sweep_rate = (self.wl_stop - self.wl_start) / self.duration
         assert sweep_rate > 1.0 
         assert sweep_rate < 100.0
-        assert wl_start >= laser.MINIMUM_WAVELENGTH
-        assert wl_stop <= laser.MAXIMUM_WAVELENGTH
-
+        assert self.wl_start >= 1500 #laser.MINIMUM_WAVELENGTH
+        assert self.wl_stop <= 1630 #laser.MAXIMUM_WAVELENGTH
+ 
+        laser.start()
         laser.on()
         laser.power_dBm(self.power_dBm)
         laser.open_shutter()
@@ -71,7 +78,7 @@ class WavelengthSweepExperiment(Experiment):
         for channel in self.active_channels:
             channelMode = "Trigger" if (channel == self.trigger_channel) else "Data"
             print("Adding Channel {} - {}".format(channel, channelMode))
-            scope.set_channel(channel, **channel_setting[channel])
+            scope.set_channel(channel, **self.channel_settings[channel])
         print("Adding Edge Trigger @ {} Volt(s).".format(self.trigger_level))
         scope.edge_trigger(self.trigger_channel, self.trigger_level)
 
@@ -95,9 +102,9 @@ class WavelengthSweepExperiment(Experiment):
         if self.save_raw_data:
             print("Saving raw data.")
             for channel in self.active_channels:
-                with open(output_dir + "CHAN{}_Raw.txt".format(channel), "w") as out:
+                with open(self.output_dir + "CHAN{}_Raw.txt".format(channel), "w") as out:
                     out.write(str(rawData[channel]))
-            with open(output_dir + "Wavelength_Log.txt", "w") as out:
+            with open(self.output_dir + "Wavelength_Log.txt", "w") as out:
                 out.write(str(wavelengthLog))
 
         print("Processing Data")
@@ -124,3 +131,7 @@ class WavelengthSweepExperiment(Experiment):
             if (channel != self.trigger_channel):
                 print("Displaying data for channel " + str(channel))
                 VisualizeData(output_dir + self.filename, channel, **(data[channel]))
+
+if __name__ == "__main__":
+    exp = WavelengthSweepExperiment()
+    exp.run()

@@ -32,7 +32,5 @@ while True:
         break
     for flag in flags:
         if flags[flag]:
-            print(flag)
-            print(stage_points[flag])
             cache.motion.go_to_stage_coordinates(stage_points[flag][0], stage_points[flag][1])
             flags[flag] = False
