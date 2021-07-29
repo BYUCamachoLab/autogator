@@ -1,4 +1,5 @@
 from autogator.testbatch import TestBatch
+from autogator.circuitmap import CircuitMap
 from autogator.ws_experiment import WavelengthSweepExperiment
 
 circuitMap = CircuitMap("C:\\Users\\mcgeo\\source\\repos\\autogator\\autogator\\circuit_files\\fabrun5.txt")

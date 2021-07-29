@@ -1,4 +1,4 @@
-import autogator.dataCache as dataCache
+import autogator.datacache as dataCache
 import keyboard
 import os
 

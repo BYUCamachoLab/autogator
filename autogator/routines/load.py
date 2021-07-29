@@ -1,4 +1,4 @@
-import autogator.dataCache as dataCache
+import autogator.datacache as dataCache
 
 cache = dataCache.DataCache.get_instance()
 
