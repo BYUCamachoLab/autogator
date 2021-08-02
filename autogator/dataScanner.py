@@ -92,8 +92,8 @@ class DataScanner:
         
         self.motion.set_jog_step_linear(step_size)
 
-        edge_Num = round(sweep_distance / step_size)
-        data = np.zeros((edge_Num, edge_Num))
+        edge_num = round(sweep_distance / step_size)
+        data = np.zeros((edge_num, edge_num))
         rows, cols = data.shape
 
         if plot:
@@ -130,6 +130,68 @@ class DataScanner:
                 moving_down = False
             else:
                 moving_down = True
+            self.motion.move_step(self.motion.x_mot, "forward")
+            time.sleep(sleep_time)
+
+        self.motion.go_to_stage_coordinates(float(max_data_loc[0]), float(max_data_loc[1]))
+        time.sleep(sleep_time)
+        if plot:
+            plt.show()
+
+    def basic_scan_rect(self, sweep_distance_x, sweep_distance_y, step_size_x, step_size_y, plot=False, sleep_time=0.2):
+        x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (
+            sweep_distance_x / 2.0
+        )
+        y_start_place = self.motion.get_motor_position(self.motion.y_mot) - (
+            sweep_distance_y / 2.0
+        )
+        self.motion.go_to_stage_coordinates(x_start_place, y_start_place)
+        time.sleep(sleep_time)
+
+        max_data = self.oscope.measure()
+        max_data_loc = [x_start_place, y_start_place]
+
+        edge_num_x = round(sweep_distance_x / step_size_x)
+        edge_num_y = round(sweep_distance_y / step_size_y)
+        data = np.zeros((edge_num_x, edge_num_y))
+        rows, cols = data.shape
+
+        if plot:
+            fig, ax = plt.subplots(1, 1)
+            im = ax.imshow(data, cmap="hot")
+
+        moving_down = False
+
+        for i in range(rows):
+            for j in range(cols):
+                self.motion.set_jog_step_linear(step_size_y)
+                data[i, j] = self.oscope.measure()
+                print(data[i, j])
+                if data[i, j] > max_data:
+                    max_data = data[i, j]
+                    max_data_loc = [
+                        self.motion.get_motor_position(self.motion.x_mot),
+                        self.motion.get_motor_position(self.motion.y_mot),
+                    ]
+
+                if moving_down:
+                    self.motion.move_step(self.motion.y_mot, "backward")
+                    time.sleep(sleep_time)
+                else:
+                    self.motion.move_step(self.motion.y_mot, "forward")
+                    time.sleep(sleep_time)
+
+                if plot:
+                    im.set_data(data)
+                    im.set_clim(data.min(), data.max())
+                    fig.canvas.draw_idle()
+                    plt.pause(0.000001)
+
+            if moving_down:
+                moving_down = False
+            else:
+                moving_down = True
+            self.motion.set_jog_step_linear(step_size_x)
             self.motion.move_step(self.motion.x_mot, "forward")
             time.sleep(sleep_time)
 

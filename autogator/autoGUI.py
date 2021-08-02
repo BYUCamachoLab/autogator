@@ -16,6 +16,7 @@ import keyboard
 from PyQt5.QtCore import QTimer
 import numpy as np
 import autogator.datacache as glob
+import keyboard
 
 
 class GUI(QWidget):

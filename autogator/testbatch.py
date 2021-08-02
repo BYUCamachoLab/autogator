@@ -20,7 +20,6 @@ class TestBatch:
             print("Testing: " + str(circuit.ID))
             dataCache.get_motion().go_to_circuit(circuit)
             dataCache.get_dataScanner().auto_scan()
-            #self.experiment.run()
-            input("Press enter")
+            self.experiment.run()
         print("Done testbatch")
         
