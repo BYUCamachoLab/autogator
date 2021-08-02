@@ -1,0 +1,8 @@
+# Test performed at <date> <time>
+# Laser: SANTEC TSL-550
+# WL start: 1500 nm
+# WL end: 1620nm
+
+# Wavelength    Ch1 Ch2 Ch3 Ch4
+1500.00  0.00040 0.00324 0.25358 0.24358
+1500.24 ...
