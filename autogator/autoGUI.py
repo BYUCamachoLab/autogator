@@ -333,9 +333,9 @@ def check_float(potential_float):
 
 
 def Start():
-    m = GUI()
-    m.show()
-    return m
+    l = GUI()
+    l.show()
+    return l
 
 
 def main():
