@@ -6,3 +6,6 @@ class Experiment:
 
     def run(self):
         raise NotImplementedError
+
+    def set_filename(self, loc_X, loc_y):
+        raise NotImplementedError

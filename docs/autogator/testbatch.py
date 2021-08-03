@@ -19,7 +19,8 @@ class TestBatch:
         for circuit in test_circuits:
             print("Testing: " + str(circuit.ID))
             dataCache.get_motion().go_to_circuit(circuit)
-            dataCache.get_dataScanner().auto_scan()
+            self.experiment.set_filename(circuit.location[0], circuit.location[1])
+            # dataCache.get_dataScanner().auto_scan()
             self.experiment.run()
         print("Done testbatch")
         

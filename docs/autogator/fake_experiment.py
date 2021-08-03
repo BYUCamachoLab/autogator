@@ -1,5 +1,5 @@
 from autogator.experiment import Experiment
-import time
+from time import sleep
 
 
 class FakeExperiment(Experiment):
@@ -9,3 +9,5 @@ class FakeExperiment(Experiment):
         print("Running fake eperiment...")
         sleep(5)
         print("Done.")
+    def set_filename(self):
+        pass
