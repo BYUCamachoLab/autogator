@@ -1,8 +1,13 @@
 # Test performed at <date> <time>
-# Laser: SANTEC TSL-550
+# Laser: SANTEC TSL-550 (Ignore for now)
 # WL start: 1500 nm
 # WL end: 1620nm
+# laser power: 1dBm
 
 # Wavelength    Ch1 Ch2 Ch3 Ch4
 1500.00  0.00040 0.00324 0.25358 0.24358
 1500.24 ...
+
+
+
+"# Test performed at <date> <time>\n# WL start: {}nm\n# WL end: {}nm\n# laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n"

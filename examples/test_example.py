@@ -7,8 +7,8 @@ circuitMap = CircuitMap("C:\\Users\\mcgeo\\source\\repos\\autogator\\autogator\\
 
 testing_circuitMap = circuitMap.filter(name="MZI2", grouping=3)
 
-#testing_experiment = WavelengthSweepExperiment(wl_start=1550, wl_stop=1600, duration=5.0)
-testing_experiment = FakeExperiment()
+testing_experiment = WavelengthSweepExperiment(wl_start=1550, wl_stop=1600, duration=5.0)
+#testing_experiment = FakeExperiment()
 
 testBatch = TestBatch(circuitMap=testing_circuitMap, experiment=testing_experiment)
 testBatch.run()
