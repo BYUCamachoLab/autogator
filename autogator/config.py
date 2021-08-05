@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the GNU GPLv3+ License
+# Licensed under the terms of the MIT License
 # (see autogator/__init__.py for details)
 
 """
@@ -13,8 +13,9 @@ Stores configuration information for setup.
 
 from typing import Optional, Tuple, List
 from pathlib import Path
+
 import numpy as np
-import os
+
 from yaml import dump, safe_load
 
 

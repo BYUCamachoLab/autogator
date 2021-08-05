@@ -5,10 +5,11 @@
 # (see autogator/__init__.py for details)
 
 """
-PlatformCalibrator Class
--------------------------------------
+Platform Calibrator
+-------------------
 
-Contains logic for calculating the affine transformation between GDS and Stage coordinates.
+Contains logic for calculating the affine transformation between GDS and 
+hardware stage coordinates.
 """
 
 import numpy as np

@@ -1,33 +1,32 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the GNU GPLv3+ License
+# Licensed under the terms of the MIT License
 # (see autogator/__init__.py for details)
 
 """
-DataCache Class
--------------------------------------
+Data Cache
+----------
 
 Instantiates and holds objects of remote instruments to be used by files that import it.
 """
 
-import numpy as np
 import sys
 from typing import Any
 from pathlib import Path
+
+import numpy as np
+from pyrolab.api import locate_ns, Proxy
+from pyrolab.drivers.scopes.rohdeschwarz import RTO
+from Pyro5.api import locate_ns, Proxy
+
 from autogator.platformcalibrator import PlatformCalibrator
 from autogator.config import Configuration
 from autogator.motion import Motion
 from autogator.datascanner import DataScanner
 from autogator.circuitmap import CircuitMap
-from pyrolab.api import locate_ns, Proxy
-from pyrolab.drivers.scopes.rohdeschwarz import RTO
-from pyrolab.drivers.lasers.tsl550 import TSL550
-from pyrolab.drivers.motion.z825b import Z825B
-from pyrolab.drivers.motion.prm1z8 import PRM1Z8
-from Pyro5.api import locate_ns, Proxy
-
 from autogator import SITE_CONFIG_DIR
+
 
 COORDINATE_DIR = SITE_CONFIG_DIR / "configuration"
 COORDINATE_DIR.mkdir(parents=True, exist_ok=True)

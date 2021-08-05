@@ -51,6 +51,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering",
     ],
     install_requires=[
+        "pyrolab",
         # 'numpy',
         # 'matplotlib',
         # 'instrumental-lib',

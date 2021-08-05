@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright © 2019-2020 Autogator Project Contributors and others (see AUTHORS.txt).
+# Copyright © 2019-2021 Autogator Project Contributors and others (see AUTHORS.txt).
 #
 # The resources, libraries, and some source files under other terms (see NOTICE.txt).
 #
@@ -36,7 +36,7 @@ import sys
 
 if sys.version_info < (3, 6, 0):
     raise Exception(
-        "autogator requires Python 3 (version "
+        "autogator requires Python 3.6+ (version "
         + platform.python_version()
         + " detected)."
     )
@@ -60,7 +60,7 @@ warnings.filterwarnings("default", category=DeprecationWarning)
 
 from appdirs import AppDirs
 
-_dirs = AppDirs(__name__, __author__, version=__version__)
+_dirs = AppDirs(__name__, __author__)
 SITE_DATA_DIR = pathlib.Path(_dirs.site_data_dir)
 SITE_CONFIG_DIR = pathlib.Path(_dirs.site_config_dir)
 SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)

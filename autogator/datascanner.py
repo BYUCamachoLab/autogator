@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the GNU GPLv3+ License
+# Licensed under the terms of the MIT License
 # (see autogator/__init__.py for details)
 
 """
-DataScanner Class
--------------------------------------
+Data Scanner
+------------
 
 Optimizes alignment of laser through box scans.
 """
 
+import time
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 import numpy as np
-from pathlib import Path
-import time
 
 
 class DataScanner:
