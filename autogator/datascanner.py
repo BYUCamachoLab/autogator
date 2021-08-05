@@ -18,19 +18,19 @@ import time
 
 
 class DataScanner:
-    def __init__(self, oscilloscope, motion, channel=1):
+    def __init__(self, oscilloscope, motion, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
         self.oscope = oscilloscope
         self.motion = motion
         self.oscope.set_timescale(1e-9)
-        self.oscope.set_channel(channel, range=5.5, coupling="DCLimit", position=-5)
-        self.oscope.set_auto_measurement()
+        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
+        self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
         self.oscope.wait_for_device()
 
-    def auto_scan(self):
+    def auto_scan(self, channel=1):
         """
         Performs basic scans of varying sizes to find location where highest readings are returned.
         """
-        self.basic_scan(sweep_distance=0.025, step_size=0.005)
+        self.basic_scan(sweep_distance=0.025, step_size=0.005, channel=channel)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
             "Max Data Location: ({}, {})".format(
@@ -38,7 +38,7 @@ class DataScanner:
                 self.motion.get_motor_position(self.motion.y_mot),
             )
         )
-        self.basic_scan(sweep_distance=0.01, step_size=0.002)
+        self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
             "Max Data Location: ({}, {})".format(
@@ -46,7 +46,7 @@ class DataScanner:
                 self.motion.get_motor_position(self.motion.y_mot),
             )
         )
-        self.basic_scan(sweep_distance=0.001, step_size=0.0005)
+        self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
             "Max Data Location: ({}, {})".format(
@@ -55,14 +55,14 @@ class DataScanner:
             )
         )
 
-    def auto_scan_small(self):
+    def auto_scan_small(self, channel=1):
         """
         Performs basic scans of varying sizes to find location where highest readings are returned on a small scale.
         """
-        self.basic_scan(sweep_distance=0.01, step_size=0.002)
-        self.basic_scan(sweep_distance=0.001, step_size=0.0005)
+        self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
+        self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
 
-    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.2):
+    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.2, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
         """
         Performs a box scan of given dimensions and goes to position of highest readings returned.
 
@@ -77,6 +77,10 @@ class DataScanner:
         sleep_time : float, default=.2
             Amount of time in seconds the motors will pause inbetween movements to improve data reliability.
         """
+
+        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
+        self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
+        self.oscope.wait_for_device()
 
         x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (
             sweep_distance / 2.0
@@ -138,7 +142,12 @@ class DataScanner:
         if plot:
             plt.show()
 
-    def basic_scan_rect(self, sweep_distance_x, sweep_distance_y, step_size_x, step_size_y, plot=False, sleep_time=0.2):
+    def basic_scan_rect(self, sweep_distance_x, sweep_distance_y, step_size_x, step_size_y, plot=False, sleep_time=0.2, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
+
+        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
+        self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
+        self.oscope.wait_for_device()
+
         x_start_place = self.motion.get_motor_position(self.motion.x_mot) - (
             sweep_distance_x / 2.0
         )
