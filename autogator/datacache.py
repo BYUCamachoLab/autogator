@@ -155,7 +155,7 @@ class DataCache:
                 self.circuitMap_file_path = self.configuration.attrs["circuitMap_file_path"]
             else:
                 self.circuitMap_file_path = None
-            self.circuitMap = CircuitMap(text_file_path=self.circuitMap_file_path)
+            self.circuitMap = CircuitMap.loadtxt(self.circuitMap_file_path)
 
             if "load_position" in self.configuration.attrs.keys():
                 self.load_position = self.configuration.attrs["load_position"]
