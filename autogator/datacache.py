@@ -26,7 +26,7 @@ from autogator.motion import Motion
 from autogator.datascanner import DataScanner
 from autogator.circuitmap import CircuitMap
 from autogator import SITE_CONFIG_DIR
-
+import autogator.interfaces as interfaces
 
 COORDINATE_DIR = SITE_CONFIG_DIR / "configuration"
 COORDINATE_DIR.mkdir(parents=True, exist_ok=True)
@@ -66,6 +66,8 @@ class DataCache:
             if "name_server" not in self.configuration.attrs.keys():
                 self.configuration.attrs["name_server"] = input("Enter name_server:")
             ns = locate_ns(self.configuration.attrs["name_server"])
+
+            name_server = self.configuration.attrs["name_server"]
 
             available_device_list = ns.list()
 
@@ -107,38 +109,53 @@ class DataCache:
 
             if "motors" not in omits and "m" not in omits:
                 if "x_mot" not in omits and "x" not in omits:
-                    if "x_mot_name" not in self.configuration.attrs.keys():
-                        self.configuration.attrs["x_mot_name"] = float(input("Enter x_mot_name:"))
-                    self.x_mot_name = self.configuration.attrs["x_mot_name"]
-                    if self.x_mot_name in available_device_list.keys():
-                        x_mot = Proxy(ns.lookup(self.x_mot_name))
-                    else:
-                        print("X motor not found/available on server")
-                        x_mot = Void()
+                    if "x_mot_info" not in self.configuration.attrs.keys():
+                        classname = str(input("Enter x_mot_classname: "))
+                        remotename = str(input("Enter x_mot_remotename: "))
+                        localname = str(input("Enter x_mot_localname: "))
+                        location = str(input("Enter x_mot_location: "))
+                        self.configuration.attrs["x_mot_info"] = {
+                            "classname": classname,
+                            "remotename": remotename,
+                            "localname": localname,
+                            "location": location
+                        }
+                    self.x_mot_info = self.configuration.attrs["x_mot_info"]
+                    x_mot = getattr(interfaces, self.x_mot_info["classname"])(self.x_mot_info)
                 else:
                     x_mot = Void()
                 
                 if "y_mot" not in omits and "y" not in omits:
-                    if "y_mot_name" not in self.configuration.attrs.keys():
-                        self.configuration.attrs["y_mot_name"] = float(input("Enter y_mot_name:"))
-                    self.y_mot_name = self.configuration.attrs["y_mot_name"]
-                    if self.y_mot_name in available_device_list.keys():
-                        y_mot = Proxy(ns.lookup(self.y_mot_name))
-                    else:
-                        print("Y motor not found/available on server")
-                        y_mot = Void()
+                    if "y_mot_info" not in self.configuration.attrs.keys():
+                        classname = str(input("Enter y_mot_classname: "))
+                        remotename = str(input("Enter y_mot_remotename: "))
+                        localname = str(input("Enter y_mot_localname: "))
+                        location = str(input("Enter y_mot_location: "))
+                        self.configuration.attrs["y_mot_info"] = {
+                            "classname": classname,
+                            "remotename": remotename,
+                            "localname": localname,
+                            "location": location
+                        }
+                    self.y_mot_info = self.configuration.attrs["y_mot_info"]
+                    y_mot = getattr(interfaces, self.y_mot_info["classname"])(self.y_mot_info)
                 else:
                     y_mot = Void()
 
                 if "r_mot" not in omits and "r" not in omits:
-                    if "r_mot_name" not in self.configuration.attrs.keys():
-                        self.configuration.attrs["r_mot_name"] = float(input("Enter r_mot_name:"))
-                    self.r_mot_name = self.configuration.attrs["r_mot_name"]
-                    if self.r_mot_name in available_device_list.keys():
-                        r_mot = Proxy(ns.lookup(self.r_mot_name))
-                    else:
-                        print("R motor not found/available on server")
-                        r_mot = Void()
+                    if "r_mot_info" not in self.configuration.attrs.keys():
+                        classname = str(input("Enter r_mot_classname: "))
+                        remotename = str(input("Enter r_mot_remotename: "))
+                        localname = str(input("Enter r_mot_localname: "))
+                        location = str(input("Enter r_mot_location: "))
+                        self.configuration.attrs["r_mot_info"] = {
+                            "classname": classname,
+                            "remotename": remotename,
+                            "localname": localname,
+                            "location": location
+                        }
+                    self.r_mot_info = self.configuration.attrs["r_mot_info"]
+                    r_mot = getattr(interfaces, self.r_mot_info["classname"])(self.r_mot_info)
                 else:
                     r_mot = Void()
 

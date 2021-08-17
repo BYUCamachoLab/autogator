@@ -119,7 +119,7 @@ class WavelengthSweepExperiment(Experiment):
             sample_rate: float=3, 
             trigger_step: float=0.01,
             power_dBm: float=12.0,
-            buffer: float=1.0,
+            buffer: float=5.0,
             active_channels: List[int]=[1, 2, 3, 4],
             trigger_channel: int=1,
             trigger_level: int=1,
@@ -163,6 +163,7 @@ class WavelengthSweepExperiment(Experiment):
 
     def set_filename(self, chip_name, loc_x, loc_y):
         today = datetime.now()
+        self.file_prefix = "# Test performed at {}\n# WL start: {}nm\n# WL end: {}nm\n# self.laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n".format(today, self.wl_start, self.wl_stop, self.power_dBm)
         self.date_prefix = "{}_{}_{}_{}_{}_".format(today.year, today.month, today.day, today.hour, today.minute)
         self.filename = "{}_{}_locx_{}_locy_{}".format(self.date_prefix, chip_name, loc_x, loc_y)
         self.filename = self.filename.replace(".", ",")
@@ -199,7 +200,7 @@ class WavelengthSweepExperiment(Experiment):
         self.scope.edge_trigger(self.trigger_channel, self.trigger_level)
 
         print('Starting Acquisition')
-        self.scope.acquire(timeout = self.duration*3)
+        self.scope.acquire(timeout = self.duration*2)
 
         print('Sweeping laser')
         self.laser.sweep_wavelength(self.wl_start, self.wl_stop, self.duration)
@@ -223,20 +224,18 @@ class WavelengthSweepExperiment(Experiment):
 
         sorted_data = {channel: analysis.process_data(raw[channel]) for channel in self.active_channels}
 
-        print(sorted_data[1])
-
-        # if self.save_raw_data:
-        #     print("Saving raw data.")
-        #     with open(self.output_dir + self.filename + ".wlsweep", "w") as out:
-        #         out.write(self.file_prefix)
-        #         data_lists = [wavelengthLog]
-        #         for channel in raw:
-        #             data_lists.append(raw[channel])
-        #         data_zip = zip(*data_lists)
-        #         for data_list in data_zip:
-        #             for data in data_list:
-        #                 out.write(str(data) + "\t")
-        #             out.write("\n")
+        if self.save_raw_data:
+            print("Saving raw data.")
+            with open(self.output_dir + self.filename + ".wlsweep", "w") as out:
+                out.write(self.file_prefix)
+                data_lists = [sorted_data[self.trigger_channel]["wavelengths"]]
+                for channel in raw:
+                    data_lists.append(sorted_data[channel]["data"])
+                data_zip = zip(*data_lists)
+                for data_list in data_zip:
+                    for data in data_list:
+                        out.write(str(data) + "\t")
+                    out.write("\n")
 
 
 class BatchExperiment:
@@ -253,13 +252,13 @@ class BatchExperiment:
         #     dataCache.calibrate()
         dataCache = glob.DataCache.get_instance()
         
-        test_circuits = self.circuitMap.get_circuits()
+        test_circuits = self.circuitMap.circuits
 
         print("Starting testing...")
         for circuit in test_circuits:
-            print("Testing: " + str(circuit.ID))
+            print("Testing: " + str(circuit.ident))
             dataCache.get_motion().go_to_circuit(circuit)
-            self.experiment.set_filename("fabrun5", circuit.location[0], circuit.location[1])
+            self.experiment.set_filename("fabrun5", circuit.loc[0], circuit.loc[1])
             # dataCache.get_dataScanner().auto_scan()
             self.experiment.run()
         print("Done testbatch")

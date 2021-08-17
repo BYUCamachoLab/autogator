@@ -39,7 +39,23 @@ class DataScanner:
                 self.motion.get_motor_position(self.motion.y_mot),
             )
         )
-        self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
+        # self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
+        # print("Max Data Reading: {}".format(self.oscope.measure()))
+        # print(
+        #     "Max Data Location: ({}, {})".format(
+        #         self.motion.get_motor_position(self.motion.x_mot),
+        #         self.motion.get_motor_position(self.motion.y_mot),
+        #     )
+        # )
+        # self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
+        # print("Max Data Reading: {}".format(self.oscope.measure()))
+        # print(
+        #     "Max Data Location: ({}, {})".format(
+        #         self.motion.get_motor_position(self.motion.x_mot),
+        #         self.motion.get_motor_position(self.motion.y_mot),
+        #     )
+        # )
+        y_max_location = self.anti_backlash_scan(self.motion.y_mot)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
             "Max Data Location: ({}, {})".format(
@@ -47,7 +63,15 @@ class DataScanner:
                 self.motion.get_motor_position(self.motion.y_mot),
             )
         )
-        self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
+        x_max_location = self.anti_backlash_scan(self.motion.x_mot)
+        print("Max Data Reading: {}".format(self.oscope.measure()))
+        print(
+            "Max Data Location: ({}, {})".format(
+                self.motion.get_motor_position(self.motion.x_mot),
+                self.motion.get_motor_position(self.motion.y_mot),
+            )
+        )
+        self.motion.go_to_stage_coordinates(x_max_location, y_max_location)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
             "Max Data Location: ({}, {})".format(
@@ -63,7 +87,7 @@ class DataScanner:
         self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
         self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
 
-    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.2, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
+    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.5, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
         """
         Performs a box scan of given dimensions and goes to position of highest readings returned.
 
@@ -89,7 +113,7 @@ class DataScanner:
         y_start_place = self.motion.get_motor_position(self.motion.y_mot) - (
             sweep_distance / 2.0
         )
-        self.motion.go_to_stage_coordinates(x_start_place, y_start_place)
+        self.motion.go_to_stage_coordinates(x=x_start_place, y=y_start_place)
         time.sleep(sleep_time)
 
         max_data = self.oscope.measure()
@@ -111,6 +135,7 @@ class DataScanner:
             for j in range(cols):
                 data[i, j] = self.oscope.measure()
                 print(data[i, j])
+                print("({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
                 if data[i, j] > max_data:
                     max_data = data[i, j]
                     max_data_loc = [
@@ -118,12 +143,8 @@ class DataScanner:
                         self.motion.get_motor_position(self.motion.y_mot),
                     ]
 
-                if moving_down:
-                    self.motion.move_step(self.motion.y_mot, "backward")
-                    time.sleep(sleep_time)
-                else:
-                    self.motion.move_step(self.motion.y_mot, "forward")
-                    time.sleep(sleep_time)
+                self.motion.move_step(self.motion.y_mot, "forward")
+                time.sleep(sleep_time)
 
                 if plot:
                     im.set_data(data)
@@ -131,11 +152,9 @@ class DataScanner:
                     fig.canvas.draw_idle()
                     plt.pause(0.000001)
 
-            if moving_down:
-                moving_down = False
-            else:
-                moving_down = True
+            self.motion.go_to_stage_coordinates(y=y_start_place)
             self.motion.move_step(self.motion.x_mot, "forward")
+
             time.sleep(sleep_time)
 
         self.motion.go_to_stage_coordinates(float(max_data_loc[0]), float(max_data_loc[1]))
@@ -209,3 +228,26 @@ class DataScanner:
         time.sleep(sleep_time)
         if plot:
             plt.show()
+
+    def anti_backlash_scan(self, motor):
+        motor.jog_step_size = .0025
+        motor.jog("backward")
+        motor.jog_step_size = .0005
+        max_data = self.oscope.measure()
+        max_data_location = motor.get_position()
+        count = 0
+        while count < 12:
+            motor.jog("forward")
+            time.sleep(.5)
+            data = self.oscope.measure()
+            location = motor.get_position()
+            print(data)
+            print(location)
+            if data > max_data:
+                count = 0
+                max_data = data
+                max_data_location = location
+            else:
+                count += 1
+        motor.move_to(max_data_location)
+        return max_data_location

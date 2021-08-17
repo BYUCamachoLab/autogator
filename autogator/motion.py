@@ -45,14 +45,6 @@ class Motion:
         self.r_mot = r_mot
         self.motors = [self.x_mot, self.y_mot, self.r_mot]
 
-        try:
-            for motor in self.motors:
-                motor.autoconnect()
-        except:
-            self.x_mot.connect(serialno=27504851)
-            self.y_mot.connect(serialno=27003497)
-            self.r_mot.connect(serialno=27003366)
-
         self.conversion_matrix = conversion_matrix
         self.origin = None
 
@@ -126,8 +118,8 @@ class Motion:
         if step_size is None:
             os.system("cls")
             step_size = float(input("New Jog Step (mm):"))
-        self.x_mot.jog_step_size = step_size
-        self.y_mot.jog_step_size = step_size
+        self.x_mot.step_size(step_size)
+        self.y_mot.step_size(step_size)
 
     def get_jog_step_linear(self) -> float:
         """
@@ -138,7 +130,7 @@ class Motion:
         jog_step_size : float
             Current jog step size of linear motors.
         """
-        return self.x_mot.jog_step_size
+        return self.x_mot.step_size()
 
     def set_jog_step_rotational(self, step_size: float = None) -> None:
         """
@@ -154,7 +146,7 @@ class Motion:
         if step_size is None:
             os.system("cls")
             step_size = float(input("New Jog Step (degrees):"))
-        self.r_mot.jog_step_size = step_size
+        self.r_mot.step_size(step_size)
 
     def get_jog_step_rotational(self) -> float:
         """
@@ -165,7 +157,7 @@ class Motion:
         jog_step_size : float
             Current jog step size of rotational motor.
         """
-        return self.r_mot.jog_step_size
+        return self.r_mot.step_size()
 
     def stop_all(self) -> None:
         """
@@ -191,13 +183,13 @@ class Motion:
         """
         if motor == self.x_mot:
             if self.x_mot_moving == False:
-                motor.jog(direction)
+                motor.move_by(direction)
         if motor == self.y_mot:
             if self.y_mot_moving == False:
-                motor.jog(direction)
+                motor.move_by(direction)
         if motor == self.r_mot:
             if self.r_mot_moving == False:
-                motor.jog(direction)
+                motor.move_by(direction)
 
     def move_cont(self, motor, direction: str) -> None:
         """
@@ -212,15 +204,15 @@ class Motion:
         """
         if motor == self.x_mot:
             if self.x_mot_moving == False:
-                motor.move_continuous(direction)
+                motor.move_cont(direction)
                 self.x_mot_moving = True
         if motor == self.y_mot:
             if self.y_mot_moving == False:
-                motor.move_continuous(direction)
+                motor.move_cont(direction)
                 self.y_mot_moving = True
         if motor == self.r_mot:
             if self.r_mot_moving == False:
-                motor.move_continuous(direction)
+                motor.move_cont(direction)
                 self.r_mot_moving = True
 
     def help_me(self) -> None:
@@ -262,8 +254,8 @@ class Motion:
         Moves linear motors to home position.
         """
         print("Homing motors...")
-        self.x_mot.go_home()
-        self.y_mot.go_home()
+        self.x_mot.home()
+        self.y_mot.home()
         print("Done homing")
 
     def go_to_gds_coordinates(self, x: float = None, y: float = None) -> None:
@@ -336,7 +328,7 @@ class Motion:
         Exception
             If an error occurs while trying to run go_to_gsd_coordinates() on location retrieved.
         """
-        pos = circuit.location
+        pos = circuit.loc
         try:
             self.go_to_gds_coordinates(float(pos[0]), float(pos[1]))
         except Exception as e:

@@ -99,13 +99,21 @@ class Circuit:
 
     def __getitem__(self, key: str) -> str:
         if type(key) is not str:
-            raise TypeError("Paramater name must be a string")
+            raise TypeError("Parameter name must be a string")
         return self.params[key]
 
     def __setitem__(self, name: str, value: str) -> None:
         if type(name) is not str:
-            raise TypeError("Paramater name must be a string")
+            raise TypeError("Parameter name must be a string")
         self.params[name] = value
+
+    def __getattr__(self, key: str) -> str:
+        if type(key) is not str:
+            raise TypeError("Parameter name must be a string")
+        try:
+            return self.params[key]
+        except KeyError as e:
+            raise AttributeError(f"circuit has no attribute '{key}'")
 
     def __copy__(self) -> "Circuit":
         return Circuit(self.loc, self.ident, self.params.copy())
@@ -236,7 +244,8 @@ class CircuitMap:
         >>> cmap = CircuitMap.loadtxt("./sample.txt")
         >>> filtered = cmap.filterby(name="MZI1")
         """
-        filtered = [c for c in self.circuits if all(c[key] == val for key, val in kwargs.items())]
+        stepone = [c for c in self.circuits if all(hasattr(c, key) for key, val in kwargs.items())]
+        filtered = [c for c in stepone if all(c[key] == val for key, val in kwargs.items())]
         cmap = CircuitMap()
         cmap.circuits = filtered
         return cmap

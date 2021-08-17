@@ -110,7 +110,7 @@ class GUI(QWidget):
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.printPosition)
-        self.timer.start(100)
+        self.timer.start(1000)
 
         self.circuitsMenu = QComboBox(self)
         self.circuitsMenu.setSizeAdjustPolicy(QComboBox.AdjustToContents)
@@ -128,10 +128,10 @@ class GUI(QWidget):
         self.auto_scan_button.clicked.connect(self.auto_scan)
 
         if self.circuitMap is not None:
-            self.circuits = self.circuitMap.get_circuits()
+            self.circuits = self.circuitMap.circuits
             self.circuitsMenu.clear()
             for circuit in self.circuits:
-                self.circuitsMenu.addItem(circuit.ID)
+                self.circuitsMenu.addItem(circuit.ident)
 
         grid = QGridLayout()
         grid.setSpacing(10)
