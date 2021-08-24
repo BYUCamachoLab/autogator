@@ -5,7 +5,8 @@
 # (see autogator/__init__.py for details)
 
 import os
-os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
+
+os.environ["PATH"] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ["PATH"]
 
 from threading import Thread
 import time
@@ -36,7 +37,7 @@ if kcdc.TLI_BuildDeviceList() == 0:
 
     serialnos = create_string_buffer(100)
     kcdc.TLI_GetDeviceListByTypeExt(serialnos, 100, 27)
-    serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
+    serialnos = list(filter(None, serialnos.value.decode("utf-8").split(",")))
     print("Serial #'s:", serialnos)
 
     lateral = Z825B(27504851)

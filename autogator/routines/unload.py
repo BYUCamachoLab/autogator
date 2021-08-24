@@ -1,3 +1,9 @@
+"""
+Unload Routine
+-------------------------------------
+
+Goes to chip unloaded position recorded in config file. Creates and saves position if it doesn't already exist.
+"""
 import autogator.datacache as dataCache
 
 cache = dataCache.DataCache.get_instance()
@@ -5,7 +11,10 @@ cache = dataCache.DataCache.get_instance()
 if cache.unload_position is None:
     print("Go to unload position then press 'q'")
     cache.motion.keyloop()
-    cache.configuration.attrs["unload_position"] = [cache.motion.get_motor_position(cache.motion.x_mot), cache.motion.get_motor_position(cache.motion.y_mot)]
+    cache.configuration.attrs["unload_position"] = [
+        cache.motion.get_motor_position(cache.motion.x_mot),
+        cache.motion.get_motor_position(cache.motion.y_mot),
+    ]
     cache.configuration.save()
     cache.unload_position = cache.configuration.attrs["unload_position"]
 

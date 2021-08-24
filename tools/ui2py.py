@@ -19,23 +19,23 @@ import subprocess
 
 os.chdir(os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir))
 
-path = 'autogator'
-res = os.path.join(path, 'resources')
-dest = os.path.join(path, 'compiled')
+path = "autogator"
+res = os.path.join(path, "resources")
+dest = os.path.join(path, "compiled")
 
 for root, directories, filenames in os.walk(res):
     for filename in filenames:
         item = os.path.join(root, filename)
-        if item.endswith('.ui'):
+        if item.endswith(".ui"):
             name, _ = os.path.splitext(filename)
-            rename = name + '_ui' + '.py'
+            rename = name + "_ui" + ".py"
             path2dest = os.path.join(dest, rename)
-            print(*['pyside2-uic', '--from-imports', item, '-o', path2dest])
-            subprocess.call(['pyside2-uic', '--from-imports', item, '-o', path2dest])
-        if item.endswith('.qrc'):
+            print(*["pyside2-uic", "--from-imports", item, "-o", path2dest])
+            subprocess.call(["pyside2-uic", "--from-imports", item, "-o", path2dest])
+        if item.endswith(".qrc"):
             name, _ = os.path.splitext(filename)
-            rename = name + '_rc' + '.py'
+            rename = name + "_rc" + ".py"
             path2dest = os.path.join(dest, rename)
-            args = ['pyside2-rcc', item, '-o', path2dest]
+            args = ["pyside2-rcc", item, "-o", path2dest]
             print(*args)
             subprocess.call(args)

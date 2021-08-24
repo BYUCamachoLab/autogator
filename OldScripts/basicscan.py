@@ -5,7 +5,8 @@
 # (see autogator/__init__.py for details)
 
 import os
-os.environ['PATH'] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ['PATH']
+
+os.environ["PATH"] = "C:\\Program Files\\ThorLabs\\Kinesis" + ";" + os.environ["PATH"]
 
 import atexit
 import pyvisa as visa
@@ -39,13 +40,16 @@ SWEEP_DIST_MM = 0.06
 STEP_SIZE_MM = 0.003
 SHAPE = round(SWEEP_DIST_MM / STEP_SIZE_MM)
 
+
 def mm_to_steps(mm):
     return round(mm * STEPS_PER_MM)
+
 
 def steps_to_mm(steps):
     return steps / STEPS_PER_MM
 
-data = np.zeros((SHAPE, SHAPE)) # Array to store data
+
+data = np.zeros((SHAPE, SHAPE))  # Array to store data
 print("Scan grid: {}x{}".format(*data.shape))
 
 lateral_mot = c_char_p(bytes("27504851", "utf-8"))
@@ -53,24 +57,26 @@ longitudinal_mot = c_char_p(bytes("27003497", "utf-8"))
 rotational = c_char_p(bytes("27003366", "utf-8"))
 motors = [lateral_mot, longitudinal_mot, rotational]
 
+
 def open_motors():
     global motors
     for serialno in motors:
         kcdc.CC_Open(serialno)
         kcdc.CC_StartPolling(serialno, c_int(20))
         kcdc.CC_ClearMessageQueue(serialno)
-        
+
     time.sleep(3)
 
     for serialno in motors:
         homeable = bool(kcdc.CC_CanHome(serialno))
         print("Can home:", homeable)
-        #Get Motor Position
+        # Get Motor Position
         accel_param, vel_param = c_int(), c_int()
         kcdc.CC_GetJogVelParams(serialno, byref(accel_param), byref(vel_param))
         print("Acceleration:", accel_param.value, "Velocity:", vel_param.value)
         current_motor_pos = kcdc.CC_GetPosition(serialno)
         print("Position:", current_motor_pos)
+
 
 @atexit.register
 def close_motors():
@@ -79,11 +85,17 @@ def close_motors():
         kcdc.CC_StopPolling(serialno)
         kcdc.CC_Close(serialno)
 
+
 def block(serialno):
     message_type, message_id, message_data = WORD(), WORD(), DWORD()
-    kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
+    kcdc.CC_WaitForMessage(
+        serialno, byref(message_type), byref(message_id), byref(message_data)
+    )
     while (int(message_type.value) != 2) or (int(message_id.value) != 1):
-        kcdc.CC_WaitForMessage(serialno, byref(message_type), byref(message_id), byref(message_data))
+        kcdc.CC_WaitForMessage(
+            serialno, byref(message_type), byref(message_id), byref(message_data)
+        )
+
 
 if kcdc.TLI_BuildDeviceList() == 0:
     print("Device list built (no errors).")
@@ -93,12 +105,12 @@ if kcdc.TLI_BuildDeviceList() == 0:
 
     serialnos = create_string_buffer(100)
     kcdc.TLI_GetDeviceListByTypeExt(serialnos, 100, 27)
-    serialnos = list(filter(None, serialnos.value.decode("utf-8").split(',')))
+    serialnos = list(filter(None, serialnos.value.decode("utf-8").split(",")))
     print("Serial #'s:", serialnos)
 
     # Open Communication
     rm = visa.ResourceManager()
-    scope = rm.open_resource('TCPIP::10.32.112.162::INSTR')
+    scope = rm.open_resource("TCPIP::10.32.112.162::INSTR")
     open_motors()
 
     # Calculate current position
@@ -123,55 +135,57 @@ if kcdc.TLI_BuildDeviceList() == 0:
     # Configure motors for jogging
     kcdc.CC_SetJogStepSize(lateral_mot, mm_to_steps(STEP_SIZE_MM))
     kcdc.CC_SetJogStepSize(longitudinal_mot, mm_to_steps(STEP_SIZE_MM))
-        
+
     # Wake up, scope!
-    try: 
-        scope.write('TIM:SCAL 1e-9') # Set the time base of the oscilloscope
-        scope.write('MEAS1:SOUR C1W1') # Set measuring params
-        scope.write('MEAS1 ON')
-        scope.write('MEAS1:MAIN MAX') # Measure the max value in the current view window (Based on time base)
-        scope.write('CHAN1:RANG 0.2')  # Horizontal range 22V
-        scope.write('CHAN1:POS 0')  # Offset 0
-        scope.write('CHAN1:COUP DCL')  # Coupling DC 1MOhm
-        scope.write('CHAN1:STAT ON')  # Switch Channel 1 ON
-        scope.query('*OPC?')
+    try:
+        scope.write("TIM:SCAL 1e-9")  # Set the time base of the oscilloscope
+        scope.write("MEAS1:SOUR C1W1")  # Set measuring params
+        scope.write("MEAS1 ON")
+        scope.write(
+            "MEAS1:MAIN MAX"
+        )  # Measure the max value in the current view window (Based on time base)
+        scope.write("CHAN1:RANG 0.2")  # Horizontal range 22V
+        scope.write("CHAN1:POS 0")  # Offset 0
+        scope.write("CHAN1:COUP DCL")  # Coupling DC 1MOhm
+        scope.write("CHAN1:STAT ON")  # Switch Channel 1 ON
+        scope.query("*OPC?")
         scope.ext_error_checking()
 
         # Start Move Test
         rows, cols = data.shape
-        
-        fig, ax = plt.subplots(1,1)
-        im = ax.imshow(data, cmap='hot')
-        
+
+        fig, ax = plt.subplots(1, 1)
+        im = ax.imshow(data, cmap="hot")
+
         for i in range(rows):
             for j in range(cols):
                 # Measure and jog the longitudinal motor
-                data[i, j] = scope.query('MEAS1:RES:ACT?')
+                data[i, j] = scope.query("MEAS1:RES:ACT?")
                 kcdc.CC_MoveJog(longitudinal_mot, kcdc.MOT_Reverse)
 
                 im.set_data(data)
                 im.set_clim(data.min(), data.max())
                 fig.canvas.draw_idle()
                 plt.pause(0.000001)
-                
+
                 block(longitudinal_mot)
-            
+
             # Jog the lateral motor
             kcdc.CC_MoveJog(lateral_mot, kcdc.MOT_Reverse)
             block(lateral_mot)
-            
+
             # Move the longitudinal motor back to the start of the row
             kcdc.CC_MoveToPosition(longitudinal_mot, c_int(corner_long_pos_du))
             block(longitudinal_mot)
 
         plt.show()
 
-        with open('data.npy', 'wb') as f:
+        with open("data.npy", "wb") as f:
             np.save(f, data)
-        
+
     except VISAresourceExtentions.InstrumentErrorException as e:
         # Catching instrument error exception and showing its content
-        print('Instrument error(s) occurred:\n' + e.message)
+        print("Instrument error(s) occurred:\n" + e.message)
 
     # Move to original position
     kcdc.CC_MoveToPosition(lateral_mot, c_int(current_lat_pos_du))

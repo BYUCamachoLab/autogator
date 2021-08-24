@@ -83,9 +83,10 @@ class Circuit:
     ident : str
         Unique identifier for the circuit.
     params : dict
-        Key, value parameters describing the circuit. Values must all be 
+        Key, value parameters describing the circuit. Values must all be
         strings and are not permitted to contain spaces.
     """
+
     def __init__(self, loc: "Location", ident: str, params: Dict[str, str]) -> None:
         self.loc = loc
         self.ident = ident
@@ -119,7 +120,11 @@ class Circuit:
         return Circuit(self.loc, self.ident, self.params.copy())
 
     def __deepcopy__(self, memodict: Dict[Any, Any]) -> "Circuit":
-        newone = Circuit(copy.deepcopy(self.loc, memodict), self.ident, copy.deepcopy(self.params, memodict))
+        newone = Circuit(
+            copy.deepcopy(self.loc, memodict),
+            self.ident,
+            copy.deepcopy(self.params, memodict),
+        )
         return newone
 
 
@@ -134,6 +139,7 @@ class Location(NamedTuple):
     y : int
         Y coordinate of the circuit.
     """
+
     x: float
     y: float
 
@@ -180,7 +186,8 @@ class CircuitMap:
     >>> cmap[Location(0, 0)]
     >>> cmap[(0, 0)]
     """
-    def __init__(self, circuits: List[Circuit]=[]) -> None:        
+
+    def __init__(self, circuits: List[Circuit] = []) -> None:
         self.circuits = circuits
 
     def __getitem__(self, key: Union[int, Location, Tuple[int, int]]) -> Circuit:
@@ -244,8 +251,14 @@ class CircuitMap:
         >>> cmap = CircuitMap.loadtxt("./sample.txt")
         >>> filtered = cmap.filterby(name="MZI1")
         """
-        stepone = [c for c in self.circuits if all(hasattr(c, key) for key, val in kwargs.items())]
-        filtered = [c for c in stepone if all(c[key] == val for key, val in kwargs.items())]
+        stepone = [
+            c
+            for c in self.circuits
+            if all(hasattr(c, key) for key, val in kwargs.items())
+        ]
+        filtered = [
+            c for c in stepone if all(c[key] == val for key, val in kwargs.items())
+        ]
         cmap = CircuitMap()
         cmap.circuits = filtered
         return cmap
@@ -282,7 +295,7 @@ class CircuitMap:
 
     def update_params(self, **kwargs) -> None:
         """
-        Updates the parameters of all circuits in the CircuitMap. If the 
+        Updates the parameters of all circuits in the CircuitMap. If the
         paramater doesn't exist in a circuit, it will be added.
 
         Parameters
@@ -326,7 +339,7 @@ class CircuitMap:
         circuits = []
         for line in mapfile.readlines():
             line = line.strip()
-            if (line != '') and (line[0] != "#"):
+            if (line != "") and (line[0] != "#"):
                 chunks = line.split()
 
                 loc = chunks.pop(0)[1:-1]
@@ -340,14 +353,14 @@ class CircuitMap:
 
     def get_test_circuits(self) -> "CircuitMap":
         """
-        Returns circuits that are used for stage calibration. These are 
+        Returns circuits that are used for stage calibration. These are
         typically the bottom left, top left, and top right circuits of the
         GDS file.
 
         Returns
         -------
         test_circuits : CircuitMap
-            A CircuitMap containg Circuits that have "testing_circuit=True" 
+            A CircuitMap containg Circuits that have "testing_circuit=True"
             as a parameter.
         """
         return self.filterby(testing_circuit="True")

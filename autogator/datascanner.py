@@ -19,17 +19,28 @@ import numpy as np
 
 
 class DataScanner:
-    def __init__(self, oscilloscope, motion, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
+    def __init__(
+        self,
+        oscilloscope,
+        motion,
+        channel=1,
+        channel_range=5.5,
+        coupling="DCLimit",
+        position=-5.0,
+    ):
         self.oscope = oscilloscope
         self.motion = motion
-        self.oscope.set_timescale(1e-9)
-        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
-        self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
-        self.oscope.wait_for_device()
+        self.oscope.set_channel_for_measurement(
+            channel=channel,
+            range=channel_range,
+            coupling=coupling,
+            position=position,
+            timescale=1e-9,
+        )
 
     def auto_scan(self, channel=1):
         """
-        Performs basic scans of varying sizes to find location where highest readings are returned.
+        Performs large basic box scan to find general area of optimal alignment, then moves in y direction until max is found and returns to it. Repeats with X direction.
         """
         self.basic_scan(sweep_distance=0.025, step_size=0.005, channel=channel)
         print("Max Data Reading: {}".format(self.oscope.measure()))
@@ -39,38 +50,8 @@ class DataScanner:
                 self.motion.get_motor_position(self.motion.y_mot),
             )
         )
-        # self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
-        # print("Max Data Reading: {}".format(self.oscope.measure()))
-        # print(
-        #     "Max Data Location: ({}, {})".format(
-        #         self.motion.get_motor_position(self.motion.x_mot),
-        #         self.motion.get_motor_position(self.motion.y_mot),
-        #     )
-        # )
-        # self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
-        # print("Max Data Reading: {}".format(self.oscope.measure()))
-        # print(
-        #     "Max Data Location: ({}, {})".format(
-        #         self.motion.get_motor_position(self.motion.x_mot),
-        #         self.motion.get_motor_position(self.motion.y_mot),
-        #     )
-        # )
         y_max_location = self.anti_backlash_scan(self.motion.y_mot)
-        print("Max Data Reading: {}".format(self.oscope.measure()))
-        print(
-            "Max Data Location: ({}, {})".format(
-                self.motion.get_motor_position(self.motion.x_mot),
-                self.motion.get_motor_position(self.motion.y_mot),
-            )
-        )
         x_max_location = self.anti_backlash_scan(self.motion.x_mot)
-        print("Max Data Reading: {}".format(self.oscope.measure()))
-        print(
-            "Max Data Location: ({}, {})".format(
-                self.motion.get_motor_position(self.motion.x_mot),
-                self.motion.get_motor_position(self.motion.y_mot),
-            )
-        )
         self.motion.go_to_stage_coordinates(x_max_location, y_max_location)
         print("Max Data Reading: {}".format(self.oscope.measure()))
         print(
@@ -80,14 +61,17 @@ class DataScanner:
             )
         )
 
-    def auto_scan_small(self, channel=1):
-        """
-        Performs basic scans of varying sizes to find location where highest readings are returned on a small scale.
-        """
-        self.basic_scan(sweep_distance=0.01, step_size=0.002, channel=channel)
-        self.basic_scan(sweep_distance=0.001, step_size=0.0005, channel=channel)
-
-    def basic_scan(self, sweep_distance, step_size, plot=False, sleep_time=0.5, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
+    def basic_scan(
+        self,
+        sweep_distance,
+        step_size,
+        plot=False,
+        sleep_time=0.5,
+        channel=1,
+        channel_range=5.5,
+        coupling="DCLimit",
+        position=-5.0,
+    ):
         """
         Performs a box scan of given dimensions and goes to position of highest readings returned.
 
@@ -101,9 +85,19 @@ class DataScanner:
             If a visible plot is generated displaying data returned from scan.
         sleep_time : float, default=.2
             Amount of time in seconds the motors will pause inbetween movements to improve data reliability.
+        channel : int, default=1
+            Channel used on the oscilliscope to return readings.
+        channel_range : float, default=5.5
+            Range used for the channel on the oscilliscope that will return readings.
+        coupling : str, default="DCLimit"
+            Type of coupling used for the channel on the oscilliscope that will return readings.
+        position: float, default=-5.0
+            Position of Oscilliscope screen relative to zero when displaying readings.
         """
 
-        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
+        self.oscope.set_channel(
+            channel, range=channel_range, coupling=coupling, position=position
+        )
         self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
         self.oscope.wait_for_device()
 
@@ -118,7 +112,7 @@ class DataScanner:
 
         max_data = self.oscope.measure()
         max_data_loc = [x_start_place, y_start_place]
-        
+
         self.motion.set_jog_step_linear(step_size)
 
         edge_num = round(sweep_distance / step_size)
@@ -135,7 +129,12 @@ class DataScanner:
             for j in range(cols):
                 data[i, j] = self.oscope.measure()
                 print(data[i, j])
-                print("({}, {})".format(self.motion.get_motor_position(self.motion.x_mot), self.motion.get_motor_position(self.motion.y_mot)))
+                print(
+                    "({}, {})".format(
+                        self.motion.get_motor_position(self.motion.x_mot),
+                        self.motion.get_motor_position(self.motion.y_mot),
+                    )
+                )
                 if data[i, j] > max_data:
                     max_data = data[i, j]
                     max_data_loc = [
@@ -157,14 +156,56 @@ class DataScanner:
 
             time.sleep(sleep_time)
 
-        self.motion.go_to_stage_coordinates(float(max_data_loc[0]), float(max_data_loc[1]))
+        self.motion.go_to_stage_coordinates(
+            float(max_data_loc[0]), float(max_data_loc[1])
+        )
         time.sleep(sleep_time)
         if plot:
             plt.show()
 
-    def basic_scan_rect(self, sweep_distance_x, sweep_distance_y, step_size_x, step_size_y, plot=False, sleep_time=0.2, channel=1, channel_range=5.5, coupling="DCLimit", position=-5.0):
+    def basic_scan_rect(
+        self,
+        sweep_distance_x,
+        sweep_distance_y,
+        step_size_x,
+        step_size_y,
+        plot=False,
+        sleep_time=0.2,
+        channel=1,
+        channel_range=5.5,
+        coupling="DCLimit",
+        position=-5.0,
+    ):
+        """
+        Performs a rectangle scan of given dimensions and goes to position of highest readings returned.
 
-        self.oscope.set_channel(channel, range=channel_range, coupling=coupling, position=position)
+        Parameters
+        ----------
+        sweep_distance_x : float
+            Length of x side of the rectangle the box scan spans.
+        sweep_distance_y : float
+            Length of y side of the rectangle the box scan spans.
+        step_size_x : float
+            Jog step size x motor will use when iterating through the box.
+        step_size_y : float
+            Jog step size y motor will use when iterating through the box.
+        plot : Bool, default=False
+            If a visible plot is generated displaying data returned from scan.
+        sleep_time : float, default=.2
+            Amount of time in seconds the motors will pause inbetween movements to improve data reliability.
+        channel : int, default=1
+            Channel used on the oscilliscope to return readings.
+        channel_range : float, default=5.5
+            Range used for the channel on the oscilliscope that will return readings.
+        coupling : str, default="DCLimit"
+            Type of coupling used for the channel on the oscilliscope that will return readings.
+        position: float, default=-5.0
+            Position of Oscilliscope screen relative to zero when displaying readings.
+        """
+
+        self.oscope.set_channel(
+            channel, range=channel_range, coupling=coupling, position=position
+        )
         self.oscope.set_auto_measurement(source="C" + str(channel) + "W1")
         self.oscope.wait_for_device()
 
@@ -224,21 +265,36 @@ class DataScanner:
             self.motion.move_step(self.motion.x_mot, "forward")
             time.sleep(sleep_time)
 
-        self.motion.go_to_stage_coordinates(float(max_data_loc[0]), float(max_data_loc[1]))
+        self.motion.go_to_stage_coordinates(
+            float(max_data_loc[0]), float(max_data_loc[1])
+        )
         time.sleep(sleep_time)
         if plot:
             plt.show()
 
     def anti_backlash_scan(self, motor):
-        motor.jog_step_size = .0025
+        """
+        Goes forward direction of motor recording data while it moves. Returns to max data location when determined it has been passed.
+
+        Parameters
+        ----------
+        motor: Z825BLinearMotor
+            Motor that will be moved to find max data location.
+
+        Returns
+        -------
+        max_data_location: float
+            Stage coordinate of location found to return the max data point.
+        """
+        motor.jog_step_size = 0.0025
         motor.jog("backward")
-        motor.jog_step_size = .0005
+        motor.jog_step_size = 0.0005
         max_data = self.oscope.measure()
         max_data_location = motor.get_position()
         count = 0
         while count < 12:
             motor.jog("forward")
-            time.sleep(.5)
+            time.sleep(0.5)
             data = self.oscope.measure()
             location = motor.get_position()
             print(data)

@@ -105,8 +105,12 @@ class GUI(QWidget):
         self.x_label2 = QLabel("X:")
         self.y_label2 = QLabel("Y:")
 
-        self.cur_x_position_label = QLabel(str(self.motion.get_motor_position(self.motion.x_mot)))
-        self.cur_y_position_label = QLabel(str(self.motion.get_motor_position(self.motion.y_mot)))
+        self.cur_x_position_label = QLabel(
+            str(self.motion.get_motor_position(self.motion.x_mot))
+        )
+        self.cur_y_position_label = QLabel(
+            str(self.motion.get_motor_position(self.motion.y_mot))
+        )
 
         self.timer = QTimer()
         self.timer.timeout.connect(self.printPosition)

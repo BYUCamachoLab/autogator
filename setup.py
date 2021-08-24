@@ -6,21 +6,23 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
-NAME = 'autogator'
-LIBNAME = 'autogator'
-from autogator import __version__, __website_url__  #analysis:ignore
+NAME = "autogator"
+LIBNAME = "autogator"
+from autogator import __version__, __website_url__  # analysis:ignore
 
 extra_files = []
 data_files_ext = []
 
+
 def package_data_files(directory):
-    paths =[]
+    paths = []
     for (path, directories, filenames) in os.walk(directory):
         for filename in filenames:
             name, ext = os.path.splitext(filename)
             if ext in data_files_ext:
-                paths.append(os.path.join('..', path, filename))
+                paths.append(os.path.join("..", path, filename))
     return paths
+
 
 setuptools.setup(
     name="AutoGator",
@@ -33,7 +35,7 @@ setuptools.setup(
     url="https://github.com/sequoiap/autogator",
     packages=setuptools.find_packages(),
     package_data={
-        '': extra_files,
+        "": extra_files,
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -59,5 +61,5 @@ setuptools.setup(
         # 'Pillow',
         # 'pywin32',
         # 'nicelib',
-    ]
+    ],
 )

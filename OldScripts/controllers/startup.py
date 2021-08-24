@@ -6,6 +6,7 @@
 
 import autogator.dataCache as glob
 
+
 def startup():
     data_cache = glob.DataCache.get_instance()
     response = input("Would you like to Calibrate your Configuration? (y/n)")

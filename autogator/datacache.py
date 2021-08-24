@@ -37,6 +37,7 @@ CONFIG_FILE_PATH = COORDINATE_DIR / COORD_FILE
 def do_nothing(*args, **kwargs):
     return None
 
+
 class Void:
     def __getattr__(self, key):
         return do_nothing
@@ -63,42 +64,19 @@ class DataCache:
         else:
             self.configuration = Configuration(CONFIG_FILE_PATH)
 
-            if "name_server" not in self.configuration.attrs.keys():
-                self.configuration.attrs["name_server"] = input("Enter name_server:")
-            ns = locate_ns(self.configuration.attrs["name_server"])
-
-            name_server = self.configuration.attrs["name_server"]
-
-            available_device_list = ns.list()
-
             if "scope" not in omits and "s" not in omits:
-                if "scope_IP" not in self.configuration.attrs.keys():
-                    self.configuration.attrs["scope_IP"] = float(input("Enter scope_IP:"))
-                self.scope_IP = self.configuration.attrs["scope_IP"]
-
-                if "scope_protocol" not in self.configuration.attrs.keys():
-                    self.configuration.attrs["scope_protocol"] = input("Enter scope_protocol:")
-                self.scope_protocol = self.configuration.attrs["scope_protocol"]
-
-                if "scope_timeout" not in self.configuration.attrs.keys():
-                    self.configuration.attrs["scope_timeout"] = float(input("Enter scope_timeout:"))
-                self.scope_timeout = self.configuration.attrs["scope_timeout"]
-
-                self.scope = RTO(
-                    self.scope_IP, protocol=self.scope_protocol, timeout=self.scope_timeout
+                self.scope_info = self.configuration.attrs["scope_info"]
+                self.scope = getattr(interfaces, self.scope_info["classname"])(
+                    self.scope_info
                 )
             else:
                 self.scope = Void()
 
             if "laser" not in omits and "l" not in omits:
-                if "laser_name" not in self.configuration.attrs.keys():
-                    self.configuration.attrs["laser_name"] = float(input("Enter laser_name:"))
-                self.laser_name = self.configuration.attrs["laser_name"]
-                if self.laser_name in available_device_list.keys():
-                    self.laser = Proxy(ns.lookup(self.laser_name))
-                else:
-                    print("Laser not found/available on server")
-                    self.laser = Void()
+                self.laser_info = self.configuration.attrs["laser_info"]
+                self.laser = getattr(interfaces, self.laser_info["classname"])(
+                    self.laser_info
+                )
             else:
                 self.laser = Void()
 
@@ -109,53 +87,26 @@ class DataCache:
 
             if "motors" not in omits and "m" not in omits:
                 if "x_mot" not in omits and "x" not in omits:
-                    if "x_mot_info" not in self.configuration.attrs.keys():
-                        classname = str(input("Enter x_mot_classname: "))
-                        remotename = str(input("Enter x_mot_remotename: "))
-                        localname = str(input("Enter x_mot_localname: "))
-                        location = str(input("Enter x_mot_location: "))
-                        self.configuration.attrs["x_mot_info"] = {
-                            "classname": classname,
-                            "remotename": remotename,
-                            "localname": localname,
-                            "location": location
-                        }
                     self.x_mot_info = self.configuration.attrs["x_mot_info"]
-                    x_mot = getattr(interfaces, self.x_mot_info["classname"])(self.x_mot_info)
+                    x_mot = getattr(interfaces, self.x_mot_info["classname"])(
+                        self.x_mot_info
+                    )
                 else:
                     x_mot = Void()
-                
+
                 if "y_mot" not in omits and "y" not in omits:
-                    if "y_mot_info" not in self.configuration.attrs.keys():
-                        classname = str(input("Enter y_mot_classname: "))
-                        remotename = str(input("Enter y_mot_remotename: "))
-                        localname = str(input("Enter y_mot_localname: "))
-                        location = str(input("Enter y_mot_location: "))
-                        self.configuration.attrs["y_mot_info"] = {
-                            "classname": classname,
-                            "remotename": remotename,
-                            "localname": localname,
-                            "location": location
-                        }
                     self.y_mot_info = self.configuration.attrs["y_mot_info"]
-                    y_mot = getattr(interfaces, self.y_mot_info["classname"])(self.y_mot_info)
+                    y_mot = getattr(interfaces, self.y_mot_info["classname"])(
+                        self.y_mot_info
+                    )
                 else:
                     y_mot = Void()
 
                 if "r_mot" not in omits and "r" not in omits:
-                    if "r_mot_info" not in self.configuration.attrs.keys():
-                        classname = str(input("Enter r_mot_classname: "))
-                        remotename = str(input("Enter r_mot_remotename: "))
-                        localname = str(input("Enter r_mot_localname: "))
-                        location = str(input("Enter r_mot_location: "))
-                        self.configuration.attrs["r_mot_info"] = {
-                            "classname": classname,
-                            "remotename": remotename,
-                            "localname": localname,
-                            "location": location
-                        }
                     self.r_mot_info = self.configuration.attrs["r_mot_info"]
-                    r_mot = getattr(interfaces, self.r_mot_info["classname"])(self.r_mot_info)
+                    r_mot = getattr(interfaces, self.r_mot_info["classname"])(
+                        self.r_mot_info
+                    )
                 else:
                     r_mot = Void()
 
@@ -166,10 +117,12 @@ class DataCache:
                     conversion_matrix=self.conversion_matrix,
                 )
             else:
-                self.motion = Void()   
-            
+                self.motion = Void()
+
             if "circuitMap_file_path" in self.configuration.attrs.keys():
-                self.circuitMap_file_path = self.configuration.attrs["circuitMap_file_path"]
+                self.circuitMap_file_path = self.configuration.attrs[
+                    "circuitMap_file_path"
+                ]
             else:
                 self.circuitMap_file_path = None
             self.circuitMap = CircuitMap.loadtxt(self.circuitMap_file_path)
@@ -178,7 +131,7 @@ class DataCache:
                 self.load_position = self.configuration.attrs["load_position"]
             else:
                 self.load_position = None
-            
+
             if "unload_position" in self.configuration.attrs.keys():
                 self.unload_position = self.configuration.attrs["unload_position"]
             else:

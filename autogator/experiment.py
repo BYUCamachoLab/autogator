@@ -41,6 +41,7 @@ class Experiment:
     """
     The base Experiment prototype. The class cannot be instantiated.
     """
+
     def __init__(self):
         self.dataCache = glob.DataCache.get_instance()
 
@@ -72,8 +73,8 @@ class WavelengthSweepExperiment(Experiment):
     """
     A wavelength sweep experiment keeps laser power constant, but changes the
     wavelength of the laser. As the laser sweeps, it outputs a trigger signal
-    and logs wavelength points. The trigger signal is collected on the 
-    oscilloscope, which collects data for the entire duration of the sweep, 
+    and logs wavelength points. The trigger signal is collected on the
+    oscilloscope, which collects data for the entire duration of the sweep,
     and the time-based data is then correlated to the wavelengths as denoted
     by the trigger signal. The data is saved to a text file.
 
@@ -111,31 +112,32 @@ class WavelengthSweepExperiment(Experiment):
     filename : str
     chip_name : str
     """
+
     def __init__(
-            self,
-            wl_start: float=1500,
-            wl_stop: float=1600,
-            duration: float=5.0,
-            sample_rate: float=3, 
-            trigger_step: float=0.01,
-            power_dBm: float=12.0,
-            buffer: float=5.0,
-            active_channels: List[int]=[1, 2, 3, 4],
-            trigger_channel: int=1,
-            trigger_level: int=1,
-            output_dir: str=str(Path.home() / "Downloads" / "autogatordata"),
-            take_screenshot: bool=True,
-            save_raw_data: bool=True,
-            filename: str="data",
-            chip_name: str="chipname",
-        ):
+        self,
+        wl_start: float = 1500,
+        wl_stop: float = 1600,
+        duration: float = 5.0,
+        sample_rate: float = 3,
+        trigger_step: float = 0.01,
+        power_dBm: float = 12.0,
+        buffer: float = 5.0,
+        active_channels: List[int] = [1, 2, 3, 4],
+        trigger_channel: int = 1,
+        trigger_level: int = 1,
+        output_dir: str = str(Path.home() / "Downloads" / "autogatordata"),
+        take_screenshot: bool = True,
+        save_raw_data: bool = True,
+        filename: str = "data",
+        chip_name: str = "chipname",
+    ):
         super().__init__()
 
         self.channel_settings = {
-            1: {"range": 10, "position": 2}, 
-            2: {"range": .2, "position": -4},
-            3: {"range": .2, "position": -2},
-            4: {"range": .2, "position": 0.5},
+            1: {"range": 10, "position": 2},
+            2: {"range": 0.2, "position": -4},
+            3: {"range": 0.2, "position": -2},
+            4: {"range": 0.2, "position": 0.5},
         }
 
         self.wl_start = wl_start
@@ -153,9 +155,15 @@ class WavelengthSweepExperiment(Experiment):
         self.output_dir = output_dir
         self.chip_name = chip_name
         today = datetime.now()
-        self.date_prefix = "{}_{}_{}_{}_{}_".format(today.year, today.month, today.day, today.hour, today.minute)
-        self.filename = "{}_{}_locx_ex_locy_ex.wlsweep".format(self.date_prefix, self.chip_name)
-        self.file_prefix = "# Test performed at {}\n# WL start: {}nm\n# WL end: {}nm\n# self.laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n".format(self.date_prefix, self.wl_start, self.wl_stop, self.power_dBm)
+        self.date_prefix = "{}_{}_{}_{}_{}_".format(
+            today.year, today.month, today.day, today.hour, today.minute
+        )
+        self.filename = "{}_{}_locx_ex_locy_ex.wlsweep".format(
+            self.date_prefix, self.chip_name
+        )
+        self.file_prefix = "# Test performed at {}\n# WL start: {}nm\n# WL end: {}nm\n# self.laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n".format(
+            self.date_prefix, self.wl_start, self.wl_stop, self.power_dBm
+        )
         self.laser = self.dataCache.get_instance().get_laser()
         self.laser.start()
         self.laser.on()
@@ -163,9 +171,15 @@ class WavelengthSweepExperiment(Experiment):
 
     def set_filename(self, chip_name, loc_x, loc_y):
         today = datetime.now()
-        self.file_prefix = "# Test performed at {}\n# WL start: {}nm\n# WL end: {}nm\n# self.laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n".format(today, self.wl_start, self.wl_stop, self.power_dBm)
-        self.date_prefix = "{}_{}_{}_{}_{}_".format(today.year, today.month, today.day, today.hour, today.minute)
-        self.filename = "{}_{}_locx_{}_locy_{}".format(self.date_prefix, chip_name, loc_x, loc_y)
+        self.file_prefix = "# Test performed at {}\n# WL start: {}nm\n# WL end: {}nm\n# self.laser power: {}dBm\n\n# Wavelength    Ch1 Ch2 Ch3 Ch4\n".format(
+            today, self.wl_start, self.wl_stop, self.power_dBm
+        )
+        self.date_prefix = "{}_{}_{}_{}_{}_".format(
+            today.year, today.month, today.day, today.hour, today.minute
+        )
+        self.filename = "{}_{}_locx_{}_locy_{}".format(
+            self.date_prefix, chip_name, loc_x, loc_y
+        )
         self.filename = self.filename.replace(".", ",")
 
     def configure_channel(self, channel: int, params: Dict[str, Any]):
@@ -173,25 +187,32 @@ class WavelengthSweepExperiment(Experiment):
 
     def run(self):
         sweep_rate = (self.wl_stop - self.wl_start) / self.duration
-        assert sweep_rate > 1.0 
+        assert sweep_rate > 1.0
         assert sweep_rate < 100.0
-        assert self.wl_start >= 1500 #self.laser.MINIMUM_WAVELENGTH
-        assert self.wl_stop <= 1630 #self.laser.MAXIMUM_WAVELENGTH
-        
+        assert self.wl_start >= 1500  # self.laser.MINIMUM_WAVELENGTH
+        assert self.wl_stop <= 1630  # self.laser.MAXIMUM_WAVELENGTH
+
         self.laser.power_dBm(self.power_dBm)
         self.laser.open_shutter()
-        self.laser.sweep_set_mode(continuous=True, twoway=True, trigger=False, const_freq_step=False)
+        self.laser.sweep_set_mode(
+            continuous=True, twoway=True, trigger=False, const_freq_step=False
+        )
         print("Enabling self.laser's trigger output.")
-        self.laser.trigger_enable_output()
-        triggerMode = self.laser.trigger_set_mode("Step")
-        triggerStep = self.laser.trigger_set_step(self.trigger_step)
+        triggerMode, triggerStep = self.laser.set_trigger("Step", self.trigger_step)
+        # self.laser.trigger_enable_output()
+        # triggerMode = self.laser.trigger_set_mode("Step")
+        # triggerStep = self.laser.trigger_set_step(self.trigger_step)
         print("Setting trigger to: {} and step to {}".format(triggerMode, triggerStep))
-         
+
         acquire_time = self.duration + self.buffer
         numSamples = int((acquire_time) * self.sample_rate)
-        print("Set for {:.2E} Samples @ {:.2E} Sa/s.".format(numSamples, self.sample_rate))
+        print(
+            "Set for {:.2E} Samples @ {:.2E} Sa/s.".format(numSamples, self.sample_rate)
+        )
 
-        self.scope.acquisition_settings(sample_rate=self.sample_rate, duration=acquire_time)
+        self.scope.acquisition_settings(
+            sample_rate=self.sample_rate, duration=acquire_time
+        )
         for channel in self.active_channels:
             channelMode = "Trigger" if (channel == self.trigger_channel) else "Data"
             print("Adding Channel {} - {}".format(channel, channelMode))
@@ -199,30 +220,35 @@ class WavelengthSweepExperiment(Experiment):
         print("Adding Edge Trigger @ {} Volt(s).".format(self.trigger_level))
         self.scope.edge_trigger(self.trigger_channel, self.trigger_level)
 
-        print('Starting Acquisition')
-        self.scope.acquire(timeout = self.duration*2)
+        print("Starting Acquisition")
+        self.scope.acquire(timeout=self.duration * 2)
 
-        print('Sweeping laser')
+        print("Sweeping laser")
         self.laser.sweep_wavelength(self.wl_start, self.wl_stop, self.duration)
 
-        print('Waiting for acquisition to complete...')
+        print("Waiting for acquisition to complete...")
         self.scope.wait_for_device()
 
         if self.take_screenshot:
-            self.scope.screenshot(self.output_dir + self.filename + "_screenshot.png")
+            self.scope.screenshot(self.output_dir, self.filename + "_screenshot.png")
 
         print("Getting raw data...")
-        raw = {channel: self.scope.get_data(channel) for channel in self.active_channels}
+        raw = {
+            channel: self.scope.get_data(channel) for channel in self.active_channels
+        }
         wavelengthLog = self.laser.wavelength_logging()
 
         print("Processing Data")
         analysis = WavelengthAnalyzer(
-            sample_rate = self.sample_rate,
-            wavelength_log = wavelengthLog,
-            trigger_data = raw[self.trigger_channel]
+            sample_rate=self.sample_rate,
+            wavelength_log=wavelengthLog,
+            trigger_data=raw[self.trigger_channel],
         )
 
-        sorted_data = {channel: analysis.process_data(raw[channel]) for channel in self.active_channels}
+        sorted_data = {
+            channel: analysis.process_data(raw[channel])
+            for channel in self.active_channels
+        }
 
         if self.save_raw_data:
             print("Saving raw data.")
@@ -242,16 +268,14 @@ class BatchExperiment:
     def __init__(self, circuitMap, experiment):
         self.circuitMap = circuitMap
         self.experiment = experiment
-    
+
     def run(self):
-        """
-        
-        """
+        """ """
         # need_to_calibrate = input("Does the stage need to be calibrated? (y,n): ")
         # if need_to_calibrate == "y":
         #     dataCache.calibrate()
         dataCache = glob.DataCache.get_instance()
-        
+
         test_circuits = self.circuitMap.circuits
 
         print("Starting testing...")
@@ -262,7 +286,7 @@ class BatchExperiment:
             # dataCache.get_dataScanner().auto_scan()
             self.experiment.run()
         print("Done testbatch")
-        
+
 
 if __name__ == "__main__":
     exp = WavelengthSweepExperiment()

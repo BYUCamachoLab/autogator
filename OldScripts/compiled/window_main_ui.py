@@ -8,14 +8,38 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import (
+    QCoreApplication,
+    QDate,
+    QDateTime,
+    QMetaObject,
+    QObject,
+    QPoint,
+    QRect,
+    QSize,
+    QTime,
+    QUrl,
+    Qt,
+)
+from PySide2.QtGui import (
+    QBrush,
+    QColor,
+    QConicalGradient,
+    QCursor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QKeySequence,
+    QLinearGradient,
+    QPalette,
+    QPainter,
+    QPixmap,
+    QRadialGradient,
+)
 from PySide2.QtWidgets import *
 
-from  . import res_rc
+from . import res_rc
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -23,7 +47,9 @@ class Ui_MainWindow(object):
             MainWindow.setObjectName(u"MainWindow")
         MainWindow.resize(800, 600)
         icon = QIcon()
-        icon.addFile(u":/images/images/favicon-32x32.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon.addFile(
+            u":/images/images/favicon-32x32.png", QSize(), QIcon.Normal, QIcon.Off
+        )
         MainWindow.setWindowIcon(icon)
         MainWindow.setStyleSheet(u"")
         self.actionAdd_Device = QAction(MainWindow)
@@ -72,7 +98,9 @@ class Ui_MainWindow(object):
         sizePolicy = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.frame_Controllers.sizePolicy().hasHeightForWidth())
+        sizePolicy.setHeightForWidth(
+            self.frame_Controllers.sizePolicy().hasHeightForWidth()
+        )
         self.frame_Controllers.setSizePolicy(sizePolicy)
         self.frame_Controllers.setBaseSize(QSize(200, 0))
         self.frame_Controllers.setFrameShape(QFrame.NoFrame)
@@ -85,7 +113,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.listView_Controllers)
 
-
         self.horizontalLayout.addWidget(self.frame_Controllers)
 
         self.frame_CameraDisplay = QFrame(self.centralwidget)
@@ -93,7 +120,9 @@ class Ui_MainWindow(object):
         sizePolicy1 = QSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         sizePolicy1.setHorizontalStretch(2)
         sizePolicy1.setVerticalStretch(0)
-        sizePolicy1.setHeightForWidth(self.frame_CameraDisplay.sizePolicy().hasHeightForWidth())
+        sizePolicy1.setHeightForWidth(
+            self.frame_CameraDisplay.sizePolicy().hasHeightForWidth()
+        )
         self.frame_CameraDisplay.setSizePolicy(sizePolicy1)
         self.frame_CameraDisplay.setFrameShape(QFrame.NoFrame)
         self.frame_CameraDisplay.setFrameShadow(QFrame.Raised)
@@ -104,9 +133,7 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.graphicsView_Screen)
 
-
         self.horizontalLayout.addWidget(self.frame_CameraDisplay)
-
 
         self.gridLayout.addLayout(self.horizontalLayout, 0, 0, 1, 1)
 
@@ -155,13 +182,22 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         QMetaObject.connectSlotsByName(MainWindow)
+
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Autogator", None))
-        self.actionAdd_Device.setText(QCoreApplication.translate("MainWindow", u"Add Device", None))
-        self.actionSelect_camera.setText(QCoreApplication.translate("MainWindow", u"Select camera", None))
-        self.actionAdd_ThorLabs_devices.setText(QCoreApplication.translate("MainWindow", u"Open ThorLabs devices", None))
+        MainWindow.setWindowTitle(
+            QCoreApplication.translate("MainWindow", u"Autogator", None)
+        )
+        self.actionAdd_Device.setText(
+            QCoreApplication.translate("MainWindow", u"Add Device", None)
+        )
+        self.actionSelect_camera.setText(
+            QCoreApplication.translate("MainWindow", u"Select camera", None)
+        )
+        self.actionAdd_ThorLabs_devices.setText(
+            QCoreApplication.translate("MainWindow", u"Open ThorLabs devices", None)
+        )
         self.action25.setText(QCoreApplication.translate("MainWindow", u"25%", None))
         self.action33.setText(QCoreApplication.translate("MainWindow", u"33%", None))
         self.action50.setText(QCoreApplication.translate("MainWindow", u"50%", None))
@@ -172,15 +208,31 @@ class Ui_MainWindow(object):
         self.action133.setText(QCoreApplication.translate("MainWindow", u"133%", None))
         self.action150.setText(QCoreApplication.translate("MainWindow", u"150%", None))
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
-        self.actionLocate_DLL.setText(QCoreApplication.translate("MainWindow", u"Locate ThorLabs DLLs", None))
-        self.actionStop_All.setText(QCoreApplication.translate("MainWindow", u"Stop All", None))
-#if QT_CONFIG(tooltip)
-        self.actionStop_All.setToolTip(QCoreApplication.translate("MainWindow", u"Immediately stop all motion", None))
-#endif // QT_CONFIG(tooltip)
+        self.actionLocate_DLL.setText(
+            QCoreApplication.translate("MainWindow", u"Locate ThorLabs DLLs", None)
+        )
+        self.actionStop_All.setText(
+            QCoreApplication.translate("MainWindow", u"Stop All", None)
+        )
+        # if QT_CONFIG(tooltip)
+        self.actionStop_All.setToolTip(
+            QCoreApplication.translate(
+                "MainWindow", u"Immediately stop all motion", None
+            )
+        )
+        # endif // QT_CONFIG(tooltip)
         self.menuFile.setTitle(QCoreApplication.translate("MainWindow", u"File", None))
-        self.menuDevices.setTitle(QCoreApplication.translate("MainWindow", u"Camera", None))
-        self.menuZoom_level.setTitle(QCoreApplication.translate("MainWindow", u"Zoom level", None))
-        self.menuMotors.setTitle(QCoreApplication.translate("MainWindow", u"Motors", None))
-        self.toolBar.setWindowTitle(QCoreApplication.translate("MainWindow", u"toolBar", None))
-    # retranslateUi
+        self.menuDevices.setTitle(
+            QCoreApplication.translate("MainWindow", u"Camera", None)
+        )
+        self.menuZoom_level.setTitle(
+            QCoreApplication.translate("MainWindow", u"Zoom level", None)
+        )
+        self.menuMotors.setTitle(
+            QCoreApplication.translate("MainWindow", u"Motors", None)
+        )
+        self.toolBar.setWindowTitle(
+            QCoreApplication.translate("MainWindow", u"toolBar", None)
+        )
 
+    # retranslateUi

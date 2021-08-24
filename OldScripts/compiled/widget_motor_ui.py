@@ -8,11 +8,34 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import (
+    QCoreApplication,
+    QDate,
+    QDateTime,
+    QMetaObject,
+    QObject,
+    QPoint,
+    QRect,
+    QSize,
+    QTime,
+    QUrl,
+    Qt,
+)
+from PySide2.QtGui import (
+    QBrush,
+    QColor,
+    QConicalGradient,
+    QCursor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QKeySequence,
+    QLinearGradient,
+    QPalette,
+    QPainter,
+    QPixmap,
+    QRadialGradient,
+)
 from PySide2.QtWidgets import *
 
 
@@ -55,9 +78,7 @@ class Ui_Form(object):
 
         self.verticalLayout_2.addWidget(self.pushButton)
 
-
         self.horizontalLayout.addWidget(self.frame_2)
-
 
         self.verticalLayout.addWidget(self.groupBox)
 
@@ -96,7 +117,6 @@ class Ui_Form(object):
 
         self.gridLayout_2.addWidget(self.pushButton_7, 1, 1, 1, 1)
 
-
         self.horizontalLayout_2.addWidget(self.groupBox_4)
 
         self.groupBox_5 = QGroupBox(self.frame_3)
@@ -120,19 +140,16 @@ class Ui_Form(object):
 
         self.gridLayout_3.addWidget(self.pushButton_6, 1, 1, 1, 1)
 
-
         self.horizontalLayout_2.addWidget(self.groupBox_5)
-
 
         self.verticalLayout.addWidget(self.frame_3)
 
-
         self.gridLayout.addLayout(self.verticalLayout, 1, 0, 1, 1)
-
 
         self.retranslateUi(Form)
 
         QMetaObject.connectSlotsByName(Form)
+
     # setupUi
 
     def retranslateUi(self, Form):
@@ -147,5 +164,5 @@ class Ui_Form(object):
         self.groupBox_5.setTitle(QCoreApplication.translate("Form", u"Jog", None))
         self.pushButton_5.setText(QCoreApplication.translate("Form", u"<", None))
         self.pushButton_6.setText(QCoreApplication.translate("Form", u">", None))
-    # retranslateUi
 
+    # retranslateUi
