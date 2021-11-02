@@ -369,11 +369,13 @@ class PRM1Z8RotationalMotor(IRotationalMotor):
 
 class RohdeSchwarzOscilliscope(IOscilliscope):
     def __init__(self, scope_info):
+        print(scope_info)
         self._pyro_object = RTO(
-            scope_info["IP"],
-            protocol=scope_info["protocol"],
-            timeout=scope_info["timeout"],
+            #scope_info["IP"],
+            #protocol=scope_info["protocol"],
+            #timeout=scope_info["timeout"],
         )
+        self._pyro_object.connect(scope_info["IP"])
 
     def measure(self):
         return self._pyro_object.measure()
