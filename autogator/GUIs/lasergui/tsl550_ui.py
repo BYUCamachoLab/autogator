@@ -19,6 +19,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setObjectName("centralwidget")
         self.layoutWidget = QtWidgets.QWidget(self.centralwidget)
         self.layoutWidget.setGeometry(QtCore.QRect(21, 30, 281, 60))
+        # self.layoutWidget.setGeometry(QtCore.QRect(20, 30, 730, 180)) #A good size for my computer
         self.layoutWidget.setObjectName("layoutWidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.layoutWidget)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -58,6 +59,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_2)
         self.layoutWidget1 = QtWidgets.QWidget(self.centralwidget)
         self.layoutWidget1.setGeometry(QtCore.QRect(320, 30, 123, 61))
+        # self.layoutWidget1.setGeometry(QtCore.QRect(820, 30, 250, 180)) #A good size for my computer
         self.layoutWidget1.setObjectName("layoutWidget1")
         self.verticalLayout_2 = QtWidgets.QVBoxLayout(self.layoutWidget1)
         self.verticalLayout_2.setContentsMargins(0, 0, 0, 0)
@@ -70,10 +72,8 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.addWidget(self.LaserDiode)
         self.ChangeDigitButton = QtWidgets.QPushButton(self.centralwidget)
         self.ChangeDigitButton.setGeometry(QtCore.QRect(30, 100, 101, 23))
+        # self.ChangeDigitButton.setGeometry(QtCore.QRect(30, 250, 250, 70)) #A good size for my computer
         self.ChangeDigitButton.setObjectName("ChangeDigitButton")
-        # self.ExtraButton = QtWidgets.QPushButton(self.centralwidget)
-        # self.ExtraButton.setGeometry(QtCore.QRect(200,100,101,23))
-        # self.ExtraButton.setObjectName("ExtraButton")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 450, 20))

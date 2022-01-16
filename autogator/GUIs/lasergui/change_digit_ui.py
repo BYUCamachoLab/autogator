@@ -15,22 +15,27 @@ class Ui_ChangeDigit(object):
     def setupUi(self, ChangeDigit):
         ChangeDigit.setObjectName("ChangeDigit")
         ChangeDigit.resize(390, 170)
+        # ChangeDigit.resize(800, 300) #A good size for my computer
         # ChangeDigit.move(300,230)
         self.buttonBox = QtWidgets.QDialogButtonBox(ChangeDigit)
-        self.buttonBox.setGeometry(QtCore.QRect(30, 130, 341, 32)) #130
+        self.buttonBox.setGeometry(QtCore.QRect(30, 130, 341, 32))
+        # self.buttonBox.setGeometry(QtCore.QRect(30, 210, 700, 50)) #A good size for my computer
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtWidgets.QDialogButtonBox.Cancel|QtWidgets.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName("buttonBox")
         self.label = QtWidgets.QLabel(ChangeDigit)
-        self.label.setGeometry(QtCore.QRect(40, 20, 200, 18)) #191
+        self.label.setGeometry(QtCore.QRect(40, 20, 200, 18)) 
+        # self.label.setGeometry(QtCore.QRect(40, 20, 700, 40)) #A good size for my computer
         self.label.setObjectName("label")
         self.comboBox = QtWidgets.QComboBox(ChangeDigit)
-        self.comboBox.setGeometry(QtCore.QRect(30, 50, 190, 23)) #181
+        self.comboBox.setGeometry(QtCore.QRect(30, 50, 190, 23))
+        # self.comboBox.setGeometry(QtCore.QRect(30, 75, 375, 40)) #A good size for my computer
         self.comboBox.setObjectName("comboBox")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.widget = QtWidgets.QWidget(ChangeDigit)
         self.widget.setGeometry(QtCore.QRect(30, 90, 301, 25))
+        # self.widget.setGeometry(QtCore.QRect(30, 140, 700, 50))  #A good size for my computer
         self.widget.setObjectName("widget")
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.widget)
         self.horizontalLayout.setSizeConstraint(QtWidgets.QLayout.SetNoConstraint)
