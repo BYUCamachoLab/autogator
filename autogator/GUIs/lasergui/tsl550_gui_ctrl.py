@@ -69,7 +69,11 @@ class tsl550Ui(QMainWindow, Ui_MainWindow):
         self.WavFreqVal.valueChanged.connect(self.changeWavFreqVal)
         self.PowerValue.valueChanged.connect(self.changePowerVal)
         self.Shutter.stateChanged.connect(self.openCloseShutter)
-        self.LaserDiode.s#FIXME Test this with the actual laser
+        self.LaserDiode.stateChanged.connect(self.LDswitch)
+    
+    
+    def disbleAllWidgets(self,disable):
+        print(disable)
         self.PowerValue.setDisabled(disable)
         self.WavFreqVal.setDisabled(disable)
         self.PowerLabel.setDisabled(disable)
