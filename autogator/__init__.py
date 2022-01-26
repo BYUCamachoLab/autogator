@@ -2,7 +2,7 @@
 #
 # MIT License
 #
-# Copyright © 2019-2021 Autogator Project Contributors and others (see AUTHORS.txt).
+# Copyright © 2019-2022 Autogator Project Contributors and others (see AUTHORS.txt).
 #
 # The resources, libraries, and some source files under other terms (see NOTICE.txt).
 #
@@ -33,17 +33,18 @@ A software package for camera-assisted motion control of PIC chip interrogation 
 import pathlib
 import platform
 import sys
+from datetime import date
 
-if sys.version_info < (3, 6, 0):
+if sys.version_info < (3, 7, 0):
     raise Exception(
-        "autogator requires Python 3.6+ (version "
+        "autogator requires Python 3.7+ (version "
         + platform.python_version()
         + " detected)."
     )
 
-__name__ = "autogator"
+__name__ = "AutoGator"
 __author__ = "CamachoLab"
-__copyright__ = "Copyright 2021, CamachoLab"
+__copyright__ = "Copyright 2022, CamachoLab"
 __version__ = "0.2.0dev0"
 __license__ = "MIT"
 __maintainer__ = "Sequoia Ploeg"
@@ -55,13 +56,19 @@ __website_url__ = "https://camacholab.byu.edu/"
 
 
 import warnings
-
 warnings.filterwarnings("default", category=DeprecationWarning)
 
 from appdirs import AppDirs
 
 _dirs = AppDirs(__name__, __author__)
 SITE_DATA_DIR = pathlib.Path(_dirs.site_data_dir)
-SITE_CONFIG_DIR = pathlib.Path(_dirs.site_config_dir)
 SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
-SITE_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+# SITE_CONFIG_DIR = SITE_DATA_DIR / "config"
+
+print("Welcome to AutoGator!")
+print("© 2019-{}, CamachoLab".format(date.today().year))
+
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+)

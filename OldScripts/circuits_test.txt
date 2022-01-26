@@ -1,4 +1,0 @@
-(-1998.38,-2625.0) grouping_1::DIOH_dc_1::DIOH_dc_jogs_3_1 name=DIOH_dc_jogs_3 ports=DDDDDD mode=TE submitter='sequoiac'
-(-2238.38,-2625.0) grouping_1::DIOH_dc_1::DIOH_dc_jogs_2_1 name=DIOH_dc_jogs_2 ports=DDDDDD mode=TE submitter='sequoiac'
-(-2478.38,-2625.0) grouping_1::DIOH_dc_1::DIOH_dc_jogs_1_1 name=DIOH_dc_jogs_1 ports=DDDDDD mode=TE submitter='sequoiac'
-(-2718.38,-2625.0) grouping_1::DIOH_dc_1::DIOH_dc_jogs_0_1 name=DIOH_dc_jogs_0 ports=DDDDDD mode=TE submitter='sequoiac'

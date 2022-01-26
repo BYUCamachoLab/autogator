@@ -6,14 +6,15 @@
 
 """
 Circuit Maps
-------------
+============
 
 Circuits are a way of representing a GDS circuit with its parameters. A
 CircuitMap collects a set of Circuit objects and provides methods for
 sorting or filtering them by parameters.
 
-Example
-=======
+Examples
+--------
+
 Suppose I have a text file of circuits (see documentation for specification of
 CircuitMap text files). I can load it into AutoGator and create a CircuitMap:
 
@@ -28,7 +29,7 @@ I can update existing (or add new) parameters in bulk:
 
 >>> cm.update_params(ports="LD")
 
-In this example, suppose we have the Circuits from a grouping on a GDS. Suppose
+In this example, suppose we have the circuits from a grouping on a GDS. Suppose
 this grouping is repeated six times across the file. I can create a map for the
 entire GDS fild by copying CircuitMaps and adjusting its parameters.
 
@@ -51,7 +52,6 @@ entire GDS fild by copying CircuitMaps and adjusting its parameters.
 ...     grouping = str(i + 1)
 ...     group.update_params(grouping=grouping)
 ...     for cir in group:
-...         cir.ident = str(uuid4())
 ...         cir.loc += offsets[grouping]
 
 I can then combine all the groups into a single CircuitMap:
@@ -65,81 +65,39 @@ in automated tests.
 
 >>> cmap.savetxt("updatedmzis.txt")
 """
-
-
+from __future__ import annotations
 import copy
+import logging
+from pathlib import Path
 from typing import Any, Dict, NamedTuple, Tuple, Union, List
 
+from autogator.errors import CircuitMapUniqueKeyError
 
-class Circuit:
-    """
-    A circuit is a single isolated device from a GDS file that has a set of
-    unique parameters.
 
-    Parameters
-    ----------
-    loc : Location
-        Location of the circuit.
-    ident : str
-        Unique identifier for the circuit.
-    params : dict
-        Key, value parameters describing the circuit. Values must all be
-        strings and are not permitted to contain spaces.
-    """
-
-    def __init__(self, loc: "Location", ident: str, params: Dict[str, str]) -> None:
-        self.loc = loc
-        self.ident = ident
-        self.params = params
-
-    def __str__(self) -> str:
-        output = f"({self.loc.x},{self.loc.y}) {self.ident} "
-        for key, val in self.params.items():
-            output += f"{key}={val} "
-        return output[:-1]
-
-    def __getitem__(self, key: str) -> str:
-        if type(key) is not str:
-            raise TypeError("Parameter name must be a string")
-        return self.params[key]
-
-    def __setitem__(self, name: str, value: str) -> None:
-        if type(name) is not str:
-            raise TypeError("Parameter name must be a string")
-        self.params[name] = value
-
-    def __getattr__(self, key: str) -> str:
-        if type(key) is not str:
-            raise TypeError("Parameter name must be a string")
-        try:
-            return self.params[key]
-        except KeyError as e:
-            raise AttributeError(f"circuit has no attribute '{key}'")
-
-    def __copy__(self) -> "Circuit":
-        return Circuit(self.loc, self.ident, self.params.copy())
-
-    def __deepcopy__(self, memodict: Dict[Any, Any]) -> "Circuit":
-        newone = Circuit(
-            copy.deepcopy(self.loc, memodict),
-            self.ident,
-            copy.deepcopy(self.params, memodict),
-        )
-        return newone
+log = logging.getLogger(__name__)
 
 
 class Location(NamedTuple):
     """
     Location is the GDS coordinate of a circuit as an (x, y) pair.
 
+    Typically signifies the presence of a grating coupler.
+
     Parameters
     ----------
-    x : int
+    x : float
         X coordinate of the circuit.
-    y : int
+    y : float
         Y coordinate of the circuit.
-    """
 
+    Examples
+    --------
+    >>> loc = Location(0, 0)
+    >>> loc + (1, 2)
+    (1, 2)
+    >>> loc == (0, 0)
+    True
+    """
     x: float
     y: float
 
@@ -147,6 +105,9 @@ class Location(NamedTuple):
         return "(" + str(self.x) + ", " + str(self.y) + ")"
 
     def __add__(self, o: Any) -> Any:
+        """
+        Locations can be added to other Locations or tuples of length 2.
+        """
         if isinstance(o, Location):
             return Location(self.x + o.x, self.y + o.y)
         elif isinstance(o, tuple) and len(o) == 2:
@@ -155,6 +116,9 @@ class Location(NamedTuple):
             raise TypeError("Cannot add Location to " + str(type(o)))
 
     def __eq__(self, o: object) -> bool:
+        """
+        Locations can be compared to other Locations or tuples of length 2.
+        """
         if isinstance(o, Location):
             return self.x == o.x and self.y == o.y
         elif isinstance(o, tuple) and len(o) == 2:
@@ -162,11 +126,77 @@ class Location(NamedTuple):
         else:
             return False
 
-    def __copy__(self) -> "Location":
+    def __copy__(self) -> Location:
         return Location(self.x, self.y)
 
-    def __deepcopy__(self, memodict: Dict[Any, Any]) -> "Location":
+    def __deepcopy__(self, memodict: Dict[Any, Any]) -> Location:
         return Location(self.x, self.y)
+
+
+class Circuit:
+    """
+    A circuit is a single isolated device from a GDS file.
+
+    Parameters
+    ----------
+    loc : Location
+        Location of the circuit in the GDS file. Uniquely describes one 
+        circuit, since multiple circuits cannot share a single location.
+    params : dict
+        Key, value parameters describing the circuit. Values must all be
+        strings and pairs are delimited by commas.
+    """
+    def __init__(self, loc: Union[Tuple[float, float], Location], params: Dict[str, str]) -> None:
+        # if isinstance(loc, tuple):
+        #     loc = Location(loc)
+        self.loc = loc
+        self.params = params
+
+    @property
+    def loc(self) -> Location:
+        return self._loc
+
+    @loc.setter
+    def loc(self, loc: Union[Tuple[float, float], Location]) -> None:
+        if isinstance(loc, tuple):
+            loc = Location(loc[0], loc[1])
+        self._loc = loc
+
+    def __str__(self) -> str:
+        output = f"({self.loc.x},{self.loc.y}) "
+        for key, val in self.params.items():
+            output += f"{key}={val}, "
+        if self.params:
+            output = output[:-2]
+        return output
+
+    def __getitem__(self, key: str) -> str:
+        if not isinstance(key, str):
+            raise TypeError("Parameter name must be a string")
+        return self.params[key]
+
+    def __setitem__(self, name: str, value: str) -> None:
+        if not isinstance(name, str):
+            raise TypeError("Parameter name must be a string")
+        self.params[name] = value
+
+    def __getattr__(self, key: str) -> str:
+        if not isinstance(key, str):
+            raise TypeError("Parameter name must be a string")
+        try:
+            return self.params[key]
+        except KeyError as exc:
+            raise AttributeError(f"circuit has no attribute '{key}'") from exc
+
+    def __copy__(self) -> Circuit:
+        return Circuit(self.loc, self.params.copy())
+
+    def __deepcopy__(self, memodict: Dict[Any, Any]) -> "Circuit":
+        newone = Circuit(
+            copy.deepcopy(self.loc, memodict),
+            copy.deepcopy(self.params, memodict),
+        )
+        return newone
 
 
 class CircuitMap:
@@ -201,10 +231,16 @@ class CircuitMap:
             for circuit in self.circuits:
                 if circuit.loc == Location(key[0], key[1]):
                     return circuit
+        # TODO: Implement slicing?
+        # elif isinstance(key, slice):
+        #     return CircuitMap(self.circuits[key])
         else:
             raise TypeError(f"Invalid key type '{type(key)}'")
 
-    def __add__(self, o: "CircuitMap") -> "CircuitMap":
+    def __add__(self, o: CircuitMap) -> CircuitMap:
+        """
+        Adds two CircuitMaps together. Does not modify the original CircuitMap.
+        """
         if isinstance(o, CircuitMap):
             circuits = self.circuits
             for circuit in o.circuits:
@@ -215,25 +251,27 @@ class CircuitMap:
             raise TypeError(f"Cannot add {type(o)} to CircuitMap")
 
     def __str__(self) -> str:
-        string = ""
+        string = "[\n"
         for circuit in self.circuits:
-            string += str(circuit) + "\n"
+            string += " " + str(circuit) + "\n"
+        string += "]"
         return string
 
     def __len__(self) -> int:
         return len(self.circuits)
 
-    def __copy__(self) -> "CircuitMap":
+    def __copy__(self) -> CircuitMap:
         return CircuitMap(self.circuits)
 
-    def __deepcopy__(self, memo: Any) -> "CircuitMap":
+    def __deepcopy__(self, memo: Any) -> CircuitMap:
         newone = type(self)()
         newone.circuits = [copy.deepcopy(circuit) for circuit in self.circuits]
         return newone
 
-    def filterby(self, **kwargs) -> "CircuitMap":
+    def filterby(self, **kwargs) -> CircuitMap:
         """
         Filters out circuits that don't match the key, value pairs provided.
+        
         If the key doesn't exist in a circuit, it will be filtered out.
 
         Parameters
@@ -251,22 +289,21 @@ class CircuitMap:
         >>> cmap = CircuitMap.loadtxt("./sample.txt")
         >>> filtered = cmap.filterby(name="MZI1")
         """
-        stepone = [
+        haskeys = [
             c
             for c in self.circuits
-            if all(hasattr(c, key) for key, val in kwargs.items())
+            if all(hasattr(c, key) for key in kwargs.keys())
         ]
         filtered = [
-            c for c in stepone if all(c[key] == val for key, val in kwargs.items())
+            c for c in haskeys if all(c[key] == val for key, val in kwargs.items())
         ]
-        cmap = CircuitMap()
-        cmap.circuits = filtered
-        return cmap
+        return CircuitMap(filtered)
 
-    def filterout(self, **kwargs) -> "CircuitMap":
+    def filterout(self, **kwargs) -> CircuitMap:
         """
-        Filters out any circuits that match the key, values pairs provided. If
-        the circuit does not contain the given key, it will be included.
+        Filters out any circuits that match the key, values pairs provided. 
+        
+        If the circuit does not contain the given key, it will be included.
 
         Parameters
         ----------
@@ -289,14 +326,13 @@ class CircuitMap:
             if any(circuit[key] == kwargs[key] for key in overlap):
                 continue
             filtered.append(circuit)
-        cmap = CircuitMap()
-        cmap.circuits = filtered
-        return cmap
+        return CircuitMap(filtered)
 
     def update_params(self, **kwargs) -> None:
         """
-        Updates the parameters of all circuits in the CircuitMap. If the
-        paramater doesn't exist in a circuit, it will be added.
+        Updates the parameters of all circuits in the CircuitMap. 
+        
+        If the parameter doesn't exist in a circuit, it will be added.
 
         Parameters
         ----------
@@ -307,60 +343,72 @@ class CircuitMap:
             for key, value in kwargs.items():
                 circuit.params[key] = value
 
-    def savetxt(self, path: str) -> None:
+    def savetxt(self, path: Union[str, Path]) -> None:
         """
         Saves the circuit map to a text file.
 
         Parameters
         ----------
-        path : str
+        path : str, Path
             File path to save the text file.
         """
-        with open(path, "w") as f:
-            for circuit in self.circuits:
-                f.write(str(circuit) + "\n")
+        path = Path(path)
+        with path.open("w") as f:
+            f.write(str(self))
 
-    @staticmethod
-    def loadtxt(path: str):
+    @classmethod
+    def loadtxt(self, filename: Union[str, Path]) -> CircuitMap:
         """
-        Loads a circuit map from a text file.
+        Loads a text file containing circuit information.
+
+        Circuit information is expected to be in the following format::
+        
+            (x, y) key1=value1, key2=value 2, key3=value 3, ...
+
+        Full-line comments are allowed and are prefixed by '#'. 
+        Any lines defining circuits do not support end-of-line comments.
 
         Parameters
         ----------
-        path : str
-            File path to the circuit map text file.
+        filename : str or Path
+            Name of the file to load.
 
         Returns
         -------
-        cmap : CircuitMap
-            New CircuitMap that contains the loaded circuits.
+        CircuitMap
+            CircuitMap containing the circuits in the file.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
         """
-        mapfile = open(path, "r")
+        if isinstance(filename, str):
+            filename = Path(filename)
+        if not filename.exists():
+            raise FileNotFoundError(f"File '{filename}' does not exist")
         circuits = []
-        for line in mapfile.readlines():
-            line = line.strip()
-            if (line != "") and (line[0] != "#"):
-                chunks = line.split()
-
-                loc = chunks.pop(0)[1:-1]
-                x, y = loc.split(",")
-                ident = chunks.pop(0)
-                params = dict([chunk.split("=") for chunk in chunks])
-
-                circuit = Circuit(Location(float(x), float(y)), ident, params)
-                circuits.append(circuit)
+        circuitlocs = {}
+        with filename.open() as f:
+            for i, line in enumerate(f):
+                line = line.strip()
+                if line.startswith("#"):
+                    continue
+                elif line == "":
+                    continue
+                elif line.startswith("("):
+                    loctxt, paramtxt = line[1:].split(")", 1)
+                    loc = [float(pt.strip()) for pt in loctxt.split(",")]
+                    loc = Location(*loc)
+                    params = {}
+                    paramtxt = paramtxt.split(",")
+                    for param in paramtxt:
+                        param = param.split("=")
+                        params[param[0].strip()] = param[1].strip()
+                    circuits.append(Circuit(loc, params))
+                    if loc in circuitlocs:
+                        raise CircuitMapUniqueKeyError(f"Duplicate location not allowed (lines {circuitlocs[loc]}, {i})")
+                    circuitlocs[loc] = i
+                else:
+                    log.warning("Could not parse line %s: '%s'", i+1, line)
         return CircuitMap(circuits)
-
-    def get_test_circuits(self) -> "CircuitMap":
-        """
-        Returns circuits that are used for stage calibration. These are
-        typically the bottom left, top left, and top right circuits of the
-        GDS file.
-
-        Returns
-        -------
-        test_circuits : CircuitMap
-            A CircuitMap containg Circuits that have "testing_circuit=True"
-            as a parameter.
-        """
-        return self.filterby(testing_circuit="True")

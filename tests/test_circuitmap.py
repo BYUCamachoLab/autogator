@@ -1,32 +1,6 @@
 import pytest
 
 
-class TestCircuit:
-    def test_tostring(self):
-        pass
-
-    def test_getparameter(self):
-        pass
-
-    def test_set_new_parameter(self):
-        pass
-
-    def test_overwrite_parameter(self):
-        pass
-
-    def test_get_existing_parameter(self):
-        pass
-
-    def test_get_nonexistent_parameter(self):
-        pass
-
-    def test_copy(self):
-        pass
-
-    def test_deepcopy(self):
-        pass
-
-
 class TestLocation:
     def test_tostring(self):
         pass
@@ -47,6 +21,32 @@ class TestLocation:
         """
         Should fail. Tries ints, floats, and strings.
         """
+        pass
+
+    def test_copy(self):
+        pass
+
+    def test_deepcopy(self):
+        pass
+    
+
+class TestCircuit:
+    def test_tostring(self):
+        pass
+
+    def test_getparameter(self):
+        pass
+
+    def test_set_new_parameter(self):
+        pass
+
+    def test_overwrite_parameter(self):
+        pass
+
+    def test_get_existing_parameter(self):
+        pass
+
+    def test_get_nonexistent_parameter(self):
         pass
 
     def test_copy(self):

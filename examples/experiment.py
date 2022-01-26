@@ -1,4 +1,4 @@
-from autogator.circuitmap import CircuitMap
+from autogator.circuit import CircuitMap
 from autogator.experiment import (
     WavelengthSweepExperiment,
     BatchExperiment,
