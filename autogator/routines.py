@@ -599,8 +599,10 @@ def basic_scan(
     # Determine if we're using stage coordinates or GDS coordinates
     if COORDS == 'stage':
         set_position_function = stage.set_position
+        jog_position_function = stage.jog_position
     elif COORDS == 'gds':
         set_position_function = stage.set_position_gds
+        jog_position_function = stage.jog_position_gds
     else:
         raise RuntimeError("Congratulations! This error should never happen, notify the developer.")
 
@@ -608,18 +610,24 @@ def basic_scan(
     x = np.arange(x0, x1 + step_size_x, step_size_x)
     y = np.arange(y0, y1 + step_size_y, step_size_y)
 
+    print("Current position:", stage.x.get_position(), stage.y.get_position())
+    print("Range x", x[0], x[-1])
+    print("Range y", y[0], y[-1])
+
     rows, cols = len(x), len(y)
     data = np.zeros((rows, cols))
+    pos = []
 
     if plot:
         fig, ax = plt.subplots(1, 1)
-        im = ax.imshow(data, cmap="hot")
+        im = ax.imshow(data, cmap="hot", extent=(x0, x1, y0, y1))
 
+    set_position_function(x=float(x[0]), y=float(y[0]))
     for i in range(rows):
         for j in range(cols):
-            set_position_function(x=float(x[i]), y=float(y[i]))
+            print((stage.x.get_position(), stage.y.get_position()))
             time.sleep(settle)
-            
+
             data[i, j] = daq.measure()
 
             if plot:
@@ -628,15 +636,28 @@ def basic_scan(
                 fig.canvas.draw_idle()
                 plt.pause(0.000001)
 
+            pos.append((stage.get_position()[0], stage.get_position()[1]))
+
+            jog_position_function(y=step_size_y)
+        set_position_function(y=float(y[0]))
+        jog_position_function(x=step_size_x)
+
     # Get max value and position
-    max_idx = np.unravel_index(np.argmax(data), data.shape)
-    max_data = data[max_idx]
-    max_x, max_y = x[max_idx[0]], y[max_idx[1]]
+    max_idx = np.argmax(data)
+    max_coord = np.unravel_index(max_idx, data.shape)
+    max_data = data[max_coord]
+    # max_x, max_y = x[max_idx[0]], y[max_idx[1]]
+    max_x, max_y = pos[max_idx]
+
+    if plot:
+        plt.figure()
+        plt.scatter([p[0] for p in pos], [p[1] for p in pos])
+        plt.axis("equal")
+        plt.pause(0.000001)
 
     # Move to max position
     if go_to_max:
         set_position_function(x=float(max_x), y=float(max_y))
-        time.sleep(settle)
 
     if plot:
         plt.show()
@@ -652,6 +673,7 @@ def line_scan(
     step_size: float = 0.0005,
     settle: float = 0.2,
     iterations: int = 15,
+    plot: bool = False,
 ) -> float:
     """
     Performs a line scan of the specified axis.
@@ -680,6 +702,8 @@ def line_scan(
     iterations : int, optional
         The number of moves to take without finding a new maximum before
         terminating the scan (default 15).
+    plot : bool, optional
+        Whether to plot the data (default False).
 
     Returns
     -------
@@ -692,16 +716,43 @@ def line_scan(
     max_data = daq.measure()
     max_loc = motor.get_position()
     count = 0
+
+    if plot:
+        fig, ax = plt.subplots(1, 1)
+        line, = ax.plot([], [])
+
+    pos = []
+    vals = []
+
     while count < iterations:
         motor.move_by(step_size)
         time.sleep(settle)
         data = daq.measure()
+
+        pos.append(motor.get_position())
+        vals.append(data)
+        
+        if plot:
+            line.set_data(pos, vals)
+            min_x, max_x = pos[0], pos[-1]
+            min_x, max_x = 1.1*np.abs(min_x)*np.sign(min_x), 1.1*np.abs(max_x)*np.sign(max_x)
+            ax.set_xlim(min_x, max_x)
+            min_y, max_y = min(vals), max(vals)
+            min_y, max_y = 1.1*np.abs(min_y)*np.sign(min_y), 1.1*np.abs(max_y)*np.sign(max_y)
+            ax.set_ylim(min_y, max_y)
+            fig.canvas.draw_idle()
+            plt.pause(0.000001)
+
         if data > max_data:
             max_data = data
             max_loc = motor.get_position()
             count = 0
         else:
             count += 1
+
+    if plot:
+        plt.show()
+
     return max_loc
 
 
@@ -714,10 +765,11 @@ def auto_scan(
     gds_y: Tuple[float, float] = None,
     stage_center: Tuple[float, float] = None,
     gds_center: Tuple[float, float] = None,
-    span: float = 0.025,
+    span: float = 0.06,
     step_size: float = 0.005,
     step_size_x: float = None,
     step_size_y: float = None,
+    plot=False,
     settle: float = 0.2,
     go_to_max: bool = True,
 ) -> Tuple[float, float]:
@@ -779,6 +831,8 @@ def auto_scan(
         are derived from context; if stage_center is defined, this is in motor
         units. If gds_center is defined, this is in GDS coordinates. Use this
         parameter to set a different step size for the y-axis.
+    plot : bool, optional
+        Whether to plot the scan data (default False).
     settle : float, optional
         Amount of time in seconds the motors will pause in between move 
         commands to allow for settling time (lets vibration/residual motion 
@@ -805,16 +859,18 @@ def auto_scan(
         step_size=step_size,
         step_size_x=step_size_x,
         step_size_y=step_size_y,
+        plot=plot,
         settle=settle,
     )
 
     log.info(f"Max data '{value}' found at {position}")
+    print(f"Max data '{value}' found at {position}")
 
     # Fine tune max position
-    SEARCH_AREA = 0.05
+    SEARCH_AREA = 0.025
     FINE_STEP = 0.0005
-    x_max = line_scan(stage, daq, "x", position[0] - SEARCH_AREA / 2, step_size=FINE_STEP)
-    y_max = line_scan(stage, daq, "y", position[1] - SEARCH_AREA / 2, step_size=FINE_STEP)
+    x_max = line_scan(stage, daq, "x", position[0] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
+    y_max = line_scan(stage, daq, "y", position[1] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
 
     if go_to_max:
         stage.set_position(x=x_max, y=y_max)
