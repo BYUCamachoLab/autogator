@@ -489,6 +489,33 @@ class Stage:
             if motor:
                 motor.move_to(pos)
 
+    def jog_position(self, x=None, y=None, z=None, theta=None, phi=None, psi=None):
+        """
+        Set the position of the stage in real world units.
+
+        Any unspecified parameters won't be moved.
+
+        Parameters
+        ----------
+        x : float, optional
+            The x jog step.
+        y : float, optional
+            The y jog step.
+        z : float, optional
+            The z jog step.
+        theta : float, optional
+            The theta jog step.
+        phi : float, optional
+            The phi jog step.
+        psi : float, optional
+            The psi jog step.
+        """
+        pos = [x, y, z, theta, phi, psi]
+        commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
+        for motor, pos in commands:
+            if motor:
+                motor.move_by(pos)
+
     def set_position_gds(self, x=None, y=None):
         """
         Set the position of the stage in GDS coordinates.
@@ -521,6 +548,9 @@ class Stage:
             self.x.move_to(stage_pos[0][0])
         if y and self.y:
             self.y.move_to(stage_pos[1][0])
+
+    def jog_position_gds(self):
+        raise NotImplementedError
 
     def get_position(self) -> List[float]:
         """
@@ -974,7 +1004,7 @@ class TSL550Laser(LaserBase):
 
     def on(self):
         self.driver._pyroClaimOwnership()
-        if self.driver.status()[0] == '-':
+        if self.driver.status()[0] != '-':
             self.driver.on()
         self.driver.open_shutter()
 
