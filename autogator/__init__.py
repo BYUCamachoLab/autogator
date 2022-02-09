@@ -1,32 +1,25 @@
 # -*- coding: utf-8 -*-
+# Copyright © 2019- AutoGator Project Contributors and others (see AUTHORS.txt).
+# The resources, libraries, and some source files under other terms.
 #
-# MIT License
+# This file is part of AutoGator.
 #
-# Copyright © 2019-2022 Autogator Project Contributors and others (see AUTHORS.txt).
-#
-# The resources, libraries, and some source files under other terms (see NOTICE.txt).
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-autogator
-=======
+# AutoGator
+
 A software package for camera-assisted motion control of PIC chip interrogation platforms.
 """
 
@@ -46,7 +39,7 @@ __name__ = "AutoGator"
 __author__ = "CamachoLab"
 __copyright__ = "Copyright 2022, CamachoLab"
 __version__ = "0.2.0dev0"
-__license__ = "MIT"
+__license__ = "GPLv3+"
 __maintainer__ = "Sequoia Ploeg"
 __maintainer_email__ = "sequoia.ploeg@byu.edu"
 __status__ = "Development"  # "Production"
@@ -61,9 +54,11 @@ warnings.filterwarnings("default", category=DeprecationWarning)
 from appdirs import AppDirs
 
 _dirs = AppDirs(__name__, __author__)
-SITE_DATA_DIR = pathlib.Path(_dirs.site_data_dir)
-SITE_DATA_DIR.mkdir(parents=True, exist_ok=True)
-# SITE_CONFIG_DIR = SITE_DATA_DIR / "config"
+AUTOGATOR_DATA_DIR = pathlib.Path(_dirs.user_data_dir)
+AUTOGATOR_DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+AUTOGATOR_CONFIG_DIR = AUTOGATOR_DATA_DIR / "config"
+AUTOGATOR_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 print("Welcome to AutoGator!")
 print("© 2019-{}, CamachoLab".format(date.today().year))

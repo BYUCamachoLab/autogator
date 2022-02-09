@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the MIT License
+# Licensed under the terms of the GNU GPLv3+ License
 # (see autogator/__init__.py for details)
 
 """
@@ -268,6 +268,14 @@ def auto_calibration_callback(
 
     Parameters
     ----------
+    stage : Stage
+        The stage to move.
+    daq : DataAcquisitionUnitBase
+        The DAQ to use for data acquisition.
+    circuit : Circuit
+        The circuit being moved to for calibration.
+    controller : KeyboardControl
+        The controller to use for control input.
     """
     print(f"Center {circuit} in view, then quit the controller.")
     controller.loop()
