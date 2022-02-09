@@ -16,11 +16,12 @@ import importlib
 import logging
 from pathlib import Path
 from tkinter import N
-from typing import Any, Dict, List, Tuple, Type
+from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
 
+from autogator import AUTOGATOR_DATA_DIR, AUTOGATOR_CONFIG_DIR
 from autogator.errors import UncalibratedStageError
 try:
     from pyrolab.api import locate_ns, Proxy
@@ -32,6 +33,10 @@ from autogator.circuit import CircuitMap
 
 
 log = logging.getLogger(__name__)
+
+
+_CALIBRATION_PARAM_FILE = AUTOGATOR_CONFIG_DIR / "calibration_matrix.txt"
+_DEFAULT_STAGE_CONFIGURATION = AUTOGATOR_CONFIG_DIR / "stage_configuration.json"
 
 
 class HardwareDevice:
@@ -419,6 +424,37 @@ class Stage:
         else:
             raise AttributeError(f"'Stage' object has no attribute '{name}'")
 
+    def load_calibration_matrix(self, filename: Union[str, Path]):
+        """
+        Load a conversion matrix from a file.
+
+        Parameters
+        ----------
+        filename : str
+            The path to the file containing the conversion matrix.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the file does not exist.
+        """
+        if isinstance(filename, str):
+            filename = Path(filename)
+        if not filename.exists():
+            raise FileNotFoundError(f"File {filename} does not exist.")
+        self.conversion_matrix = np.loadtxt(filename)
+
+    def save_calibration_matrix(self, filename: str):
+        """
+        Saves a conversion matrix to a file.
+
+        Parameters
+        ----------
+        filename : str
+            The path to the file to save the conversion matrix to.
+        """
+        np.savetxt(filename, self.conversion_matrix)
+
     @property
     def motors(self) -> list:
         """
@@ -533,7 +569,7 @@ class Stage:
 
 class HardwareConfiguration(BaseSettings):
     module: str = "autogator.hardware"
-    classname: str
+    classname: str = ""
     parameters: Dict[str, Any] = {}
 
     def get_object(self) -> Type[HardwareDevice]:
@@ -605,7 +641,7 @@ class StageConfiguration(BaseSettings):
         circuitmap = CircuitMap.loadtxt(cmapfile) if cmapfile.is_file() else None
 
         cmatfile = Path(self.conversion_matrix)
-        conversion_matrix = CircuitMap.loadtxt(cmatfile) if cmatfile.is_file() else None
+        conversion_matrix = np.loadtxt(cmatfile) if cmatfile.is_file() else None
 
         log.info("Loading stage objects...")
         auxiliaries = {}
