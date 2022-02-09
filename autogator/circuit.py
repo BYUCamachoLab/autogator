@@ -86,9 +86,9 @@ class Location(NamedTuple):
     Parameters
     ----------
     x : float
-        X coordinate of the circuit.
+        The x coordinate of the location.
     y : float
-        Y coordinate of the circuit.
+        The y coordinate of the location.
 
     Examples
     --------
@@ -98,8 +98,8 @@ class Location(NamedTuple):
     >>> loc == (0, 0)
     True
     """
-    x: float
-    y: float
+    x: float = 0
+    y: float = 0
 
     def __str__(self) -> str:
         return "(" + str(self.x) + ", " + str(self.y) + ")"
