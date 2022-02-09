@@ -5,8 +5,7 @@
 # (see autogator/__init__.py for details)
 
 """
-Experiment
-==========
+# Experiment
 
 Experiments are at the core of what AutoGator is built to do. 
 
@@ -30,7 +29,7 @@ optimize over each Circuit before performing the data collection routine.
 from time import sleep
 from typing import Dict, Any, List
 
-from autogator.circuit import CircuitMap
+from autogator.circuit import Circuit, CircuitMap
 
 
 class Experiment:
@@ -51,10 +50,15 @@ class Experiment:
     def __init__(self, name: str) -> None:
         self.name = name
         self._stage = None
+        self._circuit = None
 
     @property
     def stage(self):
         return self._stage
+
+    @property
+    def circuit(self):
+        return self._circuit
 
     def setup(self):
         pass
@@ -78,7 +82,7 @@ class SampleExperiment(Experiment):
         print("Done.")
 
 
-class BatchExperiment:
+class ExperimentRunner:
     def __init__(self, circuitmap: CircuitMap, experiment: Experiment):
         self.circuitmap = circuitmap
         self.experiment = experiment
@@ -90,9 +94,12 @@ class BatchExperiment:
         test_circuits = self.circuitmap.circuits
         stage = self.stage
 
+        experiment = self.experiment()
+        experiment.setup()
+
         for circuit in test_circuits:
-            print("Testing: " + str(circuit.loc))
+            experiment._circuit = circuit
             stage.set_position_gds(*circuit.loc)
-            self.experiment.set_filename("fabrun5", circuit.loc[0], circuit.loc[1])
-            # auto-optimize
             self.experiment.run()
+
+        experiment.teardown()
