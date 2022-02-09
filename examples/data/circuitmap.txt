@@ -334,6 +334,6 @@
 (2521.62,1575.0) name=DIOH_dc_jogs_1, ports=DDDDDD, mode=TE, submitter='sequoiac', grouping=6
 (2761.62,1575.0) name=DIOH_dc_jogs_2, ports=DDDDDD, mode=TE, submitter='sequoiac', grouping=6
 (3001.62,1575.0) name=DIOH_dc_jogs_3, ports=DDDDDD, mode=TE, submitter='sequoiac', grouping=6
-(-4476.74900,-4484.68000) name=test_circuit, testing_circuit=True
-(-4475.03900,3719.32000) name=test_circuit, testing_circuit=True
-(4441.67100,3721.45000) name=test_circuit, testing_circuit=True
+(-4457.11999,-4484.67994) name=test_circuit, calibration_circuit=True
+(-4455.40997,3719.31998) name=test_circuit, calibration_circuit=True
+(4461.30000,3721.45000) name=test_circuit, calibration_circuit=True
