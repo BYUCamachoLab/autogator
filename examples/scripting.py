@@ -13,6 +13,7 @@ Motion example. Uses the default keyboard controller and default keybindings.
 
 import json
 
+from autogator.api import save_default_configuration, load_default_configuration
 from autogator.hardware import HardwareConfiguration, StageConfiguration
 from autogator.routines import KeyboardControl, KeyloopKeyboardBindings, basic_scan
 
@@ -52,13 +53,13 @@ wanda = HardwareConfiguration(
         "ns_host": "camacholab.ee.byu.edu",
     }
 )
-jarvis = HardwareConfiguration(
-    classname="",
-    parameters={
-        "pyroname": "asgard.jarvis",
-        "ns_host": "camacholab.ee.byu.edu",
-    }
-)
+# jarvis = HardwareConfiguration(
+#     classname="",
+#     parameters={
+#         "pyroname": "asgard.jarvis",
+#         "ns_host": "camacholab.ee.byu.edu",
+#     }
+# )
 
 sc = StageConfiguration(
     x=captainamerica,
@@ -67,7 +68,7 @@ sc = StageConfiguration(
     auxiliaries={
         "laser": wanda,
         "scope": dormammu,
-        "lamp": jarvis,
+        # "lamp": jarvis,
     }
 )
 
@@ -91,7 +92,7 @@ def scope_configure_single_meas():
 
     # Scope setup
     CHANNEL = 1
-    RANGE = 0.4
+    RANGE = 1.0
     COUPLING = "DCLimit"
     POSITION = -5.0
 
@@ -102,3 +103,8 @@ def scope_configure_single_meas():
 
 def my_basic_scan():
     basic_scan(stage, stage.scope, (8, 12), (4, 8), step_size=1, plot=True, go_to_max=False)
+
+
+def persist_configuration():
+    from autogator.api import save_default_configuration
+    save_default_configuration(sc)
