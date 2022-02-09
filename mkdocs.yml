@@ -1,0 +1,119 @@
+# Project information
+site_name: AutoGator
+site_description: The Automatic Chip Interrogator
+site_author: Sequoia Ploeg
+ 
+# Repository
+repo_name: BYUCamachoLab/autogator
+repo_url: https://github.com/BYUCamachoLab/autogator
+# edit_uri: ""
+ 
+# Copyright
+copyright: Copyright © 2022 Sequoia Ploeg
+ 
+# Theming (light and dark mode)
+theme:
+  name: material
+  icon:
+    logo: material/lan-connect
+  features:
+    # - navigation.instant
+    # - navigation.tracking # insiders
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.indexes
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - header.autohide
+  palette:
+    - scheme: default
+      primary: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to dark mode
+    - scheme: slate
+      primary: black
+      # accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to light mode
+ 
+# Plugins
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+          python:
+            selection:
+              docstring_style: "numpy"
+ 
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+ 
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+  - pymdownx.snippets
+ 
+# Injected javascript
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+ 
+extra_css:
+  - css/mkdocstrings.css
+  - css/material.css
+  - css/style.css
+ 
+# Page tree
+nav:
+  - Home: 
+    - Overview: index.md
+    - Changelog: changelog.md
+    - Credits: credits.md
+    - License: license.md
+  - User Guide: 
+    - Installation: userguide/install.md
+    - Configuration: userguide/configure.md
+  - Examples:
+    - Keyboard control: examples/keycontrol.md
+    - Basic scan: examples/basicscan.md
+    - Experiments: examples/experiment.md
+  - Reference:
+    - API: api/index.md
+    - circuit: api/circuit.md
+    - errors: api/errors.md
+    - experiment: api/experiment.md
+    - hardware: api/hardware.md
+    - routines: api/routines.md
