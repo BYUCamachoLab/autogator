@@ -75,13 +75,6 @@ class Experiment:
         pass
 
 
-class SampleExperiment(Experiment):
-    def run(self):
-        print("Running fake eperiment...")
-        sleep(5)
-        print("Done.")
-
-
 class ExperimentRunner:
     def __init__(self, circuitmap: CircuitMap, experiment: Experiment):
         self.circuitmap = circuitmap

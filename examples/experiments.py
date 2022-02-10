@@ -43,38 +43,41 @@ class WavelengthSweepExperiment(Experiment):
         The trigger voltage to begin data collection at.
     output_dir : str
         The directory to save the data to.
-    take_screenshot : bool
-        Whether or not to take a screenshot of the waveform.
-    save_raw_data : bool
-        Whether or not to save the raw data to a file.
     chip_name : str
     """
+    # General configuration
+    chip_name: str = "fabrun5"
+    output_dir = Path.home() / "Downloads" / "data"
+
+    # Scope configuration
+    duration: float = 5.0
+    sample_rate: float = 3
+    active_channels: List[int] = [1, 2, 3, 4]
+    trigger_channel: int = 1
+    trigger_level: int = 1
     channel_settings = {
         1: {"range": 10, "position": 2},
         2: {"range": 0.2, "position": -4},
         3: {"range": 0.2, "position": -2},
         4: {"range": 0.2, "position": 0.5},
     }
+
+    # Laser configuration
     wl_start: float = 1500
     wl_stop: float = 1600
-    duration: float = 5.0
-    sample_rate: float = 3
     trigger_step: float = 0.01
     power_dBm: float = 12.0
+
+    # Miscellaneous settings
     buffer: float = 5.0
-    active_channels: List[int] = [1, 2, 3, 4]
-    trigger_channel: int = 1
-    trigger_level: int = 1
-    take_screenshot: bool = True
-    save_raw_data: bool = True
-    chip_name: str = "fabrun5"
+    
 
     def setup(self):
-        self.laser = self.stage.laser
-        self.scope = self.stage.scope
+        self.laser = self.stage.laser.driver
+        self.scope = self.stage.scope.driver
 
-        self.laser.start()
-        self.laser.on()
+        self.stage.laser.start()
+        self.stage.laser.on()
 
         sweep_rate = (self.wl_stop - self.wl_start) / self.duration
         assert sweep_rate > 1.0
@@ -89,10 +92,9 @@ class WavelengthSweepExperiment(Experiment):
         )
 
         print("Enabling self.laser's trigger output.")
-        triggerMode, triggerStep = self.laser.set_trigger("Step", self.trigger_step)
-        # self.laser.trigger_enable_output()
-        # triggerMode = self.laser.trigger_set_mode("Step")
-        # triggerStep = self.laser.trigger_set_step(self.trigger_step)
+        self.laser.trigger_enable_output()
+        triggerMode = self.laser.trigger_set_mode("Step")
+        triggerStep = self.laser.trigger_step(self.trigger_step)
         print("Setting trigger to: {} and step to {}".format(triggerMode, triggerStep))
 
         acquire_time = self.duration + self.buffer
@@ -110,6 +112,7 @@ class WavelengthSweepExperiment(Experiment):
     def run(self):
         # self.experiment.set_filename("fabrun5", circuit.loc[0], circuit.loc[1])
         # auto-optimize
+        print(self.circuit)
 
         print("Adding Edge Trigger @ {} Volt(s).".format(self.trigger_level))
         self.scope.edge_trigger(self.trigger_channel, self.trigger_level)
@@ -122,9 +125,6 @@ class WavelengthSweepExperiment(Experiment):
 
         print("Waiting for acquisition to complete...")
         self.scope.wait_for_device()
-
-        # if self.take_screenshot:
-        #     self.scope.screenshot(self.output_dir, self.filename + "_screenshot.png")
 
         print("Getting raw data...")
         raw = {
@@ -146,11 +146,9 @@ class WavelengthSweepExperiment(Experiment):
 
         today = datetime.now()
         date_prefix = f"{today.year}_{today.month}_{today.day}_{today.hour}_{today.minute}_"
-        output_dir = Path.home() / "Downloads" / "data"
-        filename = output_dir / f"{date_prefix}_{self.chip_name}_locx_{self.circuit.loc.x}_locy_{self.circuit.loc.y}.wlsweep"
+        filename = self.output_dir / f"{date_prefix}_{self.chip_name}_locx_{self.circuit.loc.x}_locy_{self.circuit.loc.y}.wlsweep"
         
-        FILE_HEADER = f"""
-        # Test performed at {"None"}
+        FILE_HEADER = f"""# Test performed at {"None"}
         # WL start: {self.wl_start} nm
         # WL end: {self.wl_stop} nm
         # Laser power: {self.power_dBm} dBm
