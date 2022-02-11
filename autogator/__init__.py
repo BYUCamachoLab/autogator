@@ -23,6 +23,7 @@
 A software package for camera-assisted motion control of PIC chip interrogation platforms.
 """
 
+import os
 import pathlib
 import platform
 import sys
@@ -66,4 +67,37 @@ print("© 2019-{}, CamachoLab".format(date.today().year))
 import logging
 logging.basicConfig(
     level=logging.INFO,
+
 )
+
+import logging
+import logging.handlers
+
+
+def get_loglevel() -> int:
+    loglevel = os.getenv("AUTOGATOR_LOGLEVEL", "INFO")
+    try:
+        loglevel = getattr(logging, loglevel.upper())
+    except AttributeError:
+        loglevel = logging.INFO
+    loglevel = logging.DEBUG
+    return loglevel
+
+
+AUTOGATOR_LOGFILE = AUTOGATOR_DATA_DIR / "autogator.log"
+logfile = os.getenv("AUTOGATOR_LOGFILE", AUTOGATOR_LOGFILE)
+
+if len(logging.root.handlers) == 0:
+    root = logging.getLogger(__name__)
+    h = logging.handlers.RotatingFileHandler(logfile, 'a', 30000, 10)
+    f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+    h.setFormatter(f)
+    root.addHandler(h)
+
+    h = logging.StreamHandler()
+    f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+    h.setFormatter(f)
+    root.addHandler(h)
+
+    root.setLevel(get_loglevel())
+    root.debug("Autogator logging configured")
