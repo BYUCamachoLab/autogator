@@ -249,7 +249,7 @@ class KeyboardControl:
                     t.start()
                     flag.clear()
 
-        print("Ready")
+        log.info("Entering keyboard control loop")
         while running.is_set():
             run_flagged()
             time.sleep(0.1)
@@ -386,7 +386,7 @@ def easy_switcher(
     stage: Stage, 
     daq: DataAcquisitionUnitBase, 
     callback: Callable = None, 
-    controller: KeyboardControl = None
+    controller: KeyboardControl = None,
 ) -> None:
     """
     Allows user to set specific locations for easy switching.
@@ -425,6 +425,10 @@ def easy_switcher(
     """
     again = True
     locs = {}
+
+    if controller is None:
+        controller = KeyboardControl(stage)
+
     while again:
         print(f"Move to first desired location, then quit the controller.")
         controller.loop()
@@ -432,6 +436,7 @@ def easy_switcher(
         if callback:
             callback(stage, daq)
 
+        time.sleep(1.0)
         print("Press the key you want to associate this point: ")
         refkey = keyboard.read_hotkey()
         locs[refkey] = [
@@ -610,50 +615,50 @@ def basic_scan(
     x = np.arange(x0, x1 + step_size_x, step_size_x)
     y = np.arange(y0, y1 + step_size_y, step_size_y)
 
-    print("Current position:", stage.x.get_position(), stage.y.get_position())
-    print("Range x", x[0], x[-1])
-    print("Range y", y[0], y[-1])
+    log.debug(f"Current position: ({stage.x.get_position()}, {stage.y.get_position()})")
+    log.debug(f"Scan range (x): {x[0]} - {x[-1]}")
+    log.debug(f"Scan range (y): {y[0]} - {y[-1]}")
 
     rows, cols = len(x), len(y)
     data = np.zeros((rows, cols))
     pos = []
 
     if plot:
-        fig, ax = plt.subplots(1, 1)
+        fig, ax = plt.subplots(1, 1, num="Basic Scan")
         im = ax.imshow(data, cmap="hot", extent=(x0, x1, y0, y1))
+        cbar = fig.colorbar(im, ax=ax)
 
     set_position_function(x=float(x[0]), y=float(y[0]))
-    for i in range(rows):
-        for j in range(cols):
-            print((stage.x.get_position(), stage.y.get_position()))
-            time.sleep(settle)
+    try:
+        for i in range(rows):
+            for j in range(cols):
+                time.sleep(settle)
 
-            data[i, j] = daq.measure()
+                data[i, j] = daq.measure()
+                loc = i * rows + j + 1
+                if loc < rows * cols:
+                    data.flat[i * rows + j + 1] = np.max(data) * 0.9
 
-            if plot:
-                im.set_data(data)
-                im.set_clim(data.min(), data.max())
-                fig.canvas.draw_idle()
-                plt.pause(0.000001)
+                if plot:
+                    im.set_data(data)
+                    im.autoscale()
+                    fig.canvas.draw_idle()
+                    plt.pause(0.001)
 
-            pos.append((stage.get_position()[0], stage.get_position()[1]))
+                pos.append((stage.get_position()[0], stage.get_position()[1]))
 
-            jog_position_function(y=step_size_y)
-        set_position_function(y=float(y[0]))
-        jog_position_function(x=step_size_x)
+                jog_position_function(y=step_size_y)
+
+            set_position_function(y=float(y[0]))
+            jog_position_function(x=step_size_x)
+    except KeyboardInterrupt:
+        pass
 
     # Get max value and position
     max_idx = np.argmax(data)
     max_coord = np.unravel_index(max_idx, data.shape)
     max_data = data[max_coord]
-    # max_x, max_y = x[max_idx[0]], y[max_idx[1]]
     max_x, max_y = pos[max_idx]
-
-    if plot:
-        plt.figure()
-        plt.scatter([p[0] for p in pos], [p[1] for p in pos])
-        plt.axis("equal")
-        plt.pause(0.000001)
 
     # Move to max position
     if go_to_max:
@@ -718,8 +723,9 @@ def line_scan(
     count = 0
 
     if plot:
-        fig, ax = plt.subplots(1, 1)
+        fig, ax = plt.subplots(1, 1, num=f"{axis} Line Scan")
         line, = ax.plot([], [])
+        fig.canvas.draw()
 
     pos = []
     vals = []
@@ -735,17 +741,21 @@ def line_scan(
         if plot:
             line.set_data(pos, vals)
             min_x, max_x = pos[0], pos[-1]
-            min_x, max_x = 1.1*np.abs(min_x)*np.sign(min_x), 1.1*np.abs(max_x)*np.sign(max_x)
-            ax.set_xlim(min_x, max_x)
+            diff_x = max_x - min_x
+            if diff_x != 0:
+                ax.set_xlim(min_x - 0.1*diff_x, max_x + 0.1*diff_x)
             min_y, max_y = min(vals), max(vals)
-            min_y, max_y = 1.1*np.abs(min_y)*np.sign(min_y), 1.1*np.abs(max_y)*np.sign(max_y)
-            ax.set_ylim(min_y, max_y)
+            diff_y = max_y - min_y
+            if diff_y != 0:
+                ax.set_ylim(min_y - 0.1*diff_y, max_y + 0.1*diff_y)
             fig.canvas.draw_idle()
-            plt.pause(0.000001)
+            plt.pause(0.001)
 
         if data > max_data:
             max_data = data
             max_loc = motor.get_position()
+            count = 0
+        elif data == max_data:
             count = 0
         else:
             count += 1
@@ -771,7 +781,6 @@ def auto_scan(
     step_size_y: float = None,
     plot=False,
     settle: float = 0.2,
-    go_to_max: bool = True,
 ) -> Tuple[float, float]:
     """
     Performs a box scan of given dimensions and then refines the scan around the peak.
@@ -863,17 +872,17 @@ def auto_scan(
         settle=settle,
     )
 
-    log.info(f"Max data '{value}' found at {position}")
-    print(f"Max data '{value}' found at {position}")
+    log.info(f"Coarse max value '{value}' found at {position}")
 
     # Fine tune max position
     SEARCH_AREA = 0.025
     FINE_STEP = 0.0005
     x_max = line_scan(stage, daq, "x", position[0] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
+    stage.set_position(x=x_max)
     y_max = line_scan(stage, daq, "y", position[1] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
+    stage.set_position(y=y_max)
 
-    if go_to_max:
-        stage.set_position(x=x_max, y=y_max)
+    value = daq.measure()
+    log.info(f"Fine max value '{value}' found at {position}")
 
-    log.info(f"Fine-tuned max data location: {(x_max, y_max)}")
     return (x_max, y_max)
