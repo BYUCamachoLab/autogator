@@ -12,9 +12,11 @@ AutoGator has a number of optional hardware components that can be used to
 control the motion of the PIC chip and other aspects of the system.
 """
 
+import concurrent.futures
 import importlib
 import logging
 from pathlib import Path
+import time
 from tkinter import N
 from typing import Any, Dict, List, Tuple, Type, Union
 
@@ -389,17 +391,17 @@ class Stage:
     """    
     def __init__(
         self, 
-        x: LinearStageBase, 
-        y: LinearStageBase, 
-        z: LinearStageBase, 
-        theta: RotationalStageBase, 
-        phi: RotationalStageBase, 
-        psi: RotationalStageBase, 
-        circuitmap: CircuitMap, 
+        x: LinearStageBase = None, 
+        y: LinearStageBase = None, 
+        z: LinearStageBase = None, 
+        theta: RotationalStageBase = None, 
+        phi: RotationalStageBase = None, 
+        psi: RotationalStageBase = None, 
+        circuitmap: CircuitMap = None, 
         conversion_matrix: np.ndarray = None, 
         loaded_position: List[float] = [None, None, None, None, None, None],
         unloaded_position: List[float] = [None, None, None, None, None, None],
-        auxiliaries: Dict[str, HardwareDevice] = {},
+        **auxiliaries: HardwareDevice,
     ):
         self.x = x
         self.y = y
@@ -462,14 +464,18 @@ class Stage:
         """
         return [self.x, self.y, self.z, self.theta, self.phi, self.psi]
 
-    def set_position(self, x=None, y=None, z=None, theta=None, phi=None, psi=None):
+    def set_position(self, *, pos: List[float] = [], x: float = None, y: float = None, z: float = None, theta: float = None, phi: float = None, psi: float = None):
         """
         Set the position of the stage in real world units.
 
-        Any unspecified parameters won't be moved.
+        Any unspecified parameters won't be moved. All parameters are 
+        keyword-only (no positional parameters accepted).
 
         Parameters
         ----------
+        pos : list, optional
+            The position to move to as a 6-list of floats, matching the format
+            of ``get_position``. If specified, all other parameters are ignored.
         x : float, optional
             The x position.
         y : float, optional
@@ -483,20 +489,36 @@ class Stage:
         psi : float, optional
             The psi position.
         """
-        pos = [x, y, z, theta, phi, psi]
+        if not pos:
+            pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
-        for motor, pos in commands:
-            if motor:
-                motor.move_to(pos)
 
-    def jog_position(self, x=None, y=None, z=None, theta=None, phi=None, psi=None):
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as executor:
+            # Start the load operations and mark each future with its URL
+            future_to_cmd = {}
+            for motor, pos in commands:
+                future_to_cmd[executor.submit(motor.move_to, pos)] = motor
+                time.sleep(0.01) # Space out simultaneous calls to potentially shared DLLs
+            for future in concurrent.futures.as_completed(future_to_cmd):
+                motor = future_to_cmd[future]
+                try:
+                    driver = future.result()
+                except Exception as exc:
+                    print(f'{motor} generated an exception: {exc}')
+                    log.exception(exc)
+
+    def jog_position(self, *, pos: List[float] = [], x=None, y=None, z=None, theta=None, phi=None, psi=None):
         """
         Set the position of the stage in real world units.
 
-        Any unspecified parameters won't be moved.
+        Any unspecified parameters won't be moved. All parameters are 
+        keyword-only (no positional parameters accepted).
 
         Parameters
         ----------
+        pos : list, optional
+            The position to move to as a 6-list of floats, matching the format
+            of ``get_position``. If specified, all other parameters are ignored.
         x : float, optional
             The x jog step.
         y : float, optional
@@ -510,7 +532,8 @@ class Stage:
         psi : float, optional
             The psi jog step.
         """
-        pos = [x, y, z, theta, phi, psi]
+        if not pos:
+            pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
         for motor, pos in commands:
             if motor:
@@ -536,7 +559,7 @@ class Stage:
             If the stage is not calibrated. GDS position cannot be set without
             first calibrating the stage.
         """
-        if not self.conversion_matrix:
+        if self.conversion_matrix is None:
             raise UncalibratedStageError("Stage is not calibrated (no conversion matrix set), cannot set position in GDS coordinates")
 
         x_cmd = x if x is not None else 0.0
@@ -544,10 +567,10 @@ class Stage:
         gds_pos = np.array([[x_cmd], [y_cmd], [1]])
         stage_pos = self.conversion_matrix @ gds_pos
 
-        if x and self.x:
-            self.x.move_to(stage_pos[0][0])
-        if y and self.y:
-            self.y.move_to(stage_pos[1][0])
+        log.info(f"Commanded position: ({stage_pos[0,0], stage_pos[1,0]})")
+        self.set_position(x=stage_pos[0, 0], y=stage_pos[1, 0])
+        actual = self.get_position()
+        log.info(f"Actual position: ({actual[0], actual[1]})")
 
     def jog_position_gds(self):
         raise NotImplementedError
@@ -674,55 +697,67 @@ class StageConfiguration(BaseSettings):
         conversion_matrix = np.loadtxt(cmatfile) if cmatfile.is_file() else None
 
         log.info("Loading stage objects...")
-        auxiliaries = {}
+        names = ["x", "y", "z", "theta", "phi", "psi"]
+        configs = [self.x, self.y, self.z, self.theta, self.phi, self.psi]
+        to_load = {name: config for name, config in zip(names, configs) if config}
+        to_load.update(self.auxiliaries)
+        loaded = {}
 
-        try:
-            log.info("Loading x-axis stage...")
-            x = self.x.get_object() if self.x else None
-        except Exception as e:
-            log.exception(e)
-
-        try:
-            log.info("Loading y-axis stage...")
-            y = self.y.get_object() if self.y else None
-        except Exception as e:
-            log.exception(e)
-
-        try:
-            log.info("Loading z-axis stage...")
-            z = self.z.get_object() if self.z else None
-        except Exception as e:
-            log.exception(e)
-
-        try:
-            log.info("Loading theta stage...")
-            theta = self.theta.get_object() if self.theta else None
-        except Exception as e:
-            log.exception(e)
-
-        try:
-            log.info("Loading phi stage...")
-            phi = self.phi.get_object() if self.phi else None
-        except Exception as e:
-            log.exception(e)
-
-        try:
-            log.info("Loading psi stage...")
-            psi = self.psi.get_object() if self.psi else None
-        except Exception as e:
-            log.exception(e)
-
-        for name, config in self.auxiliaries.items():
-            try:
-                log.info(f"Loading auxiliary hardware '{name}'...")
-                auxiliaries[name] = config.get_object()
-            except Exception as e:
-                log.exception(e)
+        # Code adapted from https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor-example
+        # We can use a with statement to ensure threads are cleaned up promptly
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(configs)) as executor:
+            # Start the load operations and mark each future with its URL
+            # future_to_config = {executor.submit(config.get_object): name for name, config in configs.items()}
+            future_to_config = {}
+            for name, config in to_load.items():
+                log.info(f"Loading {name} stage...")
+                future_to_config[executor.submit(config.get_object)] = name
+                time.sleep(0.1) # Space out simultaneous calls to shared DLLs
+            for future in concurrent.futures.as_completed(future_to_config):
+                name = future_to_config[future]
+                try:
+                    driver = future.result()
+                except Exception as exc:
+                    print(f'{name} generated an exception: {exc}')
+                    log.exception(exc)
+                else:
+                    loaded[name] = driver
 
         log.info("Stage objects loaded.")
-        return Stage(x, y, z, theta, phi, psi, circuitmap, conversion_matrix,
-                     self.loaded_position, self.unloaded_position,
-                     auxiliaries)
+        return Stage(
+            **loaded,
+            circuitmap = circuitmap,
+            conversion_matrix = conversion_matrix,
+            loaded_position = self.loaded_position,
+            unloaded_position = self.unloaded_position,
+        )
+
+
+def load_default_configuration() -> StageConfiguration:
+    """
+    Loads the default stage configuration.
+
+    Returns
+    -------
+    StageConfiguration
+        The default stage configuration.
+    """
+    if not _DEFAULT_STAGE_CONFIGURATION.is_file():
+        raise ValueError("Default stage configuration not configured.")
+    return StageConfiguration.parse_file(_DEFAULT_STAGE_CONFIGURATION)
+
+
+def save_default_configuration(config: StageConfiguration) -> None:
+    """
+    Saves the default stage configuration.
+
+    Parameters
+    ----------
+    config : StageConfiguration
+        The stage configuration to save.
+    """
+    with _DEFAULT_STAGE_CONFIGURATION.open("w") as f:
+        f.write(config.json())
 
 
 ###############################################################################
@@ -738,10 +773,6 @@ class Z825BLinearStage(LinearStageBase):
             self.driver = Proxy(ns.lookup(pyroname))
             self.driver.autoconnect()
         self._step_size = None
-
-    def __del__(self):
-        self.driver._pyroClaimOwnership()
-        self.driver.close()
 
     @property
     def step_size(self):
@@ -871,10 +902,6 @@ class PRM1Z8RotationalStage(RotationalStageBase):
             self.driver.autoconnect()
         self._step_size = None
 
-    def __del__(self):
-        self.driver._pyroClaimOwnership()
-        self.driver.close()
-
     @property
     def step_size(self):
         """The jog step size in mm."""
@@ -998,10 +1025,6 @@ class TSL550Laser(LaserBase):
             self.driver = Proxy(ns.lookup(pyroname))
             self.driver.autoconnect()
 
-    def __del__(self):
-        self.driver._pyroClaimOwnership()
-        self.driver.close()
-
     def on(self):
         self.driver._pyroClaimOwnership()
         if self.driver.status()[0] != '-':
@@ -1087,13 +1110,10 @@ class TSL550Laser(LaserBase):
 
     
 class RohdeSchwarzOscilliscope(DataAcquisitionUnitBase):
-    def __init__(self, name: str, address: str, hislip: bool = False, timeout: float = 1000.0):
+    def __init__(self, name: str, address: str, hislip: bool = False, timeout: float = 30000.0):
         super().__init__(name)
         self.driver = RTO()
         self.driver.connect(address, hislip=hislip, timeout=timeout)
-
-    def __del__(self):
-        self.driver.close()
 
     def measure(self) -> float:
         """
