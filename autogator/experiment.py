@@ -30,6 +30,7 @@ from time import sleep
 from typing import Dict, Any, List
 
 from autogator.circuit import Circuit, CircuitMap
+from autogator.hardware import Stage, load_default_configuration
 
 
 class Experiment:
@@ -41,14 +42,21 @@ class Experiment:
     instruments can be accessed and used in the experiment via the
     :py:class:`Stage`.
 
+    The experiment is instantiated once, and the same object is used to run
+    every circuit in the test. So, variables will persist across runs. This
+    may either be a good thing or a bad thing; variables set on the object
+    in `setup()` are available in ``run()``. However, you should mainly use
+    local variables in ``run()`` to avoid any unintentional data mixing.
+
     Attributes
     ----------
     stage : :py:class:`Stage`
         The stage object that is used to control the system.
+    circuit : :py:class:`Circuit`
+        The circuit currently under test.
     """
 
-    def __init__(self, name: str) -> None:
-        self.name = name
+    def __init__(self) -> None:
         self._stage = None
         self._circuit = None
 
@@ -76,23 +84,24 @@ class Experiment:
 
 
 class ExperimentRunner:
-    def __init__(self, circuitmap: CircuitMap, experiment: Experiment):
+    def __init__(self, circuitmap: CircuitMap, experiment: Experiment, stage: Stage = None):
         self.circuitmap = circuitmap
         self.experiment = experiment
+        self.stage = stage or load_default_configuration().get_stage()
 
     def run(self):
         """
         Run the experiment on all circuits in the batch.
         """
-        test_circuits = self.circuitmap.circuits
         stage = self.stage
 
-        experiment = self.experiment()
+        experiment: Experiment = self.experiment()
+        experiment._stage = stage
         experiment.setup()
 
-        for circuit in test_circuits:
+        for circuit in self.circuitmap.circuits:
             experiment._circuit = circuit
             stage.set_position_gds(*circuit.loc)
-            self.experiment.run()
+            experiment.run()
 
         experiment.teardown()
