@@ -3,7 +3,7 @@ from json import load
 from matplotlib.pyplot import autoscale
 from autogator.api import load_default_configuration
 from autogator.circuit import CircuitMap
-from autogator.routines import KeyboardControl, KeyloopKeyboardBindings, auto_scan, basic_scan, calibrate
+from autogator.routines import KeyboardControl, KeyloopKeyboardBindings, auto_scan, basic_scan, calibrate, easy_switcher
 
 
 def scope_configure_single_meas():
@@ -93,6 +93,14 @@ if __name__ == "__main__":
     def do_calibration():
         return calibrate(stage=stage, daq=stage.scope, circuits=calib, callback=auto_calibration_callback)
 
-    cmat = do_calibration()
-    print(cmat)
+    def do_easy_switcher():
+        return easy_switcher(stage=stage, daq=stage.scope)
+
+    # pos = {}
+    pos = {1: [1.1629, 3.1288, None, None, None, 100.0], 2: [10.0975, 3.3209, None, None, None, 100.0], 3: [9.9237, 11.5935, None, None, None, 100.0]}
+    stage.set_position(x=9.90561, y=11.60072)
+    do_auto_scan()
+    
+    # cmat = do_calibration()
+    # print(cmat)
     # calibrate(stage, stage.scope, calib, auto_calibration_callback)
