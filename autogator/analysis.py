@@ -23,31 +23,39 @@ class WavelengthAnalyzer:
         self.wavelength_log = wavelength_log
         self.__analyze_trigger(trigger_data)
 
+        modPeaks = self.peaks - self.peaks[0] #Make relative to the first point.
+        modTime = modPeaks / self.sample_rate
+        fit = np.polyfit(modTime, self.wavelength_log, 2) #Least-squares fit.
+        self.mapping = np.poly1d(fit) #Create function mapping time to wavelength.
+
     def __analyze_trigger(self, trigger_data):
         self.peaks, _ = find_peaks(trigger_data, height = 3, distance = 15)
 
-    def num_peaks(self):
-        return len(self.peaks)
-
     def process_data(self, raw_data):
-        deviceData = raw_data[self.peaks[0]:self.peaks[-1]]
+        """
+        Converts raw data to wavelength by interpolating against wavelength logs.
+
+        Parameters
+        ----------
+        raw_data : ndarray
+            The raw data to convert.
+
+        Returns
+        -------
+        channel_data : dict
+            A dictionary of processed data. Has the keys "wavelengths", "data",
+            "wavelength_hash", and "data_hash".
+        """
+        data = raw_data[self.peaks[0]:self.peaks[-1]]
+        
         #Time relative to the first collected data point.
-        deviceTime = np.arange(len(deviceData)) / self.sample_rate
+        deviceTime = np.arange(len(data)) / self.sample_rate
 
-        modPeaks = self.peaks - self.peaks[0] #Make relative to the first point.
-        modTime = modPeaks / self.sample_rate
-
-        print("Peaks, Time, Wavelength", len(modPeaks), len(modTime), len(self.wavelength_log))
-        #print(self.wavelength_log)
-
-
-        fit = np.polyfit(modTime, self.wavelength_log, 2) #Least-squares fit.
-        mapping = np.poly1d(fit) #Create function mapping time to wavelength.
-        deviceWavelength = mapping(deviceTime) #Get wavelengths at given times.
-        channelData = {
-            "wavelengths": deviceWavelength,
-            "data": deviceData,
-            "wavelengthHash": hash(tuple(deviceWavelength)),
-            "dataHash": hash(tuple(deviceData))
+        wls = self.mapping(deviceTime) #Get wavelengths at given times.
+        channel_data = {
+            "wavelengths": wls,
+            "data": data,
+            "wavelength_hash": hash(tuple(wls)),
+            "data_hash": hash(tuple(data))
         }
-        return channelData
+        return channel_data
