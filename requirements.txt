@@ -1,7 +1,7 @@
 bump2version==1.0.0
-numpy==1.18.5
-scipy==1.4.1
-matplotlib==3.2.2
+numpy>=1.21.5
+scipy>=1.7.3
+matplotlib>=3.5.1
 PySide2==5.15.0
 pyvisa==1.10.1
 keyboard==0.13.5
