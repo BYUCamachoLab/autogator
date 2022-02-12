@@ -26,9 +26,6 @@ collection happen autonomously, without supervision, as the software will
 optimize over each Circuit before performing the data collection routine.
 """
 
-from time import sleep
-from typing import Dict, Any, List
-
 from autogator.circuit import CircuitMap
 from autogator.profiles import load_default_configuration
 from autogator.hardware import Stage
