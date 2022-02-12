@@ -10,28 +10,80 @@
 A series of convenience functions for processing raw data.
 """
 
+from typing import NamedTuple
 import numpy as np
 from scipy.signal import find_peaks
+
+
+class AnalysisResult(NamedTuple):
+    """
+    A named tuple for storing analysis results.
+
+    Attributes
+    ----------
+    wavelength_hash : str
+        The hash of the wavelengths.
+    data_hash : str
+        The hash of the data.
+
+    Parameters
+    ----------
+    wl : ndarray
+        The wavelengths of the data.
+    data : ndarray
+        The data.
+    """
+    wl: np.ndarray
+    data: np.ndarray
+
+    @property
+    def wavelength_hash(self) -> str:
+        return hash(self.wl)
+
+    @property
+    def data_hash(self) -> str:
+        return hash(self.data)
 
 
 class WavelengthAnalyzer:
     """
     Uses a trigger signal to convert datasets from time-domain to wavelength.
+
+    Correlates a trigger signal, typically output from a laser, to a dataset.
+    The laser logs the current wavelength each time the trigger is high.
+    The trigger signal is expected to be a single channel of data as acquired
+    by a data acquisition device. The wavelength sweep rate may not be constant 
+    or linear in time. After receiving trigger data and the corresponding 
+    wavelengths, a curve is fit to the wavelength as a function of time.
+    Wavelengths for the raw data is then calculated by sampling the curve at
+    the same time points as the raw data.
+
+    Parameters
+    ----------
+    sample_rate : float
+        The sample rate of the acquired data. Sample rate of the trigger signal
+        should be the same as the sample rate of the raw data.
+    trigger_data : ndarray
+        The collected trigger signal. A peak finding algorithm is used to
+        correlate time points to the wavelength log.
+    wavelength_log : ndarray
+        Log of wavelengths for each time the trigger signal was high.
     """
-    def __init__(self, sample_rate, trigger_data, wavelength_log):
+    def __init__(self, sample_rate: float, trigger_data: np.ndarray, wavelength_log: np.ndarray):
         self.sample_rate = sample_rate
-        self.wavelength_log = wavelength_log
-        self.__analyze_trigger(trigger_data)
 
-        modPeaks = self.peaks - self.peaks[0] #Make relative to the first point.
-        modTime = modPeaks / self.sample_rate
-        fit = np.polyfit(modTime, self.wavelength_log, 2) #Least-squares fit.
-        self.mapping = np.poly1d(fit) #Create function mapping time to wavelength.
+        # Get indices of peaks in the trigger signal.
+        self.peaks, _ = find_peaks(trigger_data, height=3, distance=15)
 
-    def __analyze_trigger(self, trigger_data):
-        self.peaks, _ = find_peaks(trigger_data, height = 3, distance = 15)
+        # Make relative to the first point.
+        mod_peaks = self.peaks - self.peaks[0]
+        mod_time = mod_peaks / self.sample_rate
+        fit = np.polyfit(mod_time, wavelength_log, 2) 
+        
+        # Create function mapping time to wavelength.
+        self.mapping = np.poly1d(fit)
 
-    def process_data(self, raw_data):
+    def process_data(self, raw_data: np.ndarray) -> AnalysisResult:
         """
         Converts raw data to wavelength by interpolating against wavelength logs.
 
@@ -48,14 +100,10 @@ class WavelengthAnalyzer:
         """
         data = raw_data[self.peaks[0]:self.peaks[-1]]
         
-        #Time relative to the first collected data point.
-        deviceTime = np.arange(len(data)) / self.sample_rate
+        # Time relative to the first collected data point.
+        device_time = np.arange(len(data)) / self.sample_rate
 
-        wls = self.mapping(deviceTime) #Get wavelengths at given times.
-        channel_data = {
-            "wavelengths": wls,
-            "data": data,
-            "wavelength_hash": hash(tuple(wls)),
-            "data_hash": hash(tuple(data))
-        }
-        return channel_data
+        # Get wavelengths at given times.
+        wls = self.mapping(device_time)
+
+        return AnalysisResult(wls, data)
