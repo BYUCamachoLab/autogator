@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - First public release.
+- Support for multiple configuration profiles, allows you to create multiple
+  hardware configurations or setups to load into the program.
 
 ### Changed
 - Only supports Python 3.7+.
