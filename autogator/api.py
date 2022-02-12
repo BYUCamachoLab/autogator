@@ -15,6 +15,11 @@ from autogator.experiment import Experiment, ExperimentRunner
 from autogator.hardware import (
     HardwareConfiguration, 
     StageConfiguration, 
+)
+from autogator.profiles import (
+    load_configuration,
+    save_configuration,
+    update_calibration_matrix,
     load_default_configuration,
     save_default_configuration,
 )
@@ -23,8 +28,11 @@ from autogator.hardware import (
 __all__ = [
     "HardwareConfiguration",
     "StageConfiguration",
+    "load_configuration",
+    "save_configuration",
     "load_default_configuration",
     "save_default_configuration",
+    "update_calibration_matrix",
     "Experiment",
     "ExperimentRunner",
 ]    

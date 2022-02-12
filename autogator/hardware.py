@@ -37,10 +37,6 @@ from autogator.circuit import CircuitMap
 log = logging.getLogger(__name__)
 
 
-_CALIBRATION_PARAM_FILE = AUTOGATOR_CONFIG_DIR / "calibration_matrix.txt"
-_DEFAULT_STAGE_CONFIGURATION = AUTOGATOR_CONFIG_DIR / "stage_configuration.json"
-
-
 class HardwareDevice:
     driver = None
 
@@ -398,7 +394,7 @@ class Stage:
         phi: RotationalStageBase = None, 
         psi: RotationalStageBase = None, 
         circuitmap: CircuitMap = None, 
-        conversion_matrix: np.ndarray = None, 
+        calibration_matrix: np.ndarray = None, 
         loaded_position: List[float] = [None, None, None, None, None, None],
         unloaded_position: List[float] = [None, None, None, None, None, None],
         **auxiliaries: HardwareDevice,
@@ -411,7 +407,7 @@ class Stage:
         self.psi = psi
 
         self.circuitmap = circuitmap
-        self.conversion_matrix = conversion_matrix
+        self.calibration_matrix = calibration_matrix
         self.loaded_position = loaded_position
         self.unloaded_position = unloaded_position
         self.auxiliaries = auxiliaries
@@ -444,7 +440,7 @@ class Stage:
             filename = Path(filename)
         if not filename.exists():
             raise FileNotFoundError(f"File {filename} does not exist.")
-        self.conversion_matrix = np.loadtxt(filename)
+        self.calibration_matrix = np.loadtxt(filename)
 
     def save_calibration_matrix(self, filename: str):
         """
@@ -455,7 +451,7 @@ class Stage:
         filename : str
             The path to the file to save the conversion matrix to.
         """
-        np.savetxt(filename, self.conversion_matrix)
+        np.savetxt(filename, self.calibration_matrix)
 
     @property
     def motors(self) -> list:
@@ -559,13 +555,13 @@ class Stage:
             If the stage is not calibrated. GDS position cannot be set without
             first calibrating the stage.
         """
-        if self.conversion_matrix is None:
+        if self.calibration_matrix is None:
             raise UncalibratedStageError("Stage is not calibrated (no conversion matrix set), cannot set position in GDS coordinates")
 
         x_cmd = x if x is not None else 0.0
         y_cmd = y if y is not None else 0.0
         gds_pos = np.array([[x_cmd], [y_cmd], [1]])
-        stage_pos = self.conversion_matrix @ gds_pos
+        stage_pos = self.calibration_matrix @ gds_pos
 
         log.info(f"Commanded position: ({stage_pos[0,0], stage_pos[1,0]})")
         self.set_position(x=stage_pos[0, 0], y=stage_pos[1, 0])
@@ -662,7 +658,7 @@ class StageConfiguration(BaseSettings):
         The configuration for the rotational stage in the x-y plane.
     circuitmap : str
         Path to the CircuitMap text file.
-    conversion_matrix : str
+    calibration_matrix : str
         Path to the conversion matrix text file.
     loaded_position : List[float]
         List (length 6) of motor positions when the stage is loaded.
@@ -678,7 +674,7 @@ class StageConfiguration(BaseSettings):
     phi: HardwareConfiguration = None
     psi: HardwareConfiguration = None
     circuitmap: str = ""
-    conversion_matrix: str = ""
+    calibration_matrix: str = ""
     loaded_position: List[Any] = [None, None, None, None, None, None]
     unloaded_position: List[Any] = [None, None, None, None, None, None]
     auxiliaries: Dict[str, HardwareConfiguration] = {}
@@ -693,8 +689,8 @@ class StageConfiguration(BaseSettings):
         cmapfile = Path(self.circuitmap)
         circuitmap = CircuitMap.loadtxt(cmapfile) if cmapfile.is_file() else None
 
-        cmatfile = Path(self.conversion_matrix)
-        conversion_matrix = np.loadtxt(cmatfile) if cmatfile.is_file() else None
+        cmatfile = Path(self.calibration_matrix)
+        calibration_matrix = np.loadtxt(cmatfile) if cmatfile.is_file() else None
 
         log.info("Loading stage objects...")
         names = ["x", "y", "z", "theta", "phi", "psi"]
@@ -727,37 +723,10 @@ class StageConfiguration(BaseSettings):
         return Stage(
             **loaded,
             circuitmap = circuitmap,
-            conversion_matrix = conversion_matrix,
+            calibration_matrix = calibration_matrix,
             loaded_position = self.loaded_position,
             unloaded_position = self.unloaded_position,
         )
-
-
-def load_default_configuration() -> StageConfiguration:
-    """
-    Loads the default stage configuration.
-
-    Returns
-    -------
-    StageConfiguration
-        The default stage configuration.
-    """
-    if not _DEFAULT_STAGE_CONFIGURATION.is_file():
-        raise ValueError("Default stage configuration not configured.")
-    return StageConfiguration.parse_file(_DEFAULT_STAGE_CONFIGURATION)
-
-
-def save_default_configuration(config: StageConfiguration) -> None:
-    """
-    Saves the default stage configuration.
-
-    Parameters
-    ----------
-    config : StageConfiguration
-        The stage configuration to save.
-    """
-    with _DEFAULT_STAGE_CONFIGURATION.open("w") as f:
-        f.write(config.json())
 
 
 ###############################################################################
