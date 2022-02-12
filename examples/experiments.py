@@ -2,6 +2,7 @@ from datetime import datetime
 from getpass import getuser
 from pathlib import Path
 import time
+import logging
 from typing import List
 
 import numpy as np
@@ -10,6 +11,9 @@ from autogator.analysis import WavelengthAnalyzer
 from autogator.experiment import Experiment
 from autogator.hardware import load_default_configuration
 from autogator.routines import auto_scan
+
+
+log = logging.getLogger(__name__)
 
 
 class WavelengthSweepExperiment(Experiment):
@@ -51,6 +55,7 @@ class WavelengthSweepExperiment(Experiment):
     chip_name : str
     """
     # General configuration
+    MANUAL = False
     chip_name: str = "fabrun5"
     output_dir = Path("C:/Users/sequo/Documents/GitHub/autogator/examples/fake")
 
@@ -64,10 +69,10 @@ class WavelengthSweepExperiment(Experiment):
     trigger_channel: int = 1
     trigger_level: int = 1
     channel_settings = {
-        1: {"range": 10, "position": 2},
-        2: {"range": 2.5, "position": -1},
-        3: {"range": 2.5, "position": -1},
-        4: {"range": 2.5, "position": -1},
+        1: {"range": 5, "position": -2.5},
+        2: {"range": 0.6, "position": -4},
+        # 3: {"range": 2.5, "position": -1},
+        # 4: {"range": 2.5, "position": -1},
     }
 
     # Laser configuration
@@ -103,32 +108,25 @@ class WavelengthSweepExperiment(Experiment):
 
         self.scope.acquisition_settings(sample_rate=self.sample_rate, duration=acquire_time)
         for channel in self.active_channels:
-            channelMode = "Trigger" if (channel == self.trigger_channel) else "Data"
-            print("Adding Channel {} - {}".format(channel, channelMode))
             self.scope.set_channel(channel, **self.channel_settings[channel])
             time.sleep(0.1)
 
-        print("Adding Edge Trigger @ {} Volt(s).".format(self.trigger_level))
         self.scope.edge_trigger(self.trigger_channel, self.trigger_level)
 
     def configure_scope_measure(self):
-        CHANNEL1 = 1
-        CHANNEL2 = 2
+        MEAS_CHANNEL = 2
         RANGE = 2.0
-        COUPLING = "DCLimit"
         POSITION = -3.0
 
-        self.scope.set_channel(CHANNEL2, range=RANGE, coupling=COUPLING, position=POSITION)
-        self.scope.set_channel(CHANNEL1, range=RANGE, coupling=COUPLING, position=POSITION)
-        self.scope.set_auto_measurement(source=F"C{CHANNEL2}W1")
+        self.scope.set_channel(1, range=RANGE, position=POSITION)
+        self.scope.set_channel(2, range=RANGE, position=POSITION)
+        self.scope.set_auto_measurement(source=F"C{MEAS_CHANNEL}W1")
         self.scope.wait_for_device()
 
         self.scope.edge_trigger(1, 0.0)
-        self.scope.set_timescale(10e-10) 
+        self.scope.set_timescale(10e-10)
         self.scope.acquire(run="continuous")
-
         time.sleep(5)
-        print("Test read:", self.stage.scope.measure())
 
     def configure_laser_sweep(self):
         self.laser.power_dBm(self.power_dBm)
@@ -136,11 +134,9 @@ class WavelengthSweepExperiment(Experiment):
             continuous=True, twoway=True, trigger=False, const_freq_step=False
         )
 
-        print("Enabling self.laser's trigger output.")
         self.laser.trigger_enable_output()
-        triggerMode = self.laser.trigger_set_mode("Step")
-        triggerStep = self.laser.trigger_step(self.trigger_step)
-        print("Setting trigger to: {} and step to {}".format(triggerMode, triggerStep))
+        self.laser.trigger_set_mode("Step")
+        self.laser.trigger_step(self.trigger_step)
 
     def configure_laser_measure(self):
         self.laser.wavelength(1550.0)
@@ -151,23 +147,22 @@ class WavelengthSweepExperiment(Experiment):
         self.configure_scope_measure()
         self.configure_laser_measure()
 
-        auto_scan(stage=self.stage, daq=self.stage.scope, settle=0.0, plot=True)
+        # Maximize signal
+        auto_scan(stage=self.stage, daq=self.stage.scope, settle=0.0, plot=self.MANUAL)
 
         self.configure_scope_sweep()
         self.configure_laser_sweep()
 
-        print("Starting Acquisition")
+        log.debug("Starting Acquisition")
         self.scope.acquire(timeout=self.duration * 2)
-        print("Sweeping laser")
+        log.debug("Sweeping laser")
         self.laser.sweep_wavelength(self.wl_start, self.wl_stop, self.duration)
-        print("Waiting for acquisition to complete...")
-        print(self.scope.timeout)
+        log.debug("Waiting for acquisition to complete...")
         self.scope.wait_for_device()
 
-        print("Getting raw data...")
+        log.debug("Downloading raw data...")
         raw = {}
         for channel in self.active_channels:
-            print(channel)
             raw[channel] = self.scope.get_data(channel)
         wavelengthLog = self.laser.wavelength_logging()
 
@@ -188,28 +183,23 @@ class WavelengthSweepExperiment(Experiment):
         filename = self.output_dir / f"{date_prefix}_{self.chip_name}_locx_{self.circuit.loc.x}_locy_{self.circuit.loc.y}".replace(".", "p")
         filename = filename.with_suffix(".wlsweep")
         
-        FILE_HEADER = f"""# Test performed at {today.strftime("%Y-%m-%d %H:%M:%S")}
-# Operator: {self.operator}
-# Chip: {self.chip_name}
-# Circuit: {self.circuit.loc.x}, {self.circuit.loc.y}
-# Laser: {self.laser.wavelength()}
-# Laser power: {self.power_dBm} dBm
-# Wavelength start: {self.wl_start} nm
-# Wavelength stop: {self.wl_stop} nm
-#
-# Wavelength\tCh1
-"""
+        FILE_HEADER = f"""Test performed at {today.strftime("%Y-%m-%d %H:%M:%S")}
+Operator: {self.operator}
+Chip: {self.chip_name}
+Circuit: {self.circuit.loc.x}, {self.circuit.loc.y}
+Laser power: {self.power_dBm} dBm
+Wavelength start: {self.wl_start} nm
+Wavelength stop: {self.wl_stop} nm
+
+Wavelength\tCh1"""
 
         print("Saving raw data.")
-        with filename.open("w") as out:
-            out.write(FILE_HEADER)
-            data_lists = [sorted_data[self.trigger_channel]["wavelengths"]]
-            for channel in self.data_channels:
-                data_lists.append(sorted_data[channel]["data"])
-            data_zip = zip(*data_lists)
-            for data_list in data_zip:
-                data_line = "\t".join(data_list)
-                out.write(f"{data_line}\n")
+        data_lists = []
+        for channel in self.data_channels:
+            if not data_lists:
+                data_lists = [sorted_data[channel].wl]
+            data_lists.append(sorted_data[channel].data)
+        np.savetxt(filename, np.column_stack(data_lists), delimiter="\t", header=FILE_HEADER)
 
     def teardown(self):
         pass
@@ -222,8 +212,8 @@ if __name__ == "__main__":
     cmap = CircuitMap.loadtxt("data/circuitmap.txt")
 
     mzis = cmap.filterby(name="MZI4", grouping="1")
-    # filt = CircuitMap([m for m in mzis if m.loc.x == -3030.0])
     stage = load_default_configuration().get_stage()
+    
     try:
         runner = ExperimentRunner(mzis, WavelengthSweepExperiment, stage=stage)
         runner.run()
