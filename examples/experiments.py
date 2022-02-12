@@ -60,6 +60,7 @@ class WavelengthSweepExperiment(Experiment):
     sample_rate: int = int(np.floor(10e6 / (duration + buffer)))
     sample_rate = 1e5
     active_channels: List[int] = [1, 2]
+    data_channels: List[int] = [2]
     trigger_channel: int = 1
     trigger_level: int = 1
     channel_settings = {
@@ -179,7 +180,7 @@ class WavelengthSweepExperiment(Experiment):
 
         sorted_data = {
             channel: analysis.process_data(raw[channel])
-            for channel in self.active_channels
+            for channel in self.data_channels
         }
 
         today = datetime.now()
@@ -196,20 +197,19 @@ class WavelengthSweepExperiment(Experiment):
 # Wavelength start: {self.wl_start} nm
 # Wavelength stop: {self.wl_stop} nm
 #
-# Wavelength\tCh1\tCh2\tCh3\tCh4
+# Wavelength\tCh1
 """
 
         print("Saving raw data.")
         with filename.open("w") as out:
             out.write(FILE_HEADER)
             data_lists = [sorted_data[self.trigger_channel]["wavelengths"]]
-            for channel in raw:
+            for channel in self.data_channels:
                 data_lists.append(sorted_data[channel]["data"])
             data_zip = zip(*data_lists)
             for data_list in data_zip:
-                for data in data_list:
-                    out.write(str(data) + "\t")
-                out.write("\n")
+                data_line = "\t".join(data_list)
+                out.write(f"{data_line}\n")
 
     def teardown(self):
         pass
@@ -221,11 +221,11 @@ if __name__ == "__main__":
 
     cmap = CircuitMap.loadtxt("data/circuitmap.txt")
 
-    mzi2 = cmap.filterby(name="MZI2", grouping="1")
-    filt2 = CircuitMap([m for m in mzi2 if m.loc.x == -3030.0])
+    mzis = cmap.filterby(name="MZI4", grouping="1")
+    # filt = CircuitMap([m for m in mzis if m.loc.x == -3030.0])
     stage = load_default_configuration().get_stage()
     try:
-        runner = ExperimentRunner(filt2, WavelengthSweepExperiment, stage=stage)
+        runner = ExperimentRunner(mzis, WavelengthSweepExperiment, stage=stage)
         runner.run()
     except Exception as e:
         print(stage.scope.measure())
