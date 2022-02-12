@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the MIT License
+# Licensed under the terms of the GNU GPLv3+ License
 # (see autogator/__init__.py for details)
 
 """
-Motion
-------
+# Configuration
 
-Motion example. Uses the default keyboard controller and default keybindings.
+Configuration example. Sets the network hardware names and parameters and
+persists them as the default configuration.
 """
 
 import json
 
+import numpy as np
+
 from autogator.api import save_default_configuration, load_default_configuration
 from autogator.hardware import HardwareConfiguration, StageConfiguration
-from autogator.routines import KeyboardControl, KeyloopKeyboardBindings, basic_scan
+from autogator.profiles import update_calibration_matrix
 
 
 captainamerica = HardwareConfiguration(
@@ -69,11 +71,9 @@ sc = StageConfiguration(
         "laser": wanda,
         "scope": dormammu,
         # "lamp": jarvis,
-    }
+    },
+    calibration_matrix="./data/calib_mat.txt",
 )
-
-
-stage = sc.get_stage()
 
 
 def hardware_config_json():
@@ -82,29 +82,8 @@ def hardware_config_json():
     print(json.dumps(parsed, indent=4))
 
 
-def keyboard_control():
-    kc = KeyboardControl(stage, KeyloopKeyboardBindings())
-    kc.loop()
-
-
-def scope_configure_single_meas():
-    oscope = stage.scope.driver
-
-    # Scope setup
-    CHANNEL = 1
-    RANGE = 1.0
-    COUPLING = "DCLimit"
-    POSITION = -5.0
-
-    oscope.set_channel(CHANNEL, range=RANGE, coupling=COUPLING, position=POSITION)
-    oscope.set_auto_measurement(source=F"C{CHANNEL}W1")
-    oscope.wait_for_device()
-
-
-def my_basic_scan():
-    basic_scan(stage, stage.scope, (8, 12), (4, 8), step_size=1, plot=True, go_to_max=False)
-
-
-def persist_configuration():
-    from autogator.api import save_default_configuration
-    save_default_configuration(sc)
+if __name__ == "__main__":
+    hardware_config_json()
+    save_default_configuration("asgard", sc)
+    matrix = np.loadtxt("data/calib_mat.txt")
+    update_calibration_matrix("asgard", matrix)
