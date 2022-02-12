@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright © Autogator Project Contributors
-# Licensed under the terms of the MIT License
+# Licensed under the terms of the GNU GPLv3+ License
 # (see autogator/__init__.py for details)
 
 from PySide2.QtCore import *

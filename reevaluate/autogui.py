@@ -290,7 +290,7 @@ class GUI(QWidget):
             )
 
     def printPosition(self):
-        if self.motion.conversion_matrix is not None:
+        if self.motion.calibration_matrix is not None:
             stage_pos = np.array(
                 [
                     [self.motion.get_motor_position(self.motion.x_mot)],
@@ -298,7 +298,7 @@ class GUI(QWidget):
                     [1],
                 ]
             )
-            newPoint = np.linalg.inv(self.motion.conversion_matrix) @ stage_pos
+            newPoint = np.linalg.inv(self.motion.calibration_matrix) @ stage_pos
             self.cur_x_position_label.setText(str(newPoint[0][0]))
             self.cur_y_position_label.setText(str(newPoint[1][0]))
 
