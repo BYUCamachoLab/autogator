@@ -3,8 +3,8 @@ bump2version==1.0.0
 numpy>=1.21.5
 scipy>=1.7.3
 matplotlib>=3.5.1
+pydantic==1.8.2
 PySide2==5.15.0
-pyvisa==1.10.1
 keyboard==0.13.5
 isort==5.10.1
 pytkdocs[numpy-style]

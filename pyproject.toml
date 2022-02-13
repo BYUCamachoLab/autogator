@@ -19,5 +19,6 @@ known_third_party = [
     "tabulate",
     "pyrolab",
     "keyboard",
+    "pydantic",
 ]
 known_first_party = ["autogator"]
