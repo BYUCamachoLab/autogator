@@ -1,0 +1,8 @@
+<RCC>
+  <qresource prefix="images">
+    <file>images/stop.jpg</file>
+    <file>images/favicon-32x32.png</file>
+    <file>images/default.ico</file>
+    <file>images/croc.jpg</file>
+  </qresource>
+</RCC>

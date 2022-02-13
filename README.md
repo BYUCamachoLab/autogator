@@ -1,13 +1,19 @@
-# Autogator
-The AUTOmatic chip interroGATOR.
+# Autogator 
 
-A software package for camera-assisted motion control of PIC chip interrogation platforms.
+The Automatic Chip Interrogator, by Sequoia Ploeg.
+
+Version 0.3.0
+
+A software package for camera-assisted motion control and experiment 
+configuration of photonic integrated circuit interrogation platforms.
 
 ## Installation
-This package only works on Windows.
 
-ThorLabs software, [Kinesis](https://www.thorlabs.com/newgrouppage9.cfm?objectgroup_id=10285) must be installed. 
-You will also need the [uc480 API](https://www.thorlabs.com/software_pages/ViewSoftwarePage.cfm?Code=ThorCam).
+This package is cross-platform and can be installed on any operating system.
+
+AutoGator is a client with algorithms for interacting with instruments 
+controlled by other softwares. It typically communicates with hardware using
+socket connections.
 
 It is recommended to use a virtual environment when installing Autogator. 
 To recreate the development environment, after manually installing the above packages, run:
@@ -16,7 +22,7 @@ To recreate the development environment, after manually installing the above pac
 pip install -r requirements.txt
 ```
 
-## Notes
+## Dev Notes
 
 ### Possible algorithm for calibrating the stage
 

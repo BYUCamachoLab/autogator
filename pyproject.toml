@@ -1,0 +1,24 @@
+[build-system]
+requires = [
+    "setuptools>=51",
+    "wheel"
+]
+build-backend = "setuptools.build_meta"
+
+[tool.isort]
+profile = "black"
+extend_skip_glob = "api.py"
+known_third_party = [
+    "Pyro5",
+    "matplotlib",
+    "numpy",
+    "pytest",
+    "scipy",
+    "setuptools",
+    "typer",
+    "tabulate",
+    "pyrolab",
+    "keyboard",
+    "pydantic",
+]
+known_first_party = ["autogator"]
