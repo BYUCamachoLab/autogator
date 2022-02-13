@@ -1,7 +1,7 @@
 # AutoGator: The Automatic Chip Interrogator
 
 <p align="center">
-<img src="/images/autogator.png" width="40%" alt="AutoGator">
+<img src="https://raw.githubusercontent.com/BYUCamachoLab/autogator/master/docs/images/autogator.png" width="40%" alt="AutoGator">
 </p>
 
 A software package for camera-assisted motion control and experiment 

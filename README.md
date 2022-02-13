@@ -1,8 +1,19 @@
+<p align="center">
+<img src="https://raw.githubusercontent.com/BYUCamachoLab/autogator/master/docs/images/autogator.png" width="40%" alt="PyroLab">
+</p>
+
+<p align="center">
+<img alt="Development version" src="https://img.shields.io/badge/master-v0.3.0-informational">
+<a href="https://pypi.python.org/pypi/autogator"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/autogator.svg"></a>
+<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/autogator">
+<a href="https://autogator.readthedocs.io/"><img alt="Documentation Status" src="https://readthedocs.org/projects/autogator/badge/?version=latest"></a>
+<a href="https://pypi.python.org/pypi/autogator/"><img alt="License" src="https://img.shields.io/pypi/l/autogator.svg"></a>
+<a href="https://github.com/BYUCamachoLab/autogator/commits/master"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/BYUCamachoLab/autogator.svg"></a>
+</p>
+
 # Autogator 
 
-The Automatic Chip Interrogator, by Sequoia Ploeg.
-
-Version 0.3.0
+The Automatic Chip Interrogator, by Sequoia Ploeg ([BYU CamachoLab](https://camacholab.byu.edu/)).
 
 A software package for camera-assisted motion control and experiment 
 configuration of photonic integrated circuit interrogation platforms.
