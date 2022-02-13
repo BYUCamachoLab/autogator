@@ -25,7 +25,7 @@ This work is currently under review.
 ## PyroLab
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/sequoiap/pyrolab/master/docs/source/_static/images/pyrolab_logo.svg" width="40%" alt="PyroLab">
+<img src="https://raw.githubusercontent.com/BYUCamachoLab/pyrolab/master/docs/_static/images/pyrolab_logo.svg" width="40%" alt="PyroLab">
 </p>
 
 AutoGator builds on [PyroLab](https://github.com/BYUCamachoLab/pyrolab),
