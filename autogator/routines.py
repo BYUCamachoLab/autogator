@@ -10,6 +10,20 @@
 A set of common, useful stage operations implemented using common calls from 
 abstracted motors and auxiliary devices. In theory, setups utilizing different
 hardware should be able to use the same routines without any modification.
+
+Using this module, you can
+
+* define routines that take advantage of abstracted objects like a "stage" or
+  a "data acquisition unit".
+* reuse routines even with different hardware, given they implement the 
+  interfaces defined in autogator.hardware
+
+It is easy to write your own routines that will work regardless of the hardware
+available. This makes them reusable between different setups. Routines are
+written to be functional, rather than object oriented. They usually accept
+as parameters preconfigured classes with a known API, such as a Stage, a Laser,
+or a DataAcquisitionUnitBase. The routine doesn't do any configuration on such
+objects; they should be passed in preconfigured.
 """
 
 import logging

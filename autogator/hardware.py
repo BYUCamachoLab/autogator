@@ -9,6 +9,14 @@
 
 AutoGator has a number of optional hardware components that can be used to
 control the motion of the PIC chip and other aspects of the system.
+
+This module serves the following purposes:
+
+* defines device interfaces for different types of hardware, such as lasers,
+  motors, and other devices  
+* defines concrete implementations of interfaces for specific hardware
+* tracks the "concept of motion" of the system as a whole
+* centralizes control of an AutoGator instance's available resources
 """
 
 import concurrent.futures

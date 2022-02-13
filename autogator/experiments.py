@@ -24,6 +24,14 @@ circuits in a single run. Since AutoGator has stage calibration functionality,
 the researcher theoretically can begin a BatchExperiment and let the data
 collection happen autonomously, without supervision, as the software will
 optimize over each Circuit before performing the data collection routine.
+
+Using this module, you can
+
+* create custom experiment implementations by subclassing the Experiment class
+* access available hardware directly through the Experiment object
+* define data output locations within your experiment class as part of the 
+  test procedure
+* run experiments on groups of circuits using the ExperimentRunner
 """
 
 from autogator.circuits import CircuitMap

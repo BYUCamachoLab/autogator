@@ -11,6 +11,12 @@ Circuits are a way of representing a GDS circuit with its parameters. A
 CircuitMap collects a set of Circuit objects and provides methods for
 sorting or filtering them by parameters.
 
+Using this module, you can
+
+* read/write text representations
+* select specific circuits by parameters
+* track spatial locations of circuits
+
 ## Examples
 
 Suppose I have a text file of circuits (see documentation for specification of
