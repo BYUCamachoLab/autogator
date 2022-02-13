@@ -11,79 +11,54 @@ Configuration example. Sets the network hardware names and parameters and
 persists them as the default configuration.
 """
 
-import json
-
 import numpy as np
 
-from autogator.api import save_default_configuration, load_default_configuration
+from autogator.api import save_default_configuration
 from autogator.hardware import HardwareConfiguration, StageConfiguration
 from autogator.profiles import update_calibration_matrix
 
 
-captainamerica = HardwareConfiguration(
+x = HardwareConfiguration(
     classname="Z825BLinearStage",
     parameters={
-        "pyroname": "asgard.captainamerica",
-        "ns_host": "camacholab.ee.byu.edu",
+        "pyroname": "x",
+        "ns_host": "yourdomain.com",
     }
 )
-hulk = HardwareConfiguration(
+y = HardwareConfiguration(
     classname="Z825BLinearStage",
     parameters={
-        "pyroname": "asgard.hulk",
-        "ns_host": "camacholab.ee.byu.edu",
+        "pyroname": "y",
+        "ns_host": "yourdomain.com",
     }
 )
-wolverine = HardwareConfiguration(
-    classname="PRM1Z8RotationalStage",
-    parameters={
-        "pyroname": "asgard.wolverine",
-        "ns_host": "camacholab.ee.byu.edu",
-    }
-)
-dormammu = HardwareConfiguration(
+scope = HardwareConfiguration(
     classname="RohdeSchwarzOscilliscope",
     parameters={
-        "name": "dormammu",
-        "address": "10.32.112.162",
+        "name": "scope",
+        "address": "1.2.3.4",
     }
 )
-wanda = HardwareConfiguration(
+laser = HardwareConfiguration(
     classname="TSL550Laser",
     parameters={
-        "pyroname": "westview.scarletwitch",
-        "ns_host": "camacholab.ee.byu.edu",
+        "pyroname": "laser",
+        "ns_host": "yourdomain.com",
     }
 )
-# jarvis = HardwareConfiguration(
-#     classname="",
-#     parameters={
-#         "pyroname": "asgard.jarvis",
-#         "ns_host": "camacholab.ee.byu.edu",
-#     }
-# )
 
 sc = StageConfiguration(
-    x=captainamerica,
-    y=hulk,
-    psi=wolverine,
+    x=x,
+    y=y,
     auxiliaries={
-        "laser": wanda,
-        "scope": dormammu,
-        # "lamp": jarvis,
+        "laser": laser,
+        "scope": scope,
     },
     calibration_matrix="./data/calib_mat.txt",
 )
 
 
-def hardware_config_json():
-    scj = sc.json()
-    parsed = json.loads(scj)
-    print(json.dumps(parsed, indent=4))
-
-
 if __name__ == "__main__":
-    hardware_config_json()
-    save_default_configuration("asgard", sc)
+    save_default_configuration("myprofile", sc)
     matrix = np.loadtxt("data/calib_mat.txt")
-    update_calibration_matrix("asgard", matrix)
+    update_calibration_matrix("myprofile", matrix)

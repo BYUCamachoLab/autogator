@@ -279,7 +279,7 @@ class CircuitMap:
         newone.circuits = [copy.deepcopy(circuit) for circuit in self.circuits]
         return newone
 
-    def filterby(self, **kwargs) -> CircuitMap:
+    def filterby(self, **kwargs: str) -> CircuitMap:
         """
         Filters out circuits that don't match the key, value pairs provided.
         
@@ -287,8 +287,9 @@ class CircuitMap:
 
         Parameters
         ----------
-        **kwargs : dict
-            The key, value pairs to filter on.
+        **kwargs : Dict[str, str]
+            The key, value pairs to filter on. All parameters are interpreted
+            as strings.
 
         Returns
         -------
@@ -310,7 +311,7 @@ class CircuitMap:
         ]
         return CircuitMap(filtered)
 
-    def filterout(self, **kwargs) -> CircuitMap:
+    def filterout(self, **kwargs: str) -> CircuitMap:
         """
         Filters out any circuits that match the key, values pairs provided. 
         
@@ -318,8 +319,9 @@ class CircuitMap:
 
         Parameters
         ----------
-        **kwargs : dict
-            The key, value pairs to filter out on.
+        **kwargs : Dict[str, str]
+            The key, value pairs to filter out on. All parameters are
+            interpreted as strings.
 
         Returns
         -------

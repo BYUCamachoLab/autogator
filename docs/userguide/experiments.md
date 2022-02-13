@@ -31,8 +31,15 @@ by user-defined parameters. The CircuitMap format is:
 (<GDSx>,<GDSy>) [<param1>=<value1>, <param2>=<value2>, ...]
 ```
 
-Note that &lt; &gt; denotes a required field, &lbrack; &rbrack; denotes
-optional fields.
+!!! note
+
+    Note that &lt; &gt; denotes a required field, &lbrack; &rbrack; denotes
+    optional fields.
+
+!!! warning
+
+    All parameters are parsed as strings. So, even if your text file contains
+    floats or boolean-like values, you must use strings to filter them.
 
 Because of AutoGator's filtering capabilities, a single text file can contain a
 complete listing of all circuits on a die. The user may assign to each circuit

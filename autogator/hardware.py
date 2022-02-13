@@ -388,6 +388,34 @@ class CameraBase(HardwareDevice):
         log.info(f"Taking picture from {self.name}")
 
 
+class GenericPyroLabDevice(HardwareDevice):
+    """
+    A class that passes all function calls on to the PyroLab driver.
+
+    This class is used to pass all function calls and attribute requests on to
+    a nonstandard PyroLab driver. This is useful for devices that are not
+    implemented or described by the standard AutoGator API, such as custom,
+    homebuilt hardware.
+
+    Parameters
+    ----------
+    pyroname : str
+        The name of the PyroLab object as registered with the nameserver.
+    ns_host : str, optional
+        The hostname of the PyroLab nameserver (default "localhost").
+    ns_port : int, optional
+        The port of the PyroLab nameserver (default "9090").
+    """
+    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
+        super().__init__(pyroname)
+        with locate_ns(host=ns_host, port=ns_port) as ns:
+            self.driver = Proxy(ns.lookup(pyroname))
+            self.driver.autoconnect()
+
+    def __getattr__(self, __name: str) -> Any:
+        return self.driver.__getattr__(__name)
+
+
 class Stage:
     """
     Singleton-like class that centralizes access to all hardware devices. 

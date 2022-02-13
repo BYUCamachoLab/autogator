@@ -201,6 +201,9 @@ class WavelengthSweepExperiment(Experiment):
         self.laser.sweep_wavelength(self.wl_start, self.wl_stop, self.duration)
         log.debug("Waiting for acquisition to complete...")
         self.scope.wait_for_device()
+        
+        # Scope does provide the ability to save screenshots, if we want
+        # scope.screenshot(screenshot_filename)
 
         log.debug("Downloading raw data...")
         raw = {}
