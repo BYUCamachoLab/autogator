@@ -1,0 +1,54 @@
+name: release
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools wheel twine build
+          pip install -r requirements.txt
+      - name: Build
+        run: |
+          python -m build
+      - name: Get version number
+        id: get_version
+        run: echo ::set-output name=VERSION::$(python3 -c "import autogator; print(autogator.__version__)")
+      - name: Load Release text
+        id: get_text
+        run: |
+          BODY=$(cat ./docs/changelog/${{ steps.get_version.outputs.VERSION }}-changelog.md)
+          BODY="${BODY//'%'/'%25'}"
+          BODY="${BODY//$'\n'/'%0A'}"
+          BODY="${BODY//$'\r'/'%0D'}"
+          echo "::set-output name=BODY::$BODY"
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.5.0
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: AutoGator ${{ steps.get_version.outputs.VERSION }}
+          body: ${{ steps.get_text.outputs.BODY }}
+          draft: false
+          prerelease: false
