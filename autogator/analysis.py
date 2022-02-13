@@ -17,31 +17,26 @@ from scipy.signal import find_peaks
 
 class AnalysisResult(NamedTuple):
     """
-    A named tuple for storing analysis results.
+    A named tuple for storing analysis results.        
 
     Attributes
     ----------
-    wavelength_hash : str
-        The hash of the wavelengths.
-    data_hash : str
-        The hash of the data.
-
-    Parameters
-    ----------
     wl : ndarray
-        The wavelengths of the data.
+        Wavelength values.
     data : ndarray
-        The data.
+        Corresponding data values.
     """
     wl: np.ndarray
     data: np.ndarray
 
     @property
     def wavelength_hash(self) -> str:
+        """The hash of the wavelength data."""
         return hash(self.wl)
 
     @property
     def data_hash(self) -> str:
+        """The hash of the raw data."""
         return hash(self.data)
 
 

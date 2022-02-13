@@ -5,26 +5,21 @@
 # (see autogator/__init__.py for details)
 
 """
-Routines
-========
+# Routines
 
 A set of common, useful stage operations implemented using common calls from 
 abstracted motors and auxiliary devices. In theory, setups utilizing different
 hardware should be able to use the same routines without any modification.
 """
 
-import os
 import logging
-import threading
 import time
 from typing import Callable, List, Tuple
 
 import numpy as np
 import matplotlib.pyplot as plt
-from autogator.circuit import Circuit
-import keyboard
-from pydantic import BaseModel, BaseSettings
 
+from autogator.circuits import Circuit
 from autogator.hardware import DataAcquisitionUnitBase, Stage
 from autogator.controllers import KeyboardControl
 

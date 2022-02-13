@@ -1,4 +1,4 @@
-::: autogator.experiment
+::: autogator.controllers
     handler: python
     rendering:
       show_root_heading: false

@@ -5,8 +5,7 @@
 # (see autogator/__init__.py for details)
 
 """
-Errors
-======
+# Errors
 
 Custom errors for AutoGator.
 """

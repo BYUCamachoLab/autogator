@@ -5,34 +5,37 @@
 # (see autogator/__init__.py for details)
 
 """
-Circuit Maps
-============
+# Circuit Maps
 
 Circuits are a way of representing a GDS circuit with its parameters. A
 CircuitMap collects a set of Circuit objects and provides methods for
 sorting or filtering them by parameters.
 
-Examples
---------
+## Examples
 
 Suppose I have a text file of circuits (see documentation for specification of
 CircuitMap text files). I can load it into AutoGator and create a CircuitMap:
 
+```python
 >>> p = Path(Path.home() / "Downloads/mzis.txt")
 >>> cm = CircuitMap.loadtxt(p)
+```
 
 I can update existing (or add new) parameters in bulk:
 
+```python
 >>> cm.update_params(submitter="sequoiac")
 >>> for cir in cm:
 ...    cir.loc += (0, 127)
 
 >>> cm.update_params(ports="LD")
+```
 
 In this example, suppose we have the circuits from a grouping on a GDS. Suppose
 this grouping is repeated six times across the file. I can create a map for the
 entire GDS fild by copying CircuitMaps and adjusting its parameters.
 
+```python
 >>> dx = 2500
 >>> dy = 4200
 
@@ -53,17 +56,22 @@ entire GDS fild by copying CircuitMaps and adjusting its parameters.
 ...     group.update_params(grouping=grouping)
 ...     for cir in group:
 ...         cir.loc += offsets[grouping]
+```
 
 I can then combine all the groups into a single CircuitMap:
 
+```python
 >>> cmap = CircuitMap()
 >>> for group in groups:
 ...     cmap += group
+```
 
 Now that I have a complete CircuitMap, I can export it to a text file for use
 in automated tests.
 
+```python
 >>> cmap.savetxt("updatedmzis.txt")
+```
 """
 from __future__ import annotations
 import copy
@@ -83,7 +91,7 @@ class Location(NamedTuple):
 
     Typically signifies the presence of a grating coupler.
 
-    Parameters
+    Attributes
     ----------
     x : float
         The x coordinate of the location.
@@ -147,13 +155,14 @@ class Circuit:
         strings and pairs are delimited by commas.
     """
     def __init__(self, loc: Union[Tuple[float, float], Location], params: Dict[str, str]) -> None:
-        # if isinstance(loc, tuple):
-        #     loc = Location(loc)
         self.loc = loc
         self.params = params
 
     @property
     def loc(self) -> Location:
+        """
+        Location of the circuit in the GDS file.
+        """
         return self._loc
 
     @loc.setter
@@ -201,8 +210,10 @@ class Circuit:
 
 class CircuitMap:
     """
-    Stores circuit objects. CircuitMaps are indexable; Circuit objects can be
-    accessed by index or by location.
+    Stores circuit objects. 
+    
+    CircuitMaps are indexable; Circuit objects can be accessed by index or by
+    location.
 
     Parameters
     ----------

@@ -26,6 +26,12 @@ log = logging.getLogger(__name__)
 
 
 class KeyloopKeyboardBindings(BaseSettings):
+    """
+    Sets default keyboard bindings for the KeyboardControl controller.
+
+    Because settings are implemented using Pydantic, environmental variables
+    can be used to override the default settings.
+    """
     MOVE_LEFT: str = "left arrow"
     MOVE_RIGHT: str = "right arrow"
     MOVE_UP: str = "up arrow"
@@ -45,6 +51,12 @@ class KeyloopKeyboardBindings(BaseSettings):
 
 
 class KeyboardControl:
+    """
+    Implmements functions for the keyboard controller.
+
+    Debounces key presses to make sure that the stage does not get placed 
+    into a deadlocked or unrecoverable state.
+    """
     def __init__(self, stage: Stage, bindings: KeyloopKeyboardBindings = None):
         self.stage = stage
 
@@ -195,6 +207,9 @@ class KeyboardControl:
         # stop all: {self.bindings.STOP_ALL}
 
     def loop(self) -> None:
+        """
+        Enters a blocking loop to control stage motion.
+        """
         running = threading.Event()
         running.set()
 

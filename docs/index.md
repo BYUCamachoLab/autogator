@@ -1,19 +1,48 @@
-# Welcome to AutoGator
+# AutoGator: The Automatic Chip Interrogator
+
+<p align="center">
+<img src="/images/autogator.png" width="40%" alt="AutoGator">
+</p>
+
+A software package for camera-assisted motion control and experiment 
+configuration of photonic integrated circuit interrogation platforms.
+
+## Features
+
+* **Automated Testing**: Automatically test the circuits on a photonic chip.
+* **Low-Cost Hardware**: Detailed assembly instructions and CAD designs for 3D
+  printed hardware components provided.
+* **Open Source**: The source code is available on
+  [GitHub](https://github.com/BYUCamachoLab/autogator).
+* **Cross-Platform**: The software can be installed on any operating system.
+* **Scriptable**: Extend functionality or write custom tests with Python
+  scripts.
+
+## Cite
+
+This work is currently under review.
+
+## PyroLab
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/sequoiap/pyrolab/master/docs/source/_static/images/pyrolab_logo.svg" width="40%" alt="PyroLab">
 </p>
 
-## Commands
+AutoGator builds on [PyroLab](https://github.com/BYUCamachoLab/pyrolab),
+another open-source software package providing software drivers and networking
+capabilities in Python for common photonic hardware setups.
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs -h` - Print help message and exit.
+## Installation
 
-## Project layout
+AutoGator is available on the Python Package Index. To install it, run:
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+``` python
+pip install autogator
+```
+
+For other options or more detailed instructions, see the [User
+Guide](/userguide/install.md).
+
+## Requirements
+
+* Python 3.7+

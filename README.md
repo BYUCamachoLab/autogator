@@ -8,6 +8,7 @@ A software package for camera-assisted motion control and experiment
 configuration of photonic integrated circuit interrogation platforms.
 
 ## Installation
+
 This package is cross-platform and can be installed on any operating system.
 
 AutoGator is a client with algorithms for interacting with instruments 

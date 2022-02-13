@@ -16,7 +16,7 @@ screen.
 """
 
 from autogator.api import load_default_configuration
-from autogator.circuit import CircuitMap
+from autogator.circuits import CircuitMap
 from autogator.controllers import KeyboardControl, KeyloopKeyboardBindings
 from autogator.routines import auto_scan, calibrate
 

@@ -59,7 +59,7 @@ except FileNotFoundError:
 
 def known_configurations() -> List[str]:
     """
-    Returns a list of known profiles.
+    Returns a list of known hardware configuration profiles.
 
     Returns
     -------

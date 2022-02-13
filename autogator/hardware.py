@@ -5,8 +5,7 @@
 # (see autogator/__init__.py for details)
 
 """
-Hardware
-========
+# Hardware
 
 AutoGator has a number of optional hardware components that can be used to
 control the motion of the PIC chip and other aspects of the system.
@@ -17,27 +16,51 @@ import importlib
 import logging
 from pathlib import Path
 import time
-from tkinter import N
 from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
-
-from autogator import AUTOGATOR_DATA_DIR, AUTOGATOR_CONFIG_DIR
-from autogator.errors import UncalibratedStageError
 try:
     from pyrolab.api import locate_ns, Proxy
     from pyrolab.drivers.scopes.rohdeschwarz import RTO
 except:
     pass
 
-from autogator.circuit import CircuitMap
+from autogator.errors import UncalibratedStageError
+from autogator.circuits import CircuitMap
 
 
 log = logging.getLogger(__name__)
 
 
 class HardwareDevice:
+    """
+    Abstract base class for hardware devices.
+
+    This class is used to define the lowest level interface for hardware
+    devices. It is not intended to be used directly, but rather to be
+    subclassed by specific hardware devices.
+
+    AutoGator hardware devices mainly interact with drivers provided by
+    external libraries. AutoGator does not aim to provide any of the low-level
+    interfacing with hardware devices, but rather implements a higher-level
+    interface that abstracts the underlying hardware drivers. In this way, the
+    same AutoGator motion and control routines can be used to control different
+    hardware with different APIs, simply because they must implement the same
+    AutoGator interface.
+
+    AutoGator hardware devices keep a reference to the underlying hardware
+    driver. While no AutoGator routine will make use of custom functionality,
+    user-implemented [`Experiment`][autogator.experiments.Experiment] classes
+    which access the Stage object may want to call functions on the driver
+    directly.
+
+    Attributes
+    ----------
+    driver : object
+        A placeholder for a driver object. All objects provide the ability to
+        directly access the underlying driver object.
+    """
     driver = None
 
 
@@ -54,11 +77,11 @@ class LinearStageBase(HardwareDevice):
     axis : Tuple[float, float, float]
         The axis of the motor as a 3-vector.
     """
-    def __init__(self, name, axis=Tuple[float, float, float]):
+    def __init__(self, name: str, axis=Tuple[float, float, float]) -> None:
         self.name = name
         self.axis = axis
 
-    def move_to(self, position):
+    def move_to(self, position: float) -> None:
         """
         Move the motor to a position.
 
@@ -69,13 +92,14 @@ class LinearStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} to {position}")
 
-    def move_by(self, distance: float):
+    def move_by(self, distance: float) -> None:
         """
         Move the motor by a distance.
 
         Some motors have the capability for more accurate "jogs." This function
         exists to support that capability. Motors that don't have this
-        capability can mock its effectse by simply using :py:func:`move_to`.
+        capability can imitate its effects by simply using
+        [`move_to()`][autogator.hardware.LinearStageBase.move_to].
 
         Parameters
         ----------
@@ -85,13 +109,14 @@ class LinearStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} by {distance}")
 
-    def move_cont(self, direction: float):
+    def move_cont(self, direction: float) -> None:
         """
         Move the motor continuously in the specified direction.
 
-        A positive value for direction will move the motor in its forward 
-        sense. A negative value will move the motor in its reverse sense.
-        The magnitude of direction correlates with the speed of the move.
+        A positive value for direction will move the motor in its forward
+        sense. A negative value will move the motor in its reverse sense. The
+        magnitude of direction can optionally correlate with the speed of the
+        move, if the motor supports it.
 
         Parameters
         ----------
@@ -100,7 +125,7 @@ class LinearStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} continuously in {direction}")
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stops all current motion.
         """
@@ -118,9 +143,9 @@ class LinearStageBase(HardwareDevice):
         log.info(f"Getting position of {self.name}")
         return 0.0
 
-    def home(self):
+    def home(self) -> None:
         """
-        Move the motor to its home position.
+        Move the motor to its home position, if supported.
         """
         log.info(f"Homing {self.name}")
 
@@ -153,11 +178,11 @@ class RotationalStageBase(HardwareDevice):
     axis : Tuple[float, float, float]
         The axis of the motor as a 3-vector.
     """
-    def __init__(self, name, axis=Tuple[float, float, float]):
+    def __init__(self, name: str, axis=Tuple[float, float, float]) -> None:
         self.name = name
         self.axis = axis
 
-    def move_to(self, position):
+    def move_to(self, position: float) -> None:
         """
         Move the motor to a position.
 
@@ -168,13 +193,14 @@ class RotationalStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} to {position}")
 
-    def move_by(self, distance):
+    def move_by(self, distance: float) -> None:
         """
         Move the motor by a distance.
 
         Some motors have the capability for more accurate "jogs." This function
         exists to support that capability. Motors that don't have this
-        capability can mock its effectse by simply using :py:func:`move_to`.
+        capability can imitate its effects by simply using
+        [`move_to()`][autogator.hardware.RotationalStageBase.move_to].
 
         Parameters
         ----------
@@ -183,13 +209,14 @@ class RotationalStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} by {distance}")
 
-    def move_cont(self, direction: float):
+    def move_cont(self, direction: float) -> None:
         """
         Move the motor continuously in the specified direction.
 
-        A positive value for direction will move the motor in its forward 
-        sense. A negative value will move the motor in its reverse sense.
-        The magnitude of direction correlates with the speed of the move.
+        A positive value for direction will move the motor in its forward
+        sense. A negative value will move the motor in its reverse sense. The
+        magnitude of direction can optionally correlate with the speed of the
+        move, if the motor supports it.
 
         Parameters
         ----------
@@ -198,7 +225,7 @@ class RotationalStageBase(HardwareDevice):
         """
         log.info(f"Moving {self.name} continuously in {direction}")
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stops all current motion.
         """
@@ -216,9 +243,9 @@ class RotationalStageBase(HardwareDevice):
         log.info(f"Getting position of {self.name}")
         return 0.0
 
-    def home(self):
+    def home(self) -> None:
         """
-        Move the motor to its home position.
+        Move the motor to its home position, if supported.
         """
         log.info(f"Homing {self.name}")
 
@@ -249,10 +276,10 @@ class DataAcquisitionUnitBase(HardwareDevice):
     name : str
         The name of the data acquisition unit.
     """
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def measure(self):
+    def measure(self) -> Any:
         """
         Takes a single-shot measurement.
 
@@ -263,7 +290,7 @@ class DataAcquisitionUnitBase(HardwareDevice):
         """
         log.info(f"Measuring {self.name}")
 
-    def acquire(self):
+    def acquire(self) -> None:
         """
         Asynchronous command to begin acquiring data.
 
@@ -271,7 +298,7 @@ class DataAcquisitionUnitBase(HardwareDevice):
         """
         log.info(f"Acquiring data from {self.name}")
 
-    def get_data(self):
+    def get_data(self) -> Any:
         """
         Gets the acquired data.
 
@@ -285,7 +312,7 @@ class DataAcquisitionUnitBase(HardwareDevice):
 
 class LaserBase(HardwareDevice):
     """
-    A laser.
+    Base class for laser devices.
 
     This class is used to control a laser.
 
@@ -294,22 +321,22 @@ class LaserBase(HardwareDevice):
     name : str
         The name of the laser.
     """
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def on(self):
+    def on(self) -> None:
         """
         Turn the laser on.
         """
         log.info(f"Turning {self.name} on")
 
-    def off(self):
+    def off(self) -> None:
         """
         Turn the laser off.
         """
         log.info(f"Turning {self.name} off")
 
-    def power(self, power):
+    def power(self, power: float) -> None:
         """
         Set the power of the laser.
 
@@ -320,7 +347,7 @@ class LaserBase(HardwareDevice):
         """
         log.info(f"Setting power of {self.name} to {power}")
 
-    def wavelength(self, wavelength):
+    def wavelength(self, wavelength: float) -> None:
         """
         Set the wavelength of the laser.
 
@@ -331,7 +358,7 @@ class LaserBase(HardwareDevice):
         """
         log.info(f"Setting wavelength of {self.name} to {wavelength}")
 
-    def sweep(self):
+    def sweep(self) -> None:
         """
         Sweep the laser.
         """
@@ -340,7 +367,7 @@ class LaserBase(HardwareDevice):
 
 class CameraBase(HardwareDevice):
     """
-    A camera.
+    Base class for camera devices.
 
     This class is used to control a camera.
 
@@ -349,10 +376,10 @@ class CameraBase(HardwareDevice):
     name : str
         The name of the camera.
     """
-    def __init__(self, name):
+    def __init__(self, name: str) -> None:
         self.name = name
 
-    def get_frame(self):
+    def get_frame(self) -> Any:
         """
         Take a picture.
 
@@ -363,27 +390,56 @@ class CameraBase(HardwareDevice):
 
 class Stage:
     """
-    Singleton that centralizes access to all hardware devices. 
+    Singleton-like class that centralizes access to all hardware devices. 
 
     If you know a certain stage axis supports more complex functions, you can
     access the object directly using the ``driver`` attribute, e.g.:
     
-    .. code-block:: python
-
-        x_motor = stage.x.driver
-        x_motor.unexposed_function()
+    ``` python
+    x_motor = stage.x.driver
+    x_motor.unexposed_function()
+    ```
 
     Additionally, any "auxiliary" devices can also be directly accessed as 
     attributes, e.g.:
 
-    .. code-block:: python
-
-        daq = stage.daq
-        daq.measure()
-        daq.driver.unexposed_function()
+    ``` python
+    daq = stage.daq
+    daq.measure()
+    daq.driver.unexposed_function()
+    ```
 
     Parameters
     ----------
+    x : LinearStageBase
+        The x-axis stage.
+    y : LinearStageBase
+        The y-axis stage.
+    z : LinearStageBase
+        The z-axis stage.
+    theta : RotationalStageBase
+        The theta-axis stage.
+    phi : RotationalStageBase
+        The phi-axis stage.
+    psi : RotationalStageBase
+        The psi-axis stage.
+    calibration_matrix : np.ndarray, optional
+        The calibration matrix for the stage. Converts from motor coordinates
+        to GDS coordinates. If not provided, some stage functionality
+        will be unavailable.
+    loaded_position : np.ndarray, optional
+        A default "goto" position for positioning the stage under the fiber
+        array and camera.
+    unloaded_position : np.ndarray, optional
+        A default "goto" position for pulling the stage away from the fiber
+        array and camera, enabling easier access to the sample for switching
+        chips, etc.
+    **auxiliaries : HardwareDevice, optional
+        Any other devices that are not part of the standard stage. Keyword will
+        be used as device attribute, and can be retrieved from the stage
+        using that same name. Argument is the device object. Useful for 
+        specifying more instruments, such as a scope, DAQ, or microscope lamp
+        controller.
     """    
     def __init__(
         self, 
@@ -393,12 +449,11 @@ class Stage:
         theta: RotationalStageBase = None, 
         phi: RotationalStageBase = None, 
         psi: RotationalStageBase = None, 
-        circuitmap: CircuitMap = None, 
         calibration_matrix: np.ndarray = None, 
         loaded_position: List[float] = [None, None, None, None, None, None],
         unloaded_position: List[float] = [None, None, None, None, None, None],
         **auxiliaries: HardwareDevice,
-    ):
+    ) -> None:
         self.x = x
         self.y = y
         self.z = z
@@ -406,7 +461,6 @@ class Stage:
         self.phi = phi
         self.psi = psi
 
-        self.circuitmap = circuitmap
         self.calibration_matrix = calibration_matrix
         self.loaded_position = loaded_position
         self.unloaded_position = unloaded_position
@@ -416,13 +470,13 @@ class Stage:
         # self._last_calibrated = None
         # self._last_homed = None
 
-    def __getattr__(self, name):
+    def __getattr__(self, name) -> Any:
         if name in self.auxiliaries:
             return self.auxiliaries[name]
         else:
             raise AttributeError(f"'Stage' object has no attribute '{name}'")
 
-    def load_calibration_matrix(self, filename: Union[str, Path]):
+    def load_calibration_matrix(self, filename: Union[str, Path]) -> None:
         """
         Load a conversion matrix from a file.
 
@@ -442,7 +496,7 @@ class Stage:
             raise FileNotFoundError(f"File {filename} does not exist.")
         self.calibration_matrix = np.loadtxt(filename)
 
-    def save_calibration_matrix(self, filename: str):
+    def save_calibration_matrix(self, filename: str) -> None:
         """
         Saves a conversion matrix to a file.
 
@@ -456,22 +510,23 @@ class Stage:
     @property
     def motors(self) -> list:
         """
-        Returns a list of all motors.
+        Returns a list of all motors, ordered [x, y, z, theta, phi, psi].
         """
         return [self.x, self.y, self.z, self.theta, self.phi, self.psi]
 
-    def set_position(self, *, pos: List[float] = [], x: float = None, y: float = None, z: float = None, theta: float = None, phi: float = None, psi: float = None):
+    def set_position(self, *, pos: List[float] = [], x: float = None, y: float = None, z: float = None, theta: float = None, phi: float = None, psi: float = None) -> None:
         """
         Set the position of the stage in real world units.
 
-        Any unspecified parameters won't be moved. All parameters are 
+        Any unspecified parameters won't be moved. All parameters are
         keyword-only (no positional parameters accepted).
 
         Parameters
         ----------
         pos : list, optional
             The position to move to as a 6-list of floats, matching the format
-            of ``get_position``. If specified, all other parameters are ignored.
+            of ``Stage.get_position``. If specified, all other parameters are
+            ignored.
         x : float, optional
             The x position.
         y : float, optional
@@ -503,18 +558,19 @@ class Stage:
                     print(f'{motor} generated an exception: {exc}')
                     log.exception(exc)
 
-    def jog_position(self, *, pos: List[float] = [], x=None, y=None, z=None, theta=None, phi=None, psi=None):
+    def jog_position(self, *, pos: List[float] = [], x=None, y=None, z=None, theta=None, phi=None, psi=None) -> None:
         """
         Set the position of the stage in real world units.
 
-        Any unspecified parameters won't be moved. All parameters are 
+        Any unspecified parameters won't be moved. All parameters are
         keyword-only (no positional parameters accepted).
 
         Parameters
         ----------
         pos : list, optional
             The position to move to as a 6-list of floats, matching the format
-            of ``get_position``. If specified, all other parameters are ignored.
+            of ``Stage.get_position``. If specified, all other parameters are
+            ignored.
         x : float, optional
             The x jog step.
         y : float, optional
@@ -535,19 +591,18 @@ class Stage:
             if motor:
                 motor.move_by(pos)
 
-    def set_position_gds(self, x=None, y=None):
+    def set_position_gds(self, x: float, y: float) -> None:
         """
         Set the position of the stage in GDS coordinates.
 
-        Only supports 2D commands, i.e. (x, y) coordinates. Any unspecified 
-        parameters won't be moved.
+        Only supports 2D commands, i.e. (x, y) coordinates.
 
         Parameters
         ----------
-        x : float, optional
-            The x position.
-        y : float, optional
-            The y position.
+        x : float
+            The x coordinate.
+        y : float
+            The y coordinate.
 
         Raises
         ------
@@ -558,18 +613,12 @@ class Stage:
         if self.calibration_matrix is None:
             raise UncalibratedStageError("Stage is not calibrated (no conversion matrix set), cannot set position in GDS coordinates")
 
-        x_cmd = x if x is not None else 0.0
-        y_cmd = y if y is not None else 0.0
-        gds_pos = np.array([[x_cmd], [y_cmd], [1]])
+        gds_pos = np.array([[x], [y], [1]])
         stage_pos = self.calibration_matrix @ gds_pos
 
-        log.info(f"Commanded position: ({stage_pos[0,0], stage_pos[1,0]})")
         self.set_position(x=stage_pos[0, 0], y=stage_pos[1, 0])
         actual = self.get_position()
-        log.info(f"Actual position: ({actual[0], actual[1]})")
-
-    def jog_position_gds(self):
-        raise NotImplementedError
+        log.info(f"CMD: ({stage_pos[0,0], stage_pos[1,0]}), ACT: ({actual[0], actual[1]}), ERR: ({stage_pos[0,0] - actual[0], stage_pos[1,0] - actual[1]})")
 
     def get_position(self) -> List[float]:
         """
@@ -577,8 +626,9 @@ class Stage:
 
         Returns
         -------
-        list
-            A list of the current position of each motor.
+        List[float]
+            A list of the current position of each motor as a six-vector of
+            floats. The order is [x, y, z, theta, phi, psi].
         """
         return [motor.get_position() if motor else None for motor in self.motors]
 
@@ -601,7 +651,7 @@ class Stage:
         """
         Load the stage.
 
-        This method should load the stage.
+        This method places the stage in the loaded position.
         """
         log.info("Loading stage")
         self.set_position(*self.loaded_position)
@@ -610,18 +660,43 @@ class Stage:
         """
         Unload the stage.
 
-        This method should unload the stage.
+        This method places the stage in the unloaded position.
         """
         log.info("Unloading stage")
         self.set_position(*self.unloaded_position)
 
 
 class HardwareConfiguration(BaseSettings):
+    """
+    A class for storing the hardware configurations of an arbitrary driver.
+
+    Attributes
+    ----------
+    module : str, optional
+        The name of the module containing the driver (default
+        "autogator.hardware"). AutoGator supports external drivers that 
+        implement AutoGator's HardwareDevice interface.
+    classname : str
+        The name of the class implementing the driver, to be dynamically
+        loaded from the module.
+    parameters : dict, optional
+        A dictionary of initialization parameters to pass to the driver.
+        It is therefore best for drivers to have keyword-only initialization
+        parameters.
+    """
     module: str = "autogator.hardware"
     classname: str = ""
     parameters: Dict[str, Any] = {}
 
     def get_object(self) -> Type[HardwareDevice]:
+        """
+        Constructs and returns the instantiated driver object.
+
+        Returns
+        -------
+        Type[HardwareDevice]
+            The driver object.
+        """
         log.debug(f"Attempting to load '{self.module}.{self.classname}'")
         try:
             mod = importlib.import_module(self.module)
@@ -632,15 +707,12 @@ class HardwareConfiguration(BaseSettings):
             log.critical(e)
             raise e
         
-        obj = obj(**self.parameters)
-        log.debug("Object instantiated...")
-
-        return obj
+        return obj(**self.parameters)
 
 
 class StageConfiguration(BaseSettings):
     """
-    The persisted stage configuration.
+    The persisted stage configuration. Typically stored as a JSON file.
 
     Attributes
     ----------
@@ -656,8 +728,6 @@ class StageConfiguration(BaseSettings):
         The configuration for the rotational stage in the y-z plane.
     psi : HardwareConfiguration
         The configuration for the rotational stage in the x-y plane.
-    circuitmap : str
-        Path to the CircuitMap text file.
     calibration_matrix : str
         Path to the conversion matrix text file.
     loaded_position : List[float]
@@ -673,7 +743,6 @@ class StageConfiguration(BaseSettings):
     theta: HardwareConfiguration = None
     phi: HardwareConfiguration = None
     psi: HardwareConfiguration = None
-    circuitmap: str = ""
     calibration_matrix: str = ""
     loaded_position: List[Any] = [None, None, None, None, None, None]
     unloaded_position: List[Any] = [None, None, None, None, None, None]
@@ -681,14 +750,13 @@ class StageConfiguration(BaseSettings):
 
     def get_stage(self) -> Stage:
         """
+        Constructs and returns the instantiated stage object.
+
         Returns
         -------
         Stage
             The stage object.
         """
-        cmapfile = Path(self.circuitmap)
-        circuitmap = CircuitMap.loadtxt(cmapfile) if cmapfile.is_file() else None
-
         cmatfile = Path(self.calibration_matrix)
         calibration_matrix = np.loadtxt(cmatfile) if cmatfile.is_file() else None
 
@@ -699,16 +767,16 @@ class StageConfiguration(BaseSettings):
         to_load.update(self.auxiliaries)
         loaded = {}
 
+        # Laod all stage objects in parallel, in case they are slow
         # Code adapted from https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor-example
-        # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(configs)) as executor:
             # Start the load operations and mark each future with its URL
-            # future_to_config = {executor.submit(config.get_object): name for name, config in configs.items()}
             future_to_config = {}
             for name, config in to_load.items():
                 log.info(f"Loading {name} stage...")
                 future_to_config[executor.submit(config.get_object)] = name
-                time.sleep(0.1) # Space out simultaneous calls to shared DLLs
+                # Space out simultaneous calls to potentially shared DLLs
+                time.sleep(0.1)
             for future in concurrent.futures.as_completed(future_to_config):
                 name = future_to_config[future]
                 try:
@@ -722,7 +790,6 @@ class StageConfiguration(BaseSettings):
         log.info("Stage objects loaded.")
         return Stage(
             **loaded,
-            circuitmap = circuitmap,
             calibration_matrix = calibration_matrix,
             loaded_position = self.loaded_position,
             unloaded_position = self.unloaded_position,
@@ -735,8 +802,17 @@ class StageConfiguration(BaseSettings):
 class Z825BLinearStage(LinearStageBase):
     """
     A linear motor.
+
+    Parameters
+    ----------
+    pyroname : str
+        The name of the PyroLab object as registered with the nameserver.
+    ns_host : str, optional
+        The hostname of the PyroLab nameserver (default "localhost").
+    ns_port : int, optional
+        The port of the PyroLab nameserver (default "9090").
     """
-    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090):
+    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
         super().__init__(pyroname)
         with locate_ns(host=ns_host, port=ns_port) as ns:
             self.driver = Proxy(ns.lookup(pyroname))
@@ -744,29 +820,28 @@ class Z825BLinearStage(LinearStageBase):
         self._step_size = None
 
     @property
-    def step_size(self):
+    def step_size(self) -> float:
         """The jog step size in mm."""
         return self._step_size
 
     @step_size.setter
-    def step_size(self, step_size: float):
+    def step_size(self, step_size: float) -> None:
         if step_size != self._step_size:
             self.driver._pyroClaimOwnership()
             self.driver.jog_step_size = step_size
             self._step_size = step_size
 
-    def move_to(self, position: float):
+    def move_to(self, position: float) -> None:
         """
         Moves to a new position.
 
-        This motor adjusts for backlash; a given position will always be 
-        approached from the "negative" direction. That may require overshooting 
-        the commanded position in order to approach it again from a consistent
-        direction.
+        This motor adjusts for backlash; a given position will always be
+        approached from the "negative" direction. That may require overshooting
+        the commanded position in order to always approach it again from a
+        consistent direction.
 
-        If stepping in short steps, it is therefore most efficient to step
-        from negative to positive values to avoid backlash adjustments on 
-        each step.
+        If stepping in short steps, it is therefore most efficient to step from
+        negative to positive values to avoid backlash adjustments on each step.
 
         Parameters
         ----------
@@ -778,7 +853,7 @@ class Z825BLinearStage(LinearStageBase):
             self.driver.move_to(position - (self.driver.backlash * 1.5))
         self.driver.move_to(position)
 
-    def move_by(self, distance: float):
+    def move_by(self, distance: float) -> None:
         """
         Jogs the motor by a fixed distance.
 
@@ -832,7 +907,7 @@ class Z825BLinearStage(LinearStageBase):
             return True
         return False
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop all motion.
         """
@@ -846,14 +921,14 @@ class Z825BLinearStage(LinearStageBase):
         self.driver._pyroClaimOwnership()
         return self.driver.get_position()
 
-    def home(self):
+    def home(self) -> None:
         """
         Home the motor.
         """
         self.driver._pyroClaimOwnership()
         self.driver.go_home()
 
-    def status(self):
+    def status(self) -> int:
         """
         Returns a nonzero value if the motor is busy.
         """
@@ -863,8 +938,17 @@ class Z825BLinearStage(LinearStageBase):
 class PRM1Z8RotationalStage(RotationalStageBase):
     """
     A rotational motor.
+
+    Parameters
+    ----------
+    pyroname : str
+        The name of the PyroLab object as registered with the nameserver.
+    ns_host : str, optional
+        The hostname of the PyroLab nameserver (default "localhost").
+    ns_port : int, optional
+        The port of the PyroLab nameserver (default "9090").
     """
-    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090):
+    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
         super().__init__(pyroname)
         with locate_ns(host=ns_host, port=ns_port) as ns:
             self.driver = Proxy(ns.lookup(pyroname))
@@ -872,18 +956,18 @@ class PRM1Z8RotationalStage(RotationalStageBase):
         self._step_size = None
 
     @property
-    def step_size(self):
+    def step_size(self) -> float:
         """The jog step size in mm."""
         return self._step_size
 
     @step_size.setter
-    def step_size(self, step_size: float):
+    def step_size(self, step_size: float) -> None:
         if step_size != self._step_size:
             self.driver._pyroClaimOwnership()
             self.driver.jog_step_size = step_size
             self._step_size = step_size
 
-    def move_to(self, position: float):
+    def move_to(self, position: float) -> None:
         """
         Moves to a new position.
 
@@ -902,7 +986,7 @@ class PRM1Z8RotationalStage(RotationalStageBase):
             self.driver.move_to(position - (self.driver.backlash * 1.5))
         self.driver.move_to(position)
 
-    def move_by(self, distance: float):
+    def move_by(self, distance: float) -> None:
         """
         Jogs the motor by a fixed distance.
 
@@ -956,7 +1040,7 @@ class PRM1Z8RotationalStage(RotationalStageBase):
             return True
         return False
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stop all motion.
         """
@@ -970,14 +1054,14 @@ class PRM1Z8RotationalStage(RotationalStageBase):
         self.driver._pyroClaimOwnership()
         return self.driver.get_position()
 
-    def home(self):
+    def home(self) -> None:
         """
         Home the motor.
         """
         self.driver._pyroClaimOwnership()
         self.driver.go_home()
 
-    def status(self):
+    def status(self) -> int:
         """
         Returns a nonzero value if the motor is busy.
         """
@@ -987,6 +1071,15 @@ class PRM1Z8RotationalStage(RotationalStageBase):
 class TSL550Laser(LaserBase):
     """
     A laser.
+
+    Parameters
+    ----------
+    pyroname : str
+        The name of the PyroLab object as registered with the nameserver.
+    ns_host : str, optional
+        The hostname of the PyroLab nameserver (default "localhost").
+    ns_port : int, optional
+        The port of the PyroLab nameserver (default "9090").
     """
     def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090):
         super().__init__(pyroname)
@@ -994,13 +1087,28 @@ class TSL550Laser(LaserBase):
             self.driver = Proxy(ns.lookup(pyroname))
             self.driver.autoconnect()
 
-    def on(self):
+    def on(self, block=False) -> None:
+        """
+        Turn on the laser.
+
+        If the laser diode is off, there is a warm-up time before the laser
+        diode is ready. If block is True, this function will block until the
+        warm-up time is complete.
+
+        Parameters
+        ----------
+        block : bool, optional
+            Whether to block until the warm-up time is complete (default False).
+        """
         self.driver._pyroClaimOwnership()
         if self.driver.status()[0] != '-':
             self.driver.on()
+            if block:
+                while self.driver.status()[0] != '-':
+                    time.sleep(5.0)    
         self.driver.open_shutter()
 
-    def off(self, diode: bool = True):
+    def off(self, diode: bool = True) -> None:
         """
         Turns off laser output by closing the shutter and optionally turning off the diode.
 
@@ -1017,17 +1125,33 @@ class TSL550Laser(LaserBase):
         if not diode:
             self.driver.off()
 
-    def power(self, power: float):
+    def power(self, power: float) -> None:
+        """
+        Sets the laser power in dBm.
+
+        Parameters
+        ----------
+        power : float
+            The power to set the laser to.
+        """
         self.driver._pyroClaimOwnership()
         self.driver.power_dBm(power)
 
-    def wavelength(self, wavelength: float):
+    def wavelength(self, wavelength: float) -> None:
+        """
+        Sets the laser wavelength in nm.
+
+        Parameters
+        ----------
+        wavelength : float
+            The wavelength to set the laser to.
+        """
         self.driver._pyroClaimOwnership()
         self.driver.wavelength(wavelength)
 
-    def sweep(self, num: int = 1):
+    def sweep(self, num: int = 1) -> None:
         """
-        Run the configured wavelength sweep.
+        Starts the configured wavelength sweep.
 
         Parameters
         ----------
@@ -1056,8 +1180,24 @@ class TSL550Laser(LaserBase):
         self.driver.sweep_wavelength(start=wl_start, stop=wl_stop, duration=duration, number=number)
 
     def sweep_set_mode(
-        self, continuous: bool, twoway: bool, trigger: bool, const_freq_step: bool
-    ):
+        self, continuous: bool = True, twoway: bool = True, trigger: bool = False, const_freq_step: bool = False
+    ) -> None:
+        """
+        Sets the sweep mode.
+
+        Parameters
+        ----------
+        continuous : bool
+            Continuous (``True``, default) or stepwise (``False``).
+        twoway : bool
+            Two-way (``True``, default) or one-directional with reset
+            (``False``).
+        trigger : bool
+            Start on external trigger (defaults to ``False``).
+        const_freq_step : bool
+            Constant frequency interval, requires stepwise mode (defaults to
+            ``False``).
+        """
         self.driver._pyroClaimOwnership()
         self.driver.sweep_set_mode(
             continuous=continuous,
@@ -1066,19 +1206,57 @@ class TSL550Laser(LaserBase):
             const_freq_step=const_freq_step,
         )
 
-    def set_trigger(self, mode: str, step: float):
+    def set_trigger(self, mode: str, step: float) -> None:
+        """
+        Enables trigger output.
+
+        The output trigger can be set to fire at the start of a wavelength
+        sweep, at the end of a sweep, or at a fixed step. Valid step range is
+        0.004 - 160 nm with a minimum step of 0.0001 nm.
+
+        Parameters
+        ----------
+        mode : str
+            The trigger mode. One of: “None”, “Stop”, “Start”, “Step”.
+        step : float
+            The trigger step size, in nanometers.
+        """
         self.driver._pyroClaimOwnership()
         self.driver.trigger_enable_output()
         triggerMode = self.driver.trigger_set_mode(mode)
-        triggerStep = self.driver.trigger_set_step(step)
+        triggerStep = self.driver.trigger_step(step)
         return triggerMode, triggerStep
 
-    def wavelength_logging(self):
+    def wavelength_logging(self) -> None:
+        """
+        Downloads the wavelength log.
+
+        Returns
+        -------
+        list
+            The last wavelength log.
+        """
         self.driver._pyroClaimOwnership()
         return self.driver.wavelength_logging()
 
     
 class RohdeSchwarzOscilliscope(DataAcquisitionUnitBase):
+    """
+    A Rohde-Schwarz oscilliscope simplified interface.
+
+    Parameters
+    ----------
+    name : str
+        An name for the oscilloscope.
+    address : str
+        The IP address (or other valid identifier, see PyroLab's documentation)
+        of the oscilloscope.
+    hislip : str, optional
+        Whether to use the HiSLIP protocol or not (default False) (not
+        supported unless you are using the NI VISA driver).
+    timeout : float, optional
+        The timeout for the connection in milliseconds (default 30000.0).
+    """
     def __init__(self, name: str, address: str, hislip: bool = False, timeout: float = 30000.0):
         super().__init__(name)
         self.driver = RTO()
@@ -1086,7 +1264,10 @@ class RohdeSchwarzOscilliscope(DataAcquisitionUnitBase):
 
     def measure(self) -> float:
         """
-        Performs a single-shot measurement.
+        Performs a single-shot measurement, if configured.
+
+        See PyroLab's documentation for more information. Requires first 
+        configuring the measurement with ``set_auto_measurement()``.
 
         Returns
         -------
@@ -1095,38 +1276,123 @@ class RohdeSchwarzOscilliscope(DataAcquisitionUnitBase):
         """
         return self.driver.measure()
 
-    def acquire(self, timeout: float = -1):
+    def acquire(self, timeout: float = -1) -> float:
         """
         Asynchronous command that starts acquisition.
+
+        Parameters
+        ----------
+        timeout : float, optional
+            The timeout for the acquisition in milliseconds (default -1). If
+            not modified, default timeout is used. Can be changed for this
+            single function call, after which it is reset to the original
+            value.
         """
         self.driver.acquire(timeout=timeout)
 
-    def get_data(self, channel: int):
+    def get_data(self, channel: int) -> List[float]:
+        """
+        Gets the data from the specified channel.
+        
+        Parameters
+        ----------
+        channel : int
+            The channel to retrieve the data from.
+        """
+        # TODO: Convert this to binary instead of ascii, which is faster?
+        # TODO: Verify return type.
         return self.driver.get_data(channel)
 
-    def wait_for_device(self):
+    def wait_for_device(self) -> None:
+        """
+        Waits for the device to be ready (finished with all previous commands).
+
+        This is a blocking call.
+        """
         self.driver.wait_for_device()
 
-    def set_channel(self, channel: int, range: float, coupling: str, position: float):
+    def set_channel(self, channel: int, range: float = 0.5, coupling: str = "DCLimit", position: float = 0.0) -> None:
+        """
+        Sets the channel parameters.
+
+        Parameters
+        ----------
+        channel : int
+            The channel to set.
+        range : float
+            Sets the voltage range across the 10 vertical divisions of the
+            diagram in V/div. Default is 0.5.
+        coupling : str
+            Selects the connection of the indicated channel signal. Valid
+            values are “DC” (direct connection with 50 ohm termination),
+            “DCLimit” (direct connection with 1M ohm termination), or “AC”
+            (connection through DC capacitor). Default is "DCLimit".
+        position : float, optional
+            Sets the vertical position of the indicated channel as a graphical
+            value. Valid range is [-5, 5] in increments of 0.01 (units is
+            “divisions”). Default is 0.
+        """
         self.driver.set_channel(channel, range=range, coupling=coupling, position=position)
 
     def set_channel_for_auto_measurement(
         self,
         channel: int,
-        range: float,
-        coupling: str,
-        position: float,
-        timescale: float,
-    ):
+        range: float = 0.5,
+        coupling: str = "DCLimit",
+        position: float = 0,
+        timescale: float = 10e-9,
+    ) -> None:
+        """
+        Sets the channel parameters for auto measurement.
+
+        Parameters
+        ----------
+        channel : int
+            The channel to set.
+        range : float
+            Sets the voltage range across the 10 vertical divisions of the
+            diagram in V/div. Default is 0.5.
+        coupling : str
+            Selects the connection of the indicated channel signal. Valid
+            values are “DC” (direct connection with 50 ohm termination),
+            “DCLimit” (direct connection with 1M ohm termination), or “AC”
+            (connection through DC capacitor). Default is "DCLimit".
+        position : float
+            Sets the vertical position of the indicated channel as a graphical
+            value. Valid range is [-5, 5] in increments of 0.01 (units is
+            “divisions”). Default is 0.
+        timescale : float
+            The time (in seconds) per division. Valid range is from 25e-12 to
+            10000 (RTO) | 5000 (RTE) in increments of 1e-12. Default is 10e-9.
+        """
         self.driver.set_timescale(timescale)
         self.set_channel(channel, range=range, coupling=coupling, position=position)
         self.driver.set_auto_measurement(source="C" + str(channel) + "W1")
         self.wait_for_device()
 
-    def set_acquisition_settings(self, sample_rate: float, duration: float):
-        self.driver.acquisition_settings(
-            sample_rate=sample_rate, duration=duration
-        )
+    def set_acquisition_settings(self, sample_rate: float, duration: float) -> None:
+        """
+        Sets the acquisition settings.
 
-    def set_edge_trigger(self, trigger_channel: int, trigger_level: int):
+        Parameters
+        ----------
+        sample_rate : float
+            Sample rate of device in Sa/s. Range is 2 to 20e+12 in increments
+            of 1.
+        duration : float
+            Length of acquisition in seconds.
+        """
+        self.driver.acquisition_settings(sample_rate=sample_rate, duration=duration)
+
+    def set_edge_trigger(self, trigger_channel: int, trigger_level: int) -> None:
+        """
+        Sets a trigger channel and level.
+
+        Parameters
+        ----------
+        trigger_channel : int
+            The channel to trigger on.
+        trigger_level : int
+            Voltage threshold for positive slope edge trigger.
+        """
         self.driver.edge_trigger(trigger_channel, trigger_level)

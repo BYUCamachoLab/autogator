@@ -1,3 +1,18 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright © Autogator Project Contributors
+# Licensed under the terms of the GPLv3+ License
+# (see autogator/__init__.py for details)
+
+"""
+# Experiments
+
+Sample WavelengthSweep experiment implementation.
+
+This example uses the Santec TSL-550 as a laser, along with the Rohde & Schwarz
+RTO2064 oscilloscope from PyroLab.
+"""
+
 from datetime import datetime
 from getpass import getuser
 from pathlib import Path
@@ -8,8 +23,8 @@ from typing import List
 import numpy as np
 
 from autogator.analysis import WavelengthAnalyzer
-from autogator.experiment import Experiment
-from autogator.hardware import load_default_configuration
+from autogator.experiments import Experiment
+from autogator.api import load_default_configuration
 from autogator.routines import auto_scan
 
 
@@ -25,7 +40,7 @@ class WavelengthSweepExperiment(Experiment):
     and the time-based data is then correlated to the wavelengths as denoted
     by the trigger signal. The data is saved to a text file.
 
-    Parameters
+    Attributes
     ----------
     wl_start : float
         The starting wavelength of the sweep.
@@ -53,6 +68,7 @@ class WavelengthSweepExperiment(Experiment):
     output_dir : str
         The directory to save the data to.
     chip_name : str
+        The name of the chip.
     """
     # General configuration
     MANUAL = False
@@ -82,6 +98,10 @@ class WavelengthSweepExperiment(Experiment):
     power_dBm: float = -4.0
 
     def setup(self):
+        """
+        Start up the laser and scope, enter details about who is running the
+        experiment. Do some basic sanity checking on some values.
+        """
         self.operator = input(f"Operator ({getuser()}) [ENTER]: ") 
         if not self.operator: 
             self.operator = getuser()
@@ -100,6 +120,10 @@ class WavelengthSweepExperiment(Experiment):
         assert self.wl_stop <= 1630  # self.laser.MAXIMUM_WAVELENGTH
 
     def configure_scope_sweep(self):
+        """
+        The scope needs to be alternately configured to record a long sweep and
+        a single-shot measurement. This function reconfigures for a long sweep.
+        """
         acquire_time = self.duration + self.buffer
         numSamples = int((acquire_time) * self.sample_rate)
         print(
@@ -114,6 +138,11 @@ class WavelengthSweepExperiment(Experiment):
         self.scope.edge_trigger(self.trigger_channel, self.trigger_level)
 
     def configure_scope_measure(self):
+        """
+        The scope needs to be alternately configured to record a long sweep and
+        a single-shot measurement. This function reconfigures for a single
+        measurement.
+        """
         MEAS_CHANNEL = 2
         RANGE = 2.0
         POSITION = -3.0
@@ -129,6 +158,11 @@ class WavelengthSweepExperiment(Experiment):
         time.sleep(5)
 
     def configure_laser_sweep(self):
+        """
+        The laser needs to be alternately configured to sweep in wavelength and
+        to return to the peak-power wavelength for alignment purposes. This
+        function reconfigures for a wavelength sweep.
+        """
         self.laser.power_dBm(self.power_dBm)
         self.laser.sweep_set_mode(
             continuous=True, twoway=True, trigger=False, const_freq_step=False
@@ -139,9 +173,17 @@ class WavelengthSweepExperiment(Experiment):
         self.laser.trigger_step(self.trigger_step)
 
     def configure_laser_measure(self):
+        """
+        The laser needs to be alternately configured to sweep in wavelength and
+        to return to the peak-power wavelength for alignment purposes. This
+        function reconfigures for a single measurement.
+        """
         self.laser.wavelength(1550.0)
 
     def run(self):
+        """
+        The test procedure for every device under test.
+        """
         print(self.circuit)
 
         self.configure_scope_measure()
@@ -206,8 +248,8 @@ Wavelength\tCh1"""
 
 
 if __name__ == "__main__":
-    from autogator.circuit import CircuitMap
-    from autogator.experiment import ExperimentRunner
+    from autogator.circuits import CircuitMap
+    from autogator.experiments import ExperimentRunner
 
     cmap = CircuitMap.loadtxt("data/circuitmap.txt")
 

@@ -106,15 +106,20 @@ nav:
   - User Guide: 
     - Installation: userguide/install.md
     - Configuration: userguide/configure.md
-    - Experiment: userguide/experiment.md
+    - Experiments: userguide/experiments.md
+    - Issues : userguide/issues.md
   - Examples:
     - Keyboard control: examples/keycontrol.md
     - Basic scan: examples/basicscan.md
     - Experiments: examples/experiment.md
   - Reference:
     - API: api/index.md
-    - circuit: api/circuit.md
+    - analysis: api/analysis.md
+    - api: api/api.md
+    - circuits: api/circuits.md
+    - controllers: api/controllers.md
     - errors: api/errors.md
-    - experiment: api/experiment.md
+    - experiments: api/experiments.md
     - hardware: api/hardware.md
+    - profiles: api/profiles.md
     - routines: api/routines.md
