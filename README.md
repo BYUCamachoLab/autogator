@@ -11,37 +11,60 @@
 <a href="https://github.com/BYUCamachoLab/autogator/commits/master"><img alt="Latest Commit" src="https://img.shields.io/github/last-commit/BYUCamachoLab/autogator.svg"></a>
 </p>
 
-# Autogator 
+# AutoGator 
 
-The Automatic Chip Interrogator, by Sequoia Ploeg ([BYU CamachoLab](https://camacholab.byu.edu/)).
+AutoGator: The Automatic Chip Interrogator
 
 A software package for camera-assisted motion control and experiment 
 configuration of photonic integrated circuit interrogation platforms.
 
-## Installation
+Developed by Sequoia Ploeg (for [CamachoLab](https://camacholab.byu.edu/) at
+Brigham Young University).
 
-This package is cross-platform and can be installed on any operating system.
+## Installation
 
 AutoGator is a client with algorithms for interacting with instruments 
 controlled by other softwares. It typically communicates with hardware using
 socket connections.
 
-It is recommended to use a virtual environment when installing Autogator. 
-To recreate the development environment, after manually installing the above packages, run:
+This package is cross-platform and can be installed on any operating system.
+
+AutoGator can be installed using pip:
 
 ```
-pip install -r requirements.txt
+pip install autogator
 ```
 
-## Dev Notes
+You can also clone the repository, navigate to the toplevel, and install in
+editable mode (make sure you have pip >= 21.1):
 
-### Possible algorithm for calibrating the stage
+pip install -e .
 
-* Home the stages
-* Open up a controller to move the stage to some beginning position with some item on the screen
-* Make sure the zoom is set to 1x, or know what the zoom level is
-* Move the controller some distance in x, whether in the controller or predefined
-* Click where the object has moved to
-* Move the controller some distance in y, whether in the controller or predefined
-* Click where the object has moved to
-* Calculate the number of pixels and equate it to some physical distance
+## Uninstallation
+
+PyroLab creates data and configuration directories that aren't deleted when pip
+uninstalled. You can find their locations by running (before uninstallation):
+
+```
+import autogator
+print(autogator.AUTOGATOR_DATA_DIR)
+```
+
+This folder can be safely deleted after uninstallation.
+
+## For Developers
+
+To bump version prior to a release, run one of the following commands:
+
+```
+bumpversion major
+bumpversion minor
+bumpversion patch
+```
+
+For code quality, please run isort and black before committing (note that the
+latest release of isort may not work through VSCode's integrated terminal, and
+it's safest to run it separately through another terminal).
+
+Releases are automatically created when git tags matching the "v*" pattern are
+created.
