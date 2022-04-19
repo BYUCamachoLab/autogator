@@ -89,7 +89,7 @@ if __name__ == "__main__":
             print("Saved position {} at {}".format(name, positions[name]))
         elif cmd.startswith("goto "):
             name = cmd[5:]
-            stage.move_to(positions[name])
+            stage.set_position(pos=positions[name])
         elif cmd == "list":
             print("Saved positions:")
             width = max(len(name) for name in positions)
