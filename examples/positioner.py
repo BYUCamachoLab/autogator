@@ -85,7 +85,6 @@ if __name__ == "__main__":
         if cmd.startswith("set "):
             name = cmd[4:]
             positions[name] = stage.get_position()
-            positions[name] = name
             print("Saved position {} at {}".format(name, positions[name]))
         elif cmd.startswith("goto "):
             name = cmd[5:]
