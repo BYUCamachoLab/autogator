@@ -36,6 +36,8 @@ class KeyloopKeyboardBindings(BaseSettings):
     MOVE_RIGHT: str = "right arrow"
     MOVE_UP: str = "up arrow"
     MOVE_DOWN: str = "down arrow"
+    MOVE_RAISE: str = "="
+    MOVE_LOWER: str = "-"
     JOG_LEFT: str = "a"
     JOG_RIGHT: str = "d"
     JOG_UP: str = "w"
@@ -67,6 +69,7 @@ class KeyboardControl:
         self.semaphores = {
             "MOTOR_X" : threading.Semaphore(),
             "MOTOR_Y" : threading.Semaphore(),
+            "MOTOR_Z" : threading.Semaphore(),
             "MOTOR_PSI" : threading.Semaphore(),
         }
 
@@ -107,6 +110,24 @@ class KeyboardControl:
             while keyboard.is_pressed(self.bindings.MOVE_DOWN):
                 time.sleep(0.05)
             self.stage.y.stop()
+            semaphore.release()
+
+    def _move_raise(self):
+        semaphore = self.semaphores["MOTOR_Z"]
+        if semaphore.acquire(timeout=0.1):
+            self.stage.z.move_cont("forward")
+            while keyboard.is_pressed(self.bindings.MOVE_RAISE):
+                time.sleep(0.05)
+            self.stage.z.stop()
+            semaphore.release()
+
+    def _move_lower(self):
+        semaphore = self.semaphores["MOTOR_Z"]
+        if semaphore.acquire(timeout=0.1):
+            self.stage.z.move_cont("backward")
+            while keyboard.is_pressed(self.bindings.MOVE_LOWER):
+                time.sleep(0.05)
+            self.stage.z.stop()
             semaphore.release()
 
     def _jog_left(self):
@@ -192,6 +213,8 @@ class KeyboardControl:
         move right: {self.bindings.MOVE_RIGHT}
         move up: {self.bindings.MOVE_UP}
         move down: {self.bindings.MOVE_DOWN}
+        move raise: {self.bindings.MOVE_RAISE}
+        move lower: {self.bindings.MOVE_LOWER}
         jog left: {self.bindings.JOG_LEFT}
         jog right: {self.bindings.JOG_RIGHT}
         jog up: {self.bindings.JOG_UP}
@@ -220,6 +243,8 @@ class KeyboardControl:
             "MOVE_RIGHT": self._move_right,
             "MOVE_UP": self._move_up,
             "MOVE_DOWN": self._move_down,
+            "MOVE_RAISE": self._move_raise,
+            "MOVE_LOWER": self._move_lower,
             "JOG_LEFT": self._jog_left,
             "JOG_RIGHT": self._jog_right,
             "JOG_UP": self._jog_up,
@@ -238,6 +263,8 @@ class KeyboardControl:
         keyboard.add_hotkey(self.bindings.MOVE_RIGHT, lambda: flags["MOVE_RIGHT"].set())
         keyboard.add_hotkey(self.bindings.MOVE_UP, lambda: flags["MOVE_UP"].set())
         keyboard.add_hotkey(self.bindings.MOVE_DOWN, lambda: flags["MOVE_DOWN"].set())
+        keyboard.add_hotkey(self.bindings.MOVE_RAISE, lambda: flags["MOVE_RAISE"].set())
+        keyboard.add_hotkey(self.bindings.MOVE_LOWER, lambda: flags["MOVE_LOWER"].set())
         keyboard.add_hotkey(self.bindings.JOG_LEFT, lambda: flags["JOG_LEFT"].set())
         keyboard.add_hotkey(self.bindings.JOG_RIGHT, lambda: flags["JOG_RIGHT"].set())
         keyboard.add_hotkey(self.bindings.JOG_UP, lambda: flags["JOG_UP"].set())
