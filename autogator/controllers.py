@@ -278,16 +278,20 @@ class XboxBindings(BaseSettings):
     MOVE_RIGHT: str = "ABS_RX"
     MOVE_UP: str = "ABS_RY"
     MOVE_DOWN: str = "ABS_RY"
-    JOG_LEFT: str = "X"
-    JOG_RIGHT: str = "B"
-    JOG_UP: str = "Y"
-    JOG_DOWN: str = "A"
+    JOG_LEFT: str = "RightDPad"
+    JOG_RIGHT: str = "LeftDPad"
+    JOG_UP: str = "DownDPad"
+    JOG_DOWN: str = "UpDPad"
     JOG_CLOCKWISE: str = "RightBumper"
     JOG_COUNTERCLOCKWISE: str = "LeftBumper"
-    LINEAR_JOG_STEP: str = "LeftDPad"
-    ROTATIONAL_JOG_STEP: str = "RightDPad"
-    STOP_ALL: str = "UpDPad"
-    HOME: str = "DownDPad"
+    INC_LINEAR_JOG_STEP: str = "ABS_Y"
+    DEC_LINEAR_JOG_STEP: str = "ABS_Y"
+    INC_ROTATIONAL_JOG_STEP: str = "RightTrigger"
+    DEC_ROTATIONAL_JOG_STEP: str = "LeftTrigger"
+    LINEAR_JOG_STEP: str = "X"
+    ROTATIONAL_JOG_STEP: str = "Y"
+    STOP_ALL: str = "B"
+    HOME: str = "A"
     HELP: str = "View"
     QUIT: str = "Menu"
 
@@ -509,6 +513,22 @@ class XboxControl:
         self.linear_step_size = val
         print(f"New step size set: {self.linear_step_size}")
 
+    def _increase_linear_jog_step(self):
+        val = 0.00001
+        if self.is_pressed(self.bindings.INC_LINEAR_JOG_STEP, 'up'):
+            self.linear_step_size = self.linear_step_size + val
+            if self.linear_step_size > 1:
+                self.linear_step_size = 1 
+            print(f"New step size set: {self.linear_step_size}")
+
+    def _decrease_linear_jog_step(self):
+        val = 0.00001
+        if self.is_pressed(self.bindings.DEC_LINEAR_JOG_STEP, 'down'):
+            self.linear_step_size = self.linear_step_size - val
+            if self.linear_step_size < 0.001:
+                self.linear_step_size = 0.001
+            print(f"New step size set: {self.linear_step_size}")
+
     def _set_rotational_jog_step(self):
         val = None
         while val is None:
@@ -520,6 +540,20 @@ class XboxControl:
             except ValueError:
                 pass
         self.rotational_step_size = val
+        print(f"New step size set: {self.rotational_step_size}")
+    
+    def _increase_rotational_jog_step(self):
+        val = 0.0001
+        self.rotational_step_size = self.rotational_step_size + val
+        if self.rotational_step_size > 10:
+                self.rotational_step_size = 10 
+        print(f"New step size set: {self.rotational_step_size}")
+
+    def _decrease_rotational_jog_step(self):
+        val = 0.0001
+        self.rotational_step_size = self.rotational_step_size - val
+        if self.rotational_step_size < 0.1:
+                self.rotational_step_size = 0.1 
         print(f"New step size set: {self.rotational_step_size}")
 
     def _home(self):
@@ -578,6 +612,15 @@ class XboxControl:
                 return True
             else:
                 return False
+        elif button == 'ABS_Y':
+            assert direction is not None
+            val = self.joy.LeftJoystickY
+            if direction == 'down' and val < -0.25:
+                return True
+            elif direction == 'up' and val > 0.25:
+                return True
+            else:
+                return False
         return self.joy[button]
 
     def read(self, flags, running):
@@ -590,6 +633,10 @@ class XboxControl:
             elif binding == 'MOVE_UP':
                 direction = 'up'
             elif binding == 'MOVE_DOWN':
+                direction = 'down'
+            elif binding == 'INC_LINEAR_JOG_STEP':
+                direction = 'up'
+            elif binding == 'DEC_LINEAR_JOG_STEP':
                 direction = 'down'
             if self.is_pressed(button, direction):
                 if binding == "QUIT":
@@ -615,6 +662,10 @@ class XboxControl:
             "JOG_RIGHT": self._jog_right,
             "JOG_UP": self._jog_up,
             "JOG_DOWN": self._jog_down,
+            "INC_LINEAR_JOG_STEP": self._increase_linear_jog_step,
+            "DEC_LINEAR_JOG_STEP": self._decrease_linear_jog_step,
+            "INC_ROTATIONAL_JOG_STEP": self._increase_rotational_jog_step,
+            "DEC_ROTATIONAL_JOG_STEP": self._decrease_rotational_jog_step,
             "JOG_CLOCKWISE": self._jog_cw,
             "JOG_COUNTERCLOCKWISE": self._jog_ccw,
             "LINEAR_JOG_STEP": self._set_linear_jog_step,
