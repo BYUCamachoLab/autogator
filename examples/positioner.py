@@ -43,7 +43,7 @@ useful.
 
 from autogator.api import load_default_configuration
 from autogator.hardware import Stage
-from autogator.controllers import KeyboardControl, KeyloopKeyboardBindings
+from autogator.controllers import KeyboardControl, KeyloopKeyboardBindings, XboxBindings, XboxControl
 
 
 def keyboard_control(stage: Stage):
@@ -58,6 +58,18 @@ def keyboard_control(stage: Stage):
     kc = KeyboardControl(stage, KeyloopKeyboardBindings())
     kc.loop()
 
+def xbox_control(stage: Stage):
+    """
+    Enters the default xbox control loop with the default key bindings.
+
+    Parameters
+    ----------
+    stage : Stage
+        The stage configuration to use.
+    """
+    kc = XboxControl(stage, XboxBindings())
+    kc.loop()
+
 
 def print_help():
     cmds = {
@@ -66,6 +78,7 @@ def print_help():
         "goto <value>": "go to position <value>",
         "list": "list all saved positions",
         "ctrl": "enter keyboard control loop",
+        "xbox": "enter xbox control loop",
         "help": "print this help message",
         "q": "quit this script",
     }
@@ -96,6 +109,8 @@ if __name__ == "__main__":
                 print(f"  {name:<{width+2}} {position}")
         elif cmd == "ctrl":
             keyboard_control(stage)
+        elif cmd == "xbox":
+            xbox_control(stage)
         elif cmd == "help":
             print_help()
         elif cmd == "q":
