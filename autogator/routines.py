@@ -437,8 +437,9 @@ def line_scan(
 
     pos = []
     vals = []
+    trend = 0
 
-    while count < iterations:
+    while count < iterations and (trend < (0.1 * max(vals) if vals else 0)):
         motor.move_by(step_size)
         time.sleep(settle)
         data = daq.measure()
@@ -467,6 +468,9 @@ def line_scan(
             count = 0
         else:
             count += 1
+
+        if len(vals) > 5:
+            trend = sum(np.diff(vals[-5:]))
 
     if plot:
         plt.show()
