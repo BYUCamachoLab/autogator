@@ -171,6 +171,19 @@ class LinearStageBase(HardwareDevice):
         """
         log.info(f"Getting status of {self.name}")
         return 0
+    
+    def close(self) -> None:
+        """
+        This should close the connection to the cube
+
+        Returns
+        -------
+        None
+        """
+        log.info(f"Closing LinearStageBase {self.name}")
+        
+    
+
 
 
 class RotationalStageBase(HardwareDevice):
@@ -271,6 +284,16 @@ class RotationalStageBase(HardwareDevice):
         """
         log.info(f"Getting status of {self.name}")
         return 0
+    
+    def close(self) -> None:
+        """
+        This should close the connection to the cube
+
+        Returns
+        -------
+        None
+        """
+        log.info(f"Closing RotationalStageBase {self.name}")
 
 
 class DataAcquisitionUnitBase(HardwareDevice):
@@ -803,25 +826,51 @@ class StageConfiguration(BaseSettings):
         to_load.update(self.auxiliaries)
         loaded = {}
 
-        # Laod all stage objects in parallel, in case they are slow
-        # Code adapted from https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor-example
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(configs)) as executor:
-            # Start the load operations and mark each future with its URL
-            future_to_config = {}
-            for name, config in to_load.items():
-                log.info(f"Loading {name} stage...")
-                future_to_config[executor.submit(config.get_object)] = name
-                # Space out simultaneous calls to potentially shared DLLs
-                time.sleep(0.1)
-            for future in concurrent.futures.as_completed(future_to_config):
-                name = future_to_config[future]
+        ###################################
+        for name, config in to_load.items():
+            log.info(f"Loading {name} stage...")
+            max_retries = 10
+            count = 0
+            status = "failed"
+            while count < max_retries:
                 try:
-                    driver = future.result()
-                except Exception as exc:
-                    print(f'{name} generated an exception: {exc}')
-                    log.exception(exc)
-                else:
-                    loaded[name] = driver
+                    driver = config.get_object()
+                    if (count > 8):
+                        time.sleep(2)           
+                    status = "success"
+                    break
+                except:
+                    #log.info("Failed to connect to", name, "trying again")
+                    count += 1
+                    print(count)
+
+            # Space out simultaneous calls to potentially shared DLLs
+            if (status == "success"):
+                loaded[name] = driver
+            else:
+                print(f"failed to connect after {max_retries} attempts")
+        ###################################
+
+
+        # # Laod all stage objects in parallel, in case they are slow
+        # # Code adapted from https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor-example
+        # with concurrent.futures.ThreadPoolExecutor(max_workers=len(configs)) as executor:
+        #     # Start the load operations and mark each future with its URL
+        #     future_to_config = {}
+        #     for name, config in to_load.items():
+        #         log.info(f"Loading {name} stage...")
+        #         future_to_config[executor.submit(config.get_object)] = name
+        #         # Space out simultaneous calls to potentially shared DLLs
+        #         time.sleep(3)
+        #     for future in concurrent.futures.as_completed(future_to_config):
+        #         name = future_to_config[future]
+        #         try:
+        #             driver = future.result()
+        #         except Exception as exc:
+        #             print(f'{name} generated an exception: {exc}')
+        #             log.exception(exc)
+        #         else:
+        #             loaded[name] = driver
 
         log.info("Stage objects loaded.")
         return Stage(
@@ -970,6 +1019,18 @@ class Z825BLinearStage(LinearStageBase):
         """
         pass
 
+    def close(self) -> None:
+        """
+        This should close the connection to the cube
+
+        Returns
+        -------
+        None
+        """
+        log.info(f"Closing LinearStageBase {self.name}")
+        self.driver._pyroClaimOwnership()
+        self.driver.close()
+
 
 class PRM1Z8RotationalStage(RotationalStageBase):
     """
@@ -1102,6 +1163,18 @@ class PRM1Z8RotationalStage(RotationalStageBase):
         Returns a nonzero value if the motor is busy.
         """
         pass
+
+    def close(self) -> None:
+        """
+        This should close the connection to the cube
+
+        Returns
+        -------
+        None
+        """
+        log.info(f"Closing RotationalStageBase {self.name}")
+        self.driver._pyroClaimOwnership()
+        self.driver.close()
 
 
 class TSL550Laser(LaserBase):
