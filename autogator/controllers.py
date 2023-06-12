@@ -233,6 +233,7 @@ class KeyboardControl:
         for semaphore in self.semaphores.values():
             semaphore.release()
         log.info("Homing complete")
+    
 
     def _help(self):
         print(f"""
@@ -327,5 +328,11 @@ class KeyboardControl:
         while running.is_set():
             run_flagged()
             time.sleep(0.1)
+        
+        # Disconnect from the motors
+        for axis in self.stage.motors:
+            if axis is not None:
+                axis.close()
+
         # else:
         # clean up all current running actions, make sure all semaphores are freed
