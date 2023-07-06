@@ -71,6 +71,9 @@ class HardwareDevice:
     """
     driver = None
 
+    def __init__(self, *args, **kwargs) -> None:
+        pass
+
 
 class LinearStageBase(HardwareDevice):
     """
