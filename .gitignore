@@ -112,3 +112,4 @@ devnotes.txt
 test_bench.py
 lextab.py
 yacctab.py
+.DS_Store

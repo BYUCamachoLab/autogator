@@ -71,6 +71,9 @@ class HardwareDevice:
     """
     driver = None
 
+    def __init__(self, *args, **kwargs) -> None:
+        pass
+
 
 class LinearStageBase(HardwareDevice):
     """
@@ -181,9 +184,6 @@ class LinearStageBase(HardwareDevice):
         None
         """
         log.info(f"Closing LinearStageBase {self.name}")
-        
-    
-
 
 
 class RotationalStageBase(HardwareDevice):
@@ -885,6 +885,153 @@ class StageConfiguration(BaseSettings):
 
 
 class Z825BLinearStage(LinearStageBase):
+    """
+    A linear motor.
+
+    Parameters
+    ----------
+    pyroname : str
+        The name of the PyroLab object as registered with the nameserver.
+    ns_host : str, optional
+        The hostname of the PyroLab nameserver (default "localhost").
+    ns_port : int, optional
+        The port of the PyroLab nameserver (default "9090").
+    """
+    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
+        super().__init__(pyroname)
+        with locate_ns(host=ns_host, port=ns_port) as ns:
+            self.driver = Proxy(ns.lookup(pyroname))
+            self.driver.autoconnect()
+        self._step_size = None
+
+    @property
+    def step_size(self) -> float:
+        """The jog step size in mm."""
+        return self._step_size
+
+    @step_size.setter
+    def step_size(self, step_size: float) -> None:
+        if step_size != self._step_size:
+            self.driver._pyroClaimOwnership()
+            self.driver.jog_step_size = step_size
+            self._step_size = step_size
+
+    def move_to(self, position: float) -> None:
+        """
+        Moves to a new position.
+
+        This motor adjusts for backlash; a given position will always be
+        approached from the "negative" direction. That may require overshooting
+        the commanded position in order to always approach it again from a
+        consistent direction.
+
+        If stepping in short steps, it is therefore most efficient to step from
+        negative to positive values to avoid backlash adjustments on each step.
+
+        Parameters
+        ----------
+        position : float
+            The new position to move to.
+        """
+        self.driver._pyroClaimOwnership()
+        if self._requires_backlash_adjustment(position):
+            self.driver.move_to(position - (self.driver.backlash * 1.5))
+        self.driver.move_to(position)
+
+    def move_by(self, distance: float) -> None:
+        """
+        Jogs the motor by a fixed distance.
+
+        Parameters
+        ----------
+        distance : float
+            The distance to move the motor. A positive value will move the
+            motor forward, and a negative value will move the motor backwards.
+        """
+        self.driver._pyroClaimOwnership()
+        if np.abs(distance) != self.step_size:
+            self.step_size = np.abs(distance)
+        if distance > 0:
+            self.driver.jog("forward")
+        else:
+            self.driver.jog("backward")
+
+    def move_cont(self, direction: str) -> None:
+        """
+        Starts a continuous move in the specified direction.
+
+        Parameters
+        ----------
+        direction : str
+            The direction to move the motor, either "forward" or "backward".
+        """
+        self.driver._pyroClaimOwnership()
+        self.driver.move_continuous(direction)
+
+    def _requires_backlash_adjustment(self, position: float) -> bool:
+        """
+        Determine if the new position command needs to compensate for backlash.
+
+        The ThorLabs linear stages have a small backlash distance. To ensure
+        as accurate a reposition as possible when moving to the same location
+        multiple times, the motor will always approach the position from the 
+        same direction. This function determines whether that requires 
+        overshooting the current position before reapproaching.
+
+        Parameters
+        ----------
+        position : float
+            The position to move to.
+
+        Returns
+        -------
+        bool
+            Whether backlash compensation is required.
+        """
+        if position < self.get_position():
+            return True
+        return False
+
+    def stop(self) -> None:
+        """
+        Stop all motion.
+        """
+        self.driver._pyroClaimOwnership()
+        self.driver.stop()
+
+    def get_position(self) -> float:
+        """
+        Get the current position in millimeters.
+        """
+        self.driver._pyroClaimOwnership()
+        return self.driver.get_position()
+
+    def home(self) -> None:
+        """
+        Home the motor.
+        """
+        self.driver._pyroClaimOwnership()
+        self.driver.go_home()
+
+    def status(self) -> int:
+        """
+        Returns a nonzero value if the motor is busy.
+        """
+        pass
+
+    def close(self) -> None:
+        """
+        This should close the connection to the cube
+
+        Returns
+        -------
+        None
+        """
+        log.info(f"Closing LinearStageBase {self.name}")
+        self.driver._pyroClaimOwnership()
+        self.driver.close()
+
+class KMTS25ELinearStage(LinearStageBase):
     """
     A linear motor.
 
