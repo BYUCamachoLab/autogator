@@ -438,7 +438,7 @@ class GenericPyroLabDevice(HardwareDevice):
         The port of the PyroLab nameserver (default "9090").
     """
     def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
-        super().__init__(pyroname)
+        # super().__init__(pyroname)
         with locate_ns(host=ns_host, port=ns_port) as ns:
             self.driver = Proxy(ns.lookup(pyroname))
             self.driver.autoconnect()
@@ -673,7 +673,7 @@ class Stage:
             raise UncalibratedStageError("Stage is not calibrated (no conversion matrix set), cannot set position in GDS coordinates")
 
         gds_pos = np.array([[x], [y], [1]])
-        stage_pos = self.calibration_matrix @ gds_pos
+        stage_pos = self.calibration_matrix @ gds_pos # @ is matrix multiplication
 
         self.set_position(x=stage_pos[0, 0], y=stage_pos[1, 0])
         actual = self.get_position()
@@ -839,7 +839,7 @@ class StageConfiguration(BaseSettings):
                         time.sleep(2)           
                     status = "success"
                     break
-                except:
+                except Exception as e:
                     #log.info("Failed to connect to", name, "trying again")
                     count += 1
                     print(count)
@@ -1349,9 +1349,9 @@ class TSL550Laser(LaserBase):
         return self.driver.wavelength_logging()
 
     
-class RohdeSchwarzOscilliscope(DataAcquisitionUnitBase):
+class RohdeSchwarzOscilloscope(DataAcquisitionUnitBase):
     """
-    A Rohde-Schwarz oscilliscope simplified interface.
+    A Rohde-Schwarz oscilloscope simplified interface.
 
     Parameters
     ----------
