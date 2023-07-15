@@ -599,9 +599,13 @@ class Stage:
         psi : float, optional
             The psi position.
         """
+        ZLIFTSIZE = 0.1
         if not pos:
             pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
+
+        if z is None:
+            self.jog_position(z=ZLIFTSIZE)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as executor:
             # Start the load operations and mark each future with its URL
@@ -616,6 +620,9 @@ class Stage:
                 except Exception as exc:
                     print(f'{motor} generated an exception: {exc}')
                     log.exception(exc)
+        
+        if z is None:
+            self.jog_position(z=-ZLIFTSIZE)
 
     def jog_position(self, *, pos: List[float] = [], x=None, y=None, z=None, theta=None, phi=None, psi=None) -> None:
         """
@@ -643,12 +650,17 @@ class Stage:
         psi : float, optional
             The psi jog step.
         """
+        ZLIFTSIZE = 0.1
+        if z is None:
+            self.jog_position(z=ZLIFTSIZE)
         if not pos:
             pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
         for motor, pos in commands:
             if motor:
                 motor.move_by(pos)
+        if z is None:
+            self.jog_position(z=-ZLIFTSIZE)
 
     def set_position_gds(self, x: float, y: float) -> None:
         """
@@ -674,7 +686,7 @@ class Stage:
 
         gds_pos = np.array([[x], [y], [1]])
         stage_pos = self.calibration_matrix @ gds_pos # @ is matrix multiplication
-
+    
         self.set_position(x=stage_pos[0, 0], y=stage_pos[1, 0])
         actual = self.get_position()
         log.info(f"CMD: ({stage_pos[0,0], stage_pos[1,0]}), ACT: ({actual[0], actual[1]}), ERR: ({stage_pos[0,0] - actual[0], stage_pos[1,0] - actual[1]})")

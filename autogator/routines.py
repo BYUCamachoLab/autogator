@@ -354,7 +354,6 @@ def basic_scan(
                     plt.pause(0.001)
 
                 pos.append((stage.get_position()[0], stage.get_position()[1]))
-
                 jog_position_function(y=step_size_y)
 
             set_position_function(y=float(y[0]))
@@ -372,8 +371,8 @@ def basic_scan(
     set_position_function(x=float(max_x), y=float(max_y))
 
     if plot:
-        plt.show()
         print("Close the plot window to continue...")
+        plt.show(block=True)
 
     return max_data, (max_x, max_y)
 
@@ -439,7 +438,7 @@ def line_scan(
     vals = []
     trend = 0
 
-    while count < iterations and (trend < (0.1 * max(vals) if vals else 0)):
+    while count < iterations:
         motor.move_by(step_size)
         time.sleep(settle)
         data = daq.measure()
@@ -460,21 +459,25 @@ def line_scan(
             fig.canvas.draw_idle()
             plt.pause(0.001)
 
-        if data > max_data:
+        if data >= max_data:
             max_data = data
             max_loc = motor.get_position()
-            count = 0
-        elif data == max_data:
             count = 0
         else:
             count += 1
 
         if len(vals) > 5:
             trend = sum(np.diff(vals[-5:]))
+            if trend < 0.1 * max(vals) and trend > 0:
+                count = 0
+        
+        if len(vals) > 100:
+            break
+
 
     if plot:
-        plt.show()
         print("Close the plot window to continue...")
+        plt.show(block=True)
 
     return max_loc
 

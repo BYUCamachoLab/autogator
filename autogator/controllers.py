@@ -329,10 +329,6 @@ class KeyboardControl:
             run_flagged()
             time.sleep(0.1)
         
-        # Disconnect from the motors
-        for axis in self.stage.motors:
-            if axis is not None:
-                axis.close()
 
         # else:
         # clean up all current running actions, make sure all semaphores are freed
