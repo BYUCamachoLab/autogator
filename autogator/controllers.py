@@ -21,7 +21,7 @@ from multiprocessing import Value
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent
 from pydantic import BaseSettings
 
 from autogator.hardware import Stage
@@ -338,6 +338,18 @@ class KeyboardControl:
         # else:
         # clean up all current running actions, make sure all semaphores are freed
 
+class QtKeyboardGUIShortcut(QShortcut):
+    released = QtCore.Signal()
+
+    def event(self, e):
+        if isinstance(e, QShortcutEvent):
+            # self.activated.emit()
+            ...
+        elif isinstance(e, QKeyEvent) and e.type() == e.KeyRelease:
+            print('shortcut released')
+            self.released.emit()
+        return super().event(e)
+    
 class KeyboardGUIBindings(BaseSettings):
     '''
     Sets default keyboard bindings for KeyboardControlGUI controller.
@@ -402,10 +414,10 @@ class KeyboardControlGUI:
         return bindingTups
 
     def _moveEventThreader(self, button):
-        print('button Pressed')
-        self.buttonPressed.value = True
-        t = threading.Thread(target=self._moveEvent, daemon=True, args=[button, self.buttonPressed])
-        t.start()
+        if not self.buttonPressed.value:
+            self.buttonPressed.value = True
+            t = threading.Thread(target=self._moveEvent, daemon=True, args=[button, self.buttonPressed])
+            t.start()
 
     def _moveEvent(self, button, buttonPressed):
         buttonName = button.objectName()
@@ -432,12 +444,12 @@ class KeyboardControlGUI:
                 semaphore.release()
             else:
                 motionValue = self.w.velocitySpinBox.value()
+                print('moving')
                 while buttonPressed.value:
-                    print('moving')
-                    # time.sleep(1)
-                    axis.move_cont(direction)
-                    print('doneMoving')
-                axis.stop()
+                    # axis.move_cont(direction)
+                    time.sleep(0.1)
+                print('doneMoving')
+                # axis.stop()
                 semaphore.release()
 
     def mainWindowSetup(self):
@@ -450,8 +462,10 @@ class KeyboardControlGUI:
             self._setupButton(binding, button, self._moveEventThreader)
 
     def _setupButton(self, key, button, function):
-        shortcut = QShortcut(QKeySequence(key), self.w)
+        shortcut = QtKeyboardGUIShortcut(QKeySequence(key), self.w)
+        shortcut.setAutoRepeat(False)
         shortcut.activated.connect(button.pressed)
+        shortcut.released.connect(button.released)
         button.pressed.connect(lambda checked=True, b=button: function(b))
         button.released.connect(self._setButtonPressedFalse)
 
