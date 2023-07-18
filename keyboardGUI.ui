@@ -19,7 +19,7 @@
   <widget class="QDoubleSpinBox" name="velocitySpinBox">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>110</x>
      <y>30</y>
      <width>62</width>
      <height>22</height>
@@ -29,65 +29,33 @@
   <widget class="QLabel" name="label">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>110</x>
      <y>10</y>
-     <width>71</width>
+     <width>101</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Velocity</string>
+    <string>X/Y Velocity</string>
    </property>
-  </widget>
-  <widget class="QRadioButton" name="stepRadio">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>30</y>
-     <width>82</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Step</string>
-   </property>
-   <attribute name="buttonGroup">
-    <string notr="true">modeSelector</string>
-   </attribute>
-  </widget>
-  <widget class="QRadioButton" name="continuousRadio">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>50</y>
-     <width>101</width>
-     <height>17</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Continuous</string>
-   </property>
-   <attribute name="buttonGroup">
-    <string notr="true">modeSelector</string>
-   </attribute>
   </widget>
   <widget class="QLabel" name="label_2">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>250</x>
      <y>10</y>
      <width>71</width>
      <height>16</height>
     </rect>
    </property>
    <property name="text">
-    <string>Step Size</string>
+    <string>X/Y Step Size</string>
    </property>
   </widget>
   <widget class="QDoubleSpinBox" name="stepSpinBox">
    <property name="geometry">
     <rect>
-     <x>270</x>
+     <x>250</x>
      <y>30</y>
      <width>62</width>
      <height>22</height>
@@ -97,7 +65,7 @@
   <widget class="QLabel" name="label_3">
    <property name="geometry">
     <rect>
-     <x>210</x>
+     <x>180</x>
      <y>30</y>
      <width>47</width>
      <height>13</height>
@@ -110,7 +78,7 @@
   <widget class="QLabel" name="label_4">
    <property name="geometry">
     <rect>
-     <x>340</x>
+     <x>320</x>
      <y>30</y>
      <width>47</width>
      <height>13</height>
@@ -120,24 +88,11 @@
     <string>mm</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_5">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>47</width>
-     <height>13</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Mode</string>
-   </property>
-  </widget>
   <widget class="QLabel" name="label_6">
    <property name="geometry">
     <rect>
      <x>180</x>
-     <y>110</y>
+     <y>140</y>
      <width>47</width>
      <height>13</height>
     </rect>
@@ -149,8 +104,8 @@
   <widget class="QPushButton" name="HOME">
    <property name="geometry">
     <rect>
-     <x>20</x>
-     <y>270</y>
+     <x>310</x>
+     <y>280</y>
      <width>75</width>
      <height>23</height>
     </rect>
@@ -163,7 +118,7 @@
    <property name="geometry">
     <rect>
      <x>80</x>
-     <y>130</y>
+     <y>160</y>
      <width>239</width>
      <height>109</height>
     </rect>
@@ -291,18 +246,149 @@
   <widget class="QDoubleSpinBox" name="doubleSpinBox">
    <property name="geometry">
     <rect>
-     <x>140</x>
-     <y>60</y>
+     <x>110</x>
+     <y>100</y>
      <width>62</width>
      <height>22</height>
     </rect>
    </property>
   </widget>
+  <widget class="QLabel" name="label_7">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>100</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>mm/sec</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_8">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>80</y>
+     <width>101</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Z/Rotate Velocity</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="stepSpinBox_2">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>100</y>
+     <width>62</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_10">
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>100</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>mm</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_11">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>80</y>
+     <width>131</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Z/Rotate Step Size</string>
+   </property>
+  </widget>
+  <widget class="QSplitter" name="splitter">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>90</y>
+     <width>61</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+   <widget class="QLabel" name="label_9">
+    <property name="text">
+     <string>Presets</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="fastRadio">
+    <property name="text">
+     <string>Fast</string>
+    </property>
+    <attribute name="buttonGroup">
+     <string notr="true">presetSelector</string>
+    </attribute>
+   </widget>
+   <widget class="QRadioButton" name="slowRadio">
+    <property name="text">
+     <string>Slow</string>
+    </property>
+    <attribute name="buttonGroup">
+     <string notr="true">presetSelector</string>
+    </attribute>
+   </widget>
+  </widget>
+  <widget class="QSplitter" name="splitter_2">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>91</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+   <widget class="QLabel" name="label_5">
+    <property name="text">
+     <string>Mode</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="stepRadio">
+    <property name="text">
+     <string>Step</string>
+    </property>
+    <attribute name="buttonGroup">
+     <string notr="true">modeSelector</string>
+    </attribute>
+   </widget>
+   <widget class="QRadioButton" name="continuousRadio">
+    <property name="text">
+     <string>Continuous</string>
+    </property>
+    <attribute name="buttonGroup">
+     <string notr="true">modeSelector</string>
+    </attribute>
+   </widget>
+  </widget>
  </widget>
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="motionControls"/>
   <buttongroup name="modeSelector"/>
+  <buttongroup name="motionControls"/>
+  <buttongroup name="presetSelector"/>
  </buttongroups>
 </ui>

@@ -337,18 +337,17 @@ class KeyboardControl:
 
         # else:
         # clean up all current running actions, make sure all semaphores are freed
+    
+class KeyReleaseEventFilter(QtCore.QObject):
+    def __init__(self, obj, callback):
+        super().__init__(obj)
+        self.callback = callback
+        self.released = False
 
-class QtKeyboardGUIShortcut(QShortcut):
-    released = QtCore.Signal()
-
-    def event(self, e):
-        if isinstance(e, QShortcutEvent):
-            # self.activated.emit()
-            ...
-        elif isinstance(e, QKeyEvent) and e.type() == e.KeyRelease:
-            print('shortcut released')
-            self.released.emit()
-        return super().event(e)
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.KeyRelease and not event.isAutoRepeat():
+            self.callback()
+        return super().eventFilter(obj, event)
     
 class KeyboardGUIBindings(BaseSettings):
     '''
@@ -369,7 +368,7 @@ class KeyboardGUIBindings(BaseSettings):
     POS_PSI: str = 'c'
     MINUS_PSI: str = 'z'
     HOME: str = 'h'
-
+    
 class KeyboardControlGUI:
     '''
     A GUI version of the keyboard controller.
@@ -394,6 +393,9 @@ class KeyboardControlGUI:
         filePath = os.path.join(parentDir, 'keyboardGUI.ui')
         self.w = loader.load(filePath, None)
 
+        eventFilter = KeyReleaseEventFilter(self.w, self._setButtonPressedFalse)
+        self.w.installEventFilter(eventFilter)
+
         self.bindingPairs = self._mapBindings(bindings)
         self.mainWindowSetup()
         
@@ -406,7 +408,6 @@ class KeyboardControlGUI:
         buttons = self.w.motionControls.buttons()
         bindingTups = []
         for button in buttons:
-            print(f'button {button.objectName()}')
             for binding in bindingNames:
                 if button.objectName() == binding:
                     bindingTups.append((button, binding))
@@ -446,12 +447,10 @@ class KeyboardControlGUI:
                 semaphore.release()
             else:
                 motionValue = self.w.velocitySpinBox.value()
-                print('moving')
                 while buttonPressed.value:
-                    # axis.move_cont(direction)
-                    time.sleep(0.1)
-                print('doneMoving')
-                # axis.stop()
+                    axis.move_cont(direction)
+                    time.sleep(0.2)
+                axis.stop()
                 semaphore.release()
 
     def mainWindowSetup(self):
@@ -464,22 +463,20 @@ class KeyboardControlGUI:
             self._setupButton(binding, button, self._moveEventThreader)
 
     def _setupButton(self, key, button, function):
-        shortcut = QtKeyboardGUIShortcut(QKeySequence(key), self.w)
+        shortcut = QShortcut(QKeySequence(key), self.w)
         shortcut.setAutoRepeat(False)
         shortcut.activated.connect(button.pressed)
-        shortcut.released.connect(button.released)
         button.pressed.connect(lambda checked=True, b=button: function(b))
         button.released.connect(self._setButtonPressedFalse)
 
     def _setButtonPressedFalse(self):
-        print('button released')
         self.buttonPressed.value = False
+
 
 
 if __name__ == '__main__':
     from autogator.api import load_default_configuration
     config = load_default_configuration()
     stage = config.get_stage()
-
     keyboardObj = KeyboardControlGUI(stage)
     keyboardObj.run()
