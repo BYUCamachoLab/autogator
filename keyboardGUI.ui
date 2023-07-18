@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>KeyboardCtrl</class>
+ <widget class="QWidget" name="KeyboardCtrl">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>394</width>
+    <height>312</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="moveHome" stdset="0">
+   <string>H</string>
+  </property>
+  <widget class="QDoubleSpinBox" name="velocitySpinBox">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>30</y>
+     <width>62</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>10</y>
+     <width>71</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Velocity</string>
+   </property>
+  </widget>
+  <widget class="QRadioButton" name="stepRadio">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>30</y>
+     <width>82</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Step</string>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">modeSelector</string>
+   </attribute>
+  </widget>
+  <widget class="QRadioButton" name="continuousRadio">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>50</y>
+     <width>101</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Continuous</string>
+   </property>
+   <attribute name="buttonGroup">
+    <string notr="true">modeSelector</string>
+   </attribute>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>10</y>
+     <width>71</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Step Size</string>
+   </property>
+  </widget>
+  <widget class="QDoubleSpinBox" name="stepSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>30</y>
+     <width>62</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>30</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>mm/sec</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>30</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>mm</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>10</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Mode</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>110</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Controls</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="HOME">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>270</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Home</string>
+   </property>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>80</x>
+     <y>130</y>
+     <width>239</width>
+     <height>109</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="1" alignment="Qt::AlignHCenter">
+     <widget class="QPushButton" name="POS_Y">
+      <property name="text">
+       <string>+Y</string>
+      </property>
+      <property name="moveYPlus" stdset="0">
+       <string>W</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="1" column="2">
+     <widget class="QPushButton" name="POS_X">
+      <property name="text">
+       <string>+X</string>
+      </property>
+      <property name="moveXPlux" stdset="0">
+       <string>D</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QPushButton" name="MINUS_X">
+      <property name="text">
+       <string>-X</string>
+      </property>
+      <property name="moveXMinus" stdset="0">
+       <string>A</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="2" column="2">
+     <widget class="QPushButton" name="POS_PSI">
+      <property name="text">
+       <string>+Rotate</string>
+      </property>
+      <property name="moveClockwise" stdset="0">
+       <string>E</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="POS_Z">
+      <property name="text">
+       <string>+Z</string>
+      </property>
+      <property name="moveZPlus" stdset="0">
+       <string>C</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="MINUS_Z">
+      <property name="text">
+       <string>-Z</string>
+      </property>
+      <property name="moveZMinus" stdset="0">
+       <string>Z</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QPushButton" name="MINUS_PSI">
+      <property name="text">
+       <string>-Rotate</string>
+      </property>
+      <property name="moveCounterClockwise" stdset="0">
+       <string>Q</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QPushButton" name="MINUS_Y">
+      <property name="text">
+       <string>-Y</string>
+      </property>
+      <property name="moveYMinus" stdset="0">
+       <string>S</string>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">motionControls</string>
+      </attribute>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QDoubleSpinBox" name="doubleSpinBox">
+   <property name="geometry">
+    <rect>
+     <x>140</x>
+     <y>60</y>
+     <width>62</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+ <buttongroups>
+  <buttongroup name="motionControls"/>
+  <buttongroup name="modeSelector"/>
+ </buttongroups>
+</ui>

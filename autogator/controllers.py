@@ -15,7 +15,7 @@ an XBox controller. More controllers may be implemented here in the future.
 import logging
 import threading
 import time
-import sys
+import sys, os
 import keyboard
 from multiprocessing import Value
 
@@ -390,7 +390,9 @@ class KeyboardControlGUI:
         }
         self.app = QtWidgets.QApplication(sys.argv)
         loader = QUiLoader()
-        self.w = loader.load('keyboardGUI.ui', None)
+        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
+        filePath = os.path.join(parentDir, 'keyboardGUI.ui')
+        self.w = loader.load(filePath, None)
 
         self.bindingPairs = self._mapBindings(bindings)
         self.mainWindowSetup()
