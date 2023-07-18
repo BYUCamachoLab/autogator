@@ -339,6 +339,9 @@ class KeyboardControl:
         # clean up all current running actions, make sure all semaphores are freed
     
 class KeyReleaseEventFilter(QtCore.QObject):
+    '''
+    This is used to detect when a key shortcut was released. 
+    '''
     def __init__(self, obj, callback):
         super().__init__(obj)
         self.callback = callback
