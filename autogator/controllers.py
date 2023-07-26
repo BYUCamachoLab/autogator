@@ -18,10 +18,11 @@ import time
 import sys, os
 import keyboard
 from multiprocessing import Value
+import cv2
 
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent
+from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent, QPixmap
 from pydantic import BaseSettings
 
 from autogator.hardware import Stage
@@ -391,20 +392,26 @@ class KeyboardControlGUI:
             'PSI': threading.Semaphore()
         }
         self.app = QtWidgets.QApplication(sys.argv)
-        loader = QUiLoader()
-        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
-        filePath = os.path.join(parentDir, 'keyboardGUI.ui')
-        self.w = loader.load(filePath, None)
+        self._loadWindow()
 
         eventFilter = KeyReleaseEventFilter(self.w, self._setButtonPressedFalse)
         self.w.installEventFilter(eventFilter)
 
         self.bindingPairs = self._mapBindings(bindings)
         self.mainWindowSetup()
+    
+    def _loadWindow(self):
+        loader = QUiLoader()
+        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
+        filePath = os.path.join(parentDir, 'keyboardGUI.ui')
+        self.w = loader.load(filePath, None)
         
-    def run(self):
+    def loop(self):
         self.w.show()
-        self.app.exec_()
+        self.app.exec()
+
+    def close(self):
+        self.w.close()
     
     def _mapBindings(self, bindings):
         bindingNames = [attr for attr in dir(bindings) if not attr.startswith('_') and attr.isupper() and '_' in attr]
@@ -414,6 +421,7 @@ class KeyboardControlGUI:
             for binding in bindingNames:
                 if button.objectName() == binding:
                     bindingTups.append((button, binding))
+                    break
 
         if len(bindingTups) != len(self.axes.keys())*2:
             raise RuntimeError('Number of bindings doesn\'t match the number of motion buttons.')
@@ -475,11 +483,93 @@ class KeyboardControlGUI:
     def _setButtonPressedFalse(self):
         self.buttonPressed.value = False
 
+class FullControl(KeyboardControlGUI):
+    '''
+    A GUI control that have movement, scope, and camera views.
+    '''
+    def __init__(self, stage: Stage, bindings: KeyboardGUIBindings = None):
+        super().__init__(stage, bindings)
+        self.cam = None
+        # self.setupCamera()
+        if self.cam is not None:
+            self.startCamLoop()
+        self.startScopeLoop()
+        
+
+    def _loadWindow(self):
+        loader = QUiLoader()
+        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
+        filePath = os.path.join(parentDir, 'fullControl.ui')
+        self.w = loader.load(filePath, None)
+    
+    def setupCamera(self) -> None:
+        if not 'camera' in self.stage.auxiliaries.keys():
+            return
+        self.cam = self.stage.auxiliaries['camera']
+    
+    def startScopeLoop(self):
+        label = self.w.findChild(QtWidgets.QLabel, "scopeView")
+        t = threading.Thread(target=self._showScopeFeed, daemon=True, args=[label, self.stage.scope])
+        t.start()
+    
+    def _showScopeFeed(self, label, scope):
+        while True:
+            framePath = os.getcwd() + '/temp.png'
+            scope.driver.screenshot(framePath)
+            pixmap = QPixmap(framePath)
+            pixmap = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
+            label.setPixmap(pixmap)
+
+    def startCamLoop(self):
+        self.cam.startStream()
+        t = threading.Thread(target=self._showCamVideo, daemon=True, args=[self.cam])
+        t.start()
+    
+    def _showCamVideo(self, cam):
+        graphics_view = self.w.findChild(QtWidgets.QGraphicsView, "cameraView")
+
+        # Create a scene and add an image to it
+        scene = QtWidgets.QGraphicsScene()
+        
+
+        # Set the scene on the graphics view
+        graphics_view.setScene(scene)
+        try:
+            while True:
+                frame = cam.get_frame()
+                if frame is not None:
+                    height, width, _ = frame.shape
+                    bytesPerLine = width * 3
+
+
+                    frame = QtGui.QImage(frame.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+                    pixmap = QtGui.QPixmap(frame)
+                    scene = QtWidgets.QGraphicsScene()
+                    scene.addPixmap(pixmap)
+                    graphics_view.setScene(scene)
+                else:
+                    raise RuntimeError('The camera isn\'t connecting. Usually this happens when another stream is open')
+        except KeyboardInterrupt:
+            pass
+        except Exception as e:
+            raise e
+        finally:
+            cam.endStream()
+            time.sleep(1)
+            cam.close()
+
 
 
 if __name__ == '__main__':
     from autogator.api import load_default_configuration
     config = load_default_configuration()
     stage = config.get_stage()
-    keyboardObj = KeyboardControlGUI(stage)
-    keyboardObj.run()
+    keyboardObj = FullControl(stage)
+    try:
+        keyboardObj.loop()
+    except Exception as e:
+        raise e
+    finally:
+        stage.auxiliaries['camera'].end_stream()
+        stage.auxiliaries['camera'].close()
+

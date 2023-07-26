@@ -336,7 +336,10 @@ def basic_scan(
         im = ax.imshow(data, cmap="hot", extent=(x0, x1, y0, y1))
         cbar = fig.colorbar(im, ax=ax)
 
+    ZLIFTSIZE = 0.1
+    jog_position_function(z=ZLIFTSIZE)
     set_position_function(x=float(x[0]), y=float(y[0]))
+    jog_position_function(z=-ZLIFTSIZE)
     try:
         for i in range(rows):
             for j in range(cols):
@@ -356,8 +359,10 @@ def basic_scan(
                 pos.append((stage.get_position()[0], stage.get_position()[1]))
                 jog_position_function(y=step_size_y)
 
+            jog_position_function(z=ZLIFTSIZE)
             set_position_function(y=float(y[0]))
             jog_position_function(x=step_size_x)
+            jog_position_function(z=-ZLIFTSIZE)
     except KeyboardInterrupt:
         pass
 
@@ -368,7 +373,9 @@ def basic_scan(
     max_x, max_y = pos[max_idx]
 
     # Move to max position
+    jog_position_function(z=ZLIFTSIZE)
     set_position_function(x=float(max_x), y=float(max_y))
+    jog_position_function(z=-ZLIFTSIZE)
 
     if plot:
         print("Close the plot window to continue...")
@@ -382,6 +389,7 @@ def line_scan(
     daq: DataAcquisitionUnitBase,
     axis: str,
     start: float,
+    channel: int = 1,
     step_size: float = 0.0005,
     settle: float = 0.2,
     iterations: int = 15,
@@ -422,9 +430,12 @@ def line_scan(
     max_loc : float
         The location of the maximum in the motor's units.
     """
+    ZLIFTSIZE = 0.1
     if axis in ["x", "y", "z"]:
         motor = getattr(stage, axis)
+    stage.jog_position(z=ZLIFTSIZE)
     motor.move_to(start)
+    stage.jog_position(z=-ZLIFTSIZE)
     max_data = daq.measure()
     max_loc = motor.get_position()
     count = 0
@@ -601,3 +612,124 @@ def auto_scan(
     log.info(f"Fine max value '{value}' found at {position}")
 
     return (x_max, y_max)
+
+def smart_scan(
+    stage: Stage,
+    daq: DataAcquisitionUnitBase,
+    stage_x: Tuple[float, float] = None,
+    stage_y: Tuple[float, float] = None,
+    gds_x: Tuple[float, float] = None,
+    gds_y: Tuple[float, float] = None,
+    stage_center: Tuple[float, float] = None,
+    gds_center: Tuple[float, float] = None,
+    span: float = None,
+    span_x: float = None,
+    span_y: float = None,
+    step_size: float = None,
+    step_size_x: float = None,
+    step_size_y: float = None,
+    plot: bool = False,
+    settle: float = 0.2,
+) -> Tuple[float, float]:
+    """
+    Performs a set of linear scans of given dimensions and then refines the scan around the peak.
+
+    The stage always moves to the max position upon completion of this function.
+
+    You must specify one of the following sets of parameters: 
+    * ``stage_x`` and ``stage_y``
+    * ``gds_x`` and ``gds_y``
+    * ``stage_center`` and ``span``
+    * ``gds_center`` and ``span``
+    * ``span`` (with center not specified, centers assumes current location)
+
+    Additionally, you must specify one of the following parameter sets:
+    * ``step_size``
+    * ``step_size_x`` and ``step_size_y``
+
+    Parameters
+    ----------
+    stage : Stage
+        The stage object that provides access to the hardware.
+    daq : DataAcquisitionUnitBase
+        The preconfigured data acquisition unit to use for taking measurements.
+        This function repeatedly calls the 
+        :py:func:`DataAcquisitionUnitBase.measure` method to acquire scan data.
+    stage_x : Tuple[float, float], optional
+        The x-coordinate span of the stage to scan, in motor units, from 
+        smallest value to largest.
+    stage_y : Tuple[float, float], optional
+        The y-coordinate span of the stage to scan, in motor units, from 
+        smallest value to largest.
+    gds_x : Tuple[float, float], optional
+        The x-coordinate span of the GDS to scan, from smallest value to
+        largest.
+    gds_y : Tuple[float, float], optional
+        The y-coordinate span of the GDS to scan, from smallest value to
+        largest.
+    stage_center : Tuple[float, float], optional
+        The (x, y) center of the scan, in motor units.
+    gds_center : Tuple[float, float], optional
+        The (x, y) center of the scan, in GDS coordinates.
+    span : float, optional
+        The width of the scan. Units are derived from context; if 
+        ``stage_center`` is defined, this is in motor units. If ``gds_center`` 
+        is defined, this is in GDS coordinates. If neither is defined, then 
+        this is in motor units. The span is from the center +/- span/2.
+    step_size : float
+        Jog step size motors will use when iterating through the box. Units
+        are derived from context; if stage_center is defined, this is in motor
+        units. If gds_center is defined, this is in GDS coordinates. If set,
+        step_size is equal for both x and y axes.
+    step_size_x : float, optional
+        Jog step size motors will use when iterating through the box. Units
+        are derived from context; if stage_center is defined, this is in motor
+        units. If gds_center is defined, this is in GDS coordinates. Use this
+        parameter to set a different step size for the x-axis.
+    step_size_y : float, optional
+        Jog step size motors will use when iterating through the box. Units
+        are derived from context; if stage_center is defined, this is in motor
+        units. If gds_center is defined, this is in GDS coordinates. Use this
+        parameter to set a different step size for the y-axis.
+    plot : bool, optional
+        Whether to plot the scan data (default False).
+    settle : float, optional
+        Amount of time in seconds the motors will pause in between move 
+        commands to allow for settling time (lets vibration/residual motion 
+        die out) and improve data reliability (default 0.2).
+
+    Returns
+    -------
+    position : Tuple[float, float]
+        The position of the highest reading in the motor coordinate system.
+    """
+    # Determine bounds of scan region
+    if span is not None:
+        x, y = stage.x.get_position(), stage.y.get_position()
+
+    elif span_x is not None and span_y is not None:
+        x, y = stage.x.get_position(), stage.y.get_position()
+
+    else:
+        raise ValueError("Invalid scan parameters")
+    
+    position = (stage.x.get_position(), stage.y.get_position())
+
+    # corse tune max position
+    x_max = line_scan(stage, daq, "x", position[0] - span / 2, step_size=step_size, plot=plot, iterations=10)
+    stage.set_position(x=x_max)
+    position = (x_max, position[1])
+
+    # Fine tune max position
+    SEARCH_AREA = 0.025
+    FINE_STEP = 0.0005
+    x_max = line_scan(stage, daq, "x", position[0] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
+    stage.set_position(x=x_max)
+    y_max = line_scan(stage, daq, "y", position[1] - SEARCH_AREA / 2, step_size=FINE_STEP, plot=plot)
+    stage.set_position(y=y_max)
+    position = (x_max, y_max)
+
+    value = daq.measure()
+    log.info(f"Fine max value '{value}' found at {position}")
+
+    return position

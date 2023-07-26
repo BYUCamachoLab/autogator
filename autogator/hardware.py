@@ -29,8 +29,9 @@ from typing import Any, Dict, List, Tuple, Type, Union
 import numpy as np
 from pydantic import BaseModel, BaseSettings
 try:
-    from pyrolab.api import locate_ns, Proxy
+    from pyrolab.api import locate_ns, Proxy, NameServerConfiguration
     from pyrolab.drivers.scopes.rohdeschwarz import RTO
+    from pyrolab.drivers.cameras.thorcam import ThorCamClient
 except:
     pass
 
@@ -438,7 +439,7 @@ class GenericPyroLabDevice(HardwareDevice):
         The port of the PyroLab nameserver (default "9090").
     """
     def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
-        # super().__init__(pyroname)
+        super().__init__(pyroname)
         with locate_ns(host=ns_host, port=ns_port) as ns:
             self.driver = Proxy(ns.lookup(pyroname))
             self.driver.autoconnect()
@@ -599,13 +600,9 @@ class Stage:
         psi : float, optional
             The psi position.
         """
-        ZLIFTSIZE = 0.1
         if not pos:
             pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
-
-        if z is None:
-            self.jog_position(z=ZLIFTSIZE)
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(commands)) as executor:
             # Start the load operations and mark each future with its URL
@@ -620,9 +617,6 @@ class Stage:
                 except Exception as exc:
                     print(f'{motor} generated an exception: {exc}')
                     log.exception(exc)
-        
-        if z is None:
-            self.jog_position(z=-ZLIFTSIZE)
 
     def jog_position(self, *, pos: List[float] = [], x=None, y=None, z=None, theta=None, phi=None, psi=None) -> None:
         """
@@ -650,17 +644,12 @@ class Stage:
         psi : float, optional
             The psi jog step.
         """
-        ZLIFTSIZE = 0.1
-        if z is None:
-            self.jog_position(z=ZLIFTSIZE)
         if not pos:
             pos = [x, y, z, theta, phi, psi]
         commands = [cmd for cmd in zip(self.motors, pos) if cmd[1] is not None]
         for motor, pos in commands:
             if motor:
                 motor.move_by(pos)
-        if z is None:
-            self.jog_position(z=-ZLIFTSIZE)
 
     def set_position_gds(self, x: float, y: float) -> None:
         """
@@ -895,6 +884,33 @@ class StageConfiguration(BaseSettings):
 
 ###############################################################################
 
+class ThorCam(CameraBase):
+    def __init__(self, pyroname: str = "", ns_host: str = "localhost", ns_port: int = 9090) -> None:
+        super().__init__(pyroname)
+        nscfg = NameServerConfiguration(host=ns_host, ns_port=ns_port)
+        nscfg.update_pyro_config()
+        self.driver = ThorCamClient()
+        self.driver.connect(pyroname)
+        self.driver.color = True
+
+    def setExposure(self, value: int) -> None:
+        self.driver.exposure = value
+    
+    def setBrightness(self, value: int) -> None:
+        self.driver.brightness = value
+
+    def startStream(self) -> None:
+        self.driver.start_stream()
+        self.driver.await_stream()  
+    
+    def endStream(self) -> None:
+        self.driver.end_stream()
+        self.driver.close()
+
+    def get_frame(self) -> Any:
+        super().get_frame()
+        frame = self.driver.get_frame()
+        return frame
 
 class Z825BLinearStage(LinearStageBase):
     """

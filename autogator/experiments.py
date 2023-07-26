@@ -73,9 +73,10 @@ class Experiment:
         The circuit currently under test.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, controller=None) -> None:
         self._stage = None
         self._circuit = None
+        self.controller = controller
 
     @property
     def stage(self):
