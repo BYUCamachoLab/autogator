@@ -34,7 +34,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from autogator.circuits import Circuit
-from autogator.hardware import DataAcquisitionUnitBase, Stage
+from autogator.hardware import DataAcquisitionUnitBase, Stage, LaserBase
 from autogator.controllers import KeyboardControl
 
 
@@ -76,10 +76,18 @@ def auto_calibration_callback(
             do_scan = True
     print("DONE")
 
+def setupScopeWithCircuit(scope: DataAcquisitionUnitBase, circuit: Circuit):
+    
+    scope.set_channel()
+    scope.set_auto_measurement(source=f'C{4}W1')
+    scope.wait_for_device()
 
 def calibrate(
     stage: Stage, 
-    daq: DataAcquisitionUnitBase, 
+    daq: DataAcquisitionUnitBase,
+    laser:  LaserBase,
+    wavelength: int,
+    power: int,
     circuits: List[Circuit], 
     callback: Callable, 
     controller: KeyboardControl = None
@@ -94,6 +102,12 @@ def calibrate(
     daq : DataAcquisitionUnitBase
         The configured data acquisition unit (or class that inherits from 
         :py:class:`DataAcquisitionUnitBase`) to use for calibration.
+    laser : LaserBase
+        The laser to preform the calibration with.
+    wavelength: int
+        The wavelength to operate the laser at.
+    power: int
+        The power in dbm to operate the laser at.
     circuits : List[Circuit, Circuit, Circuit]
         The three calibration circuits.
     callback : Callable
@@ -123,9 +137,16 @@ def calibrate(
     if controller is None:
         controller = KeyboardControl(stage)
 
+    # Configure laser
+    laser.on(block=True)
+    laser.power(power)
+    laser.wavelength(wavelength)
+    laser.driver.open_shutter()
+
     gds_coords = []
     stage_coords = []
     for i, circuit in enumerate(circuits):
+        setupScopeWithCircuit(daq, circuit)
         log.debug("Calibrating circuit %s", str(i+1))
         callback(stage, daq, circuit, controller=controller)
         gds_coords.append(circuit.loc)

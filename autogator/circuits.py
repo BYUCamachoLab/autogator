@@ -82,11 +82,16 @@ in automated tests.
 from __future__ import annotations
 import copy
 import logging
+import time
+import numpy as np
 from pathlib import Path
 from typing import Any, Dict, NamedTuple, Tuple, Union, List
+from math import sqrt
+import matplotlib.pyplot as plt
 
 from autogator.errors import CircuitMapUniqueKeyError
-
+import gdsfactory as gf
+from gdsfactory import Component
 
 log = logging.getLogger(__name__)
 
@@ -207,11 +212,11 @@ class Circuit:
         return Circuit(self.loc, self.params.copy())
 
     def __deepcopy__(self, memodict: Dict[Any, Any]) -> "Circuit":
-        newone = Circuit(
+        newOne = Circuit(
             copy.deepcopy(self.loc, memodict),
             copy.deepcopy(self.params, memodict),
         )
-        return newone
+        return newOne
 
 
 class CircuitMap:
@@ -281,9 +286,9 @@ class CircuitMap:
         return CircuitMap(self.circuits)
 
     def __deepcopy__(self, memo: Any) -> CircuitMap:
-        newone = type(self)()
-        newone.circuits = [copy.deepcopy(circuit) for circuit in self.circuits]
-        return newone
+        newOne = type(self)()
+        newOne.circuits = [copy.deepcopy(circuit) for circuit in self.circuits]
+        return newOne
 
     def filterby(self, **kwargs: str) -> CircuitMap:
         """
@@ -375,6 +380,168 @@ class CircuitMap:
         with path.open("w") as f:
             f.write(str(self))
 
+    def polygonsBoundingBox(self, polygons):
+        allPoints = np.concatenate([poly.points for poly in polygons])
+        xMin, yMin = np.min(allPoints, axis=0)
+        xMax, yMax = np.max(allPoints, axis=0)
+        return ((xMin, yMin), (xMax, yMax))
+    
+    def isInside(self, polygon, boundingBox):
+        point1, point2 = boundingBox
+        xMin, yMin = point1
+        xMax, yMax = point2
+        return np.all((polygon.points[:, 0] >= xMin) & (polygon.points[:, 0] <= xMax) & (polygon.points[:, 1] >= yMin) & (polygon.points[:, 1] <= yMax))
+
+    def _sidewaySearch(self, startGrate, vGroveSeparation, vGrovePorts):
+        """Will look to the next grating coupler in self.gratingCouplers and then see if the spacing is correct 
+        to create a circuit.
+
+        Args:
+            startGrate (_type_): One grating coupler from a circuit.
+
+        Returns:
+            Circuit: The completed circuit
+
+        """        
+        # Find the grating couplers at the same y height as startGrate
+        startGrateCenter = self.boundingBoxCenter(startGrate)
+        sameHeight = [grate for grate in self.gratingCouplers 
+                      if self.boundingBoxCenter(grate)[1] == startGrateCenter[1]
+                      and grate is not startGrate]
+        circuitCouplers = [startGrate]
+        for grate in sameHeight:
+            nextGrateCenter = self.boundingBoxCenter(grate)
+            for x in range(1,vGrovePorts):
+                if (round(startGrateCenter[0]) + (vGroveSeparation * x) == round(nextGrateCenter[0])
+                or round(startGrateCenter[0]) - (vGroveSeparation * x) == round(nextGrateCenter[0])):
+                    # Remove any duplicate polygons
+                    if any(poly for poly in circuitCouplers if round(self.boundingBoxCenter(poly)[0]) == round(nextGrateCenter[0])):
+                        self.gratingCouplers.remove(grate)
+                    else:
+                        circuitCouplers.append(grate)
+                    break
+        return circuitCouplers    
+
+    def polygonSearchGDS(self, polygonPoints: int) -> list:
+        """Takes a GDS component and searches for polygons of a specific number of points.
+
+        Args:
+            polygonPoints (int): The number of polygon points to look for.
+
+        Returns:
+            list: A list of polygons that match the search criteria.
+        """        
+        matches = []
+        for index, polygon in enumerate(self.chip.parent.polygons):
+            if len(polygon.points) != polygonPoints:
+                continue
+            x, y = zip(*polygon.points)
+            if not (max(abs(point - x[index-1]) for index, point in enumerate(x)) > 4):
+                continue
+            if not max(abs(point - y[index-1]) for index, point in enumerate(y)) > 13:
+                continue
+            matches.append(polygon)
+        return matches
+
+    def boundingBoxCenter(self, polygon):
+        box = polygon.bounding_box()
+        return ((box[1][0] + box[0][0])/2, (box[1][1] + box[0][1])/2)
+    
+    def graphCircuit(self, circuitPolys):
+        plt.ion()
+        plt.show()
+        # Get a bounding box
+        box = list(self.polygonsBoundingBox(circuitPolys))
+        newBox = ((box[0][0]-150,box[0][1]),(box[1][0],box[1][1]+100))
+        # Get the circuits in the box
+        for poly in self.chip.parent.polygons:
+            if self.isInside(poly, newBox):
+                plt.plot(*zip(*poly.points))
+                plt.draw()
+        plt.pause(0.001)
+
+    def getNextCircuit(self, circuitProperties={}) -> Union(Circuit, None):  
+        if len(self.gratingCouplers) == 0:
+            return None
+        startingCoupler = self.gratingCouplers[0]
+        # plt.plot(*zip(*startingCoupler.points))
+        # plt.draw()
+        # plt.pause(0.001)
+        circuitCouplers = self._sidewaySearch(startingCoupler, 127, 4)
+        if len(circuitCouplers) > 1:
+            # Sort the couplers so the right most coupler is the first in the list
+            circuitCouplers = sorted(circuitCouplers, key=lambda poly: self.boundingBoxCenter(poly)[0], reverse=True)
+            circuitProperties['outputs'] = str(len(circuitCouplers)-1)
+            # Return circuit
+            # self.graphCircuit(circuitCouplers)
+            newCircuit = Circuit(self.boundingBoxCenter(circuitCouplers[0]), circuitProperties)
+            self.circuits.append(newCircuit)
+            for poly in circuitCouplers:
+                self.gratingCouplers.remove(poly)
+                
+            return newCircuit
+        else:
+            self.gratingCouplers.remove(startingCoupler)
+            return self.getNextCircuit(circuitProperties)
+    
+    def loadGDS(self, filename: Union[str, Path]) -> None:
+        """Pass in a GDS file and this will build a circuit map from by looking for grating couplers in the file.
+
+        Args:
+            filename (Union[str, Path]): _description_
+
+        Raises:
+            FileNotFoundError: _description_
+            CircuitMapUniqueKeyError: _description_
+
+        Returns:
+            CircuitMap: _description_
+        """
+        if isinstance(filename, str):
+            filepath = Path(filename)
+        if not filepath.exists():
+            raise FileNotFoundError(f"File '{filename}' does not exist")
+             
+        c = gf.Component()
+        self.chip = c << gf.read.import_gds(filepath)
+        self.gratingCouplers = self.polygonSearchGDS(126)
+        self.gratingCouplers.extend(self.polygonSearchGDS(124))
+        self.gratingCouplers.extend(self.polygonSearchGDS(166))
+        self.gratingCouplers.extend(self.polygonSearchGDS(228))
+        # Sort polygons from top to bottom left to right
+        self.gratingCouplers = sorted(self.gratingCouplers, key=lambda poly: (-poly.bounding_box()[0][1], poly.bounding_box()[0][0]))
+        # Remove any overlapping polygons
+        removeIndexes = []
+        for index, poly in enumerate(self.gratingCouplers):
+            if index == len(self.gratingCouplers)-1:
+                break
+            nextPoly = self.gratingCouplers[index+1]
+            polyCenter = self.boundingBoxCenter(poly)
+            nextPolyCenter = self.boundingBoxCenter(nextPoly)
+            if (round(polyCenter[0]) == round(nextPolyCenter[0])
+                and round(polyCenter[1]) == round(nextPolyCenter[1])):
+                removeIndexes.append(self.gratingCouplers.index(nextPoly))
+        self.gratingCouplers = [self.gratingCouplers[i] for i in range(len(self.gratingCouplers)) if i not in removeIndexes]
+        while True:
+            if self.getNextCircuit() is None:
+                break
+
+        # Get calibration circuits
+        boundingBoxPoints = self.chip.get_bounding_box()
+        boundingBoxPoints = [
+            boundingBoxPoints[0], 
+            (boundingBoxPoints[0][0], boundingBoxPoints[1][1]),
+            boundingBoxPoints[1],
+            (boundingBoxPoints[1][0], boundingBoxPoints[0][1]),
+            ]
+        # Find the polygons that are closest to the corners of the bounding box
+        for point in boundingBoxPoints:
+            distances = [(circuit, np.linalg.norm(np.array(circuit.loc) - np.array(point))) for circuit in self.circuits]
+            closestCircuit = min(distances, key=lambda x: x[1])[0]
+            closestCircuit.params['calibration_circuit'] = 'True'
+            if index == 2:
+                break
+
     @classmethod
     def loadtxt(self, filename: Union[str, Path]) -> CircuitMap:
         """
@@ -407,7 +574,7 @@ class CircuitMap:
         if not filename.exists():
             raise FileNotFoundError(f"File '{filename}' does not exist")
         circuits = []
-        circuitlocs = {}
+        circuitLocs = {}
         with filename.open() as f:
             for i, line in enumerate(f):
                 line = line.strip()
@@ -416,18 +583,18 @@ class CircuitMap:
                 elif line == "":
                     continue
                 elif line.startswith("("):
-                    loctxt, paramtxt = line[1:].split(")", 1)
-                    loc = [float(pt.strip()) for pt in loctxt.split(",")]
+                    locTxt, paramTxt = line[1:].split(")", 1)
+                    loc = [float(pt.strip()) for pt in locTxt.split(",")]
                     loc = Location(*loc)
                     params = {}
-                    paramtxt = paramtxt.split(",")
-                    for param in paramtxt:
+                    paramTxt = paramTxt.split(",")
+                    for param in paramTxt:
                         param = param.split("=")
                         params[param[0].strip()] = param[1].strip()
                     circuits.append(Circuit(loc, params))
-                    if loc in circuitlocs:
-                        raise CircuitMapUniqueKeyError(f"Duplicate location not allowed (lines {circuitlocs[loc]}, {i})")
-                    circuitlocs[loc] = i
+                    if loc in circuitLocs:
+                        raise CircuitMapUniqueKeyError(f"Duplicate location not allowed (lines {circuitLocs[loc]}, {i})")
+                    circuitLocs[loc] = i
                 else:
                     log.warning("Could not parse line %s: '%s'", i+1, line)
         return CircuitMap(circuits)

@@ -30,6 +30,8 @@ import platform
 import sys
 from datetime import date
 
+from .circuits import CircuitMap
+
 if sys.version_info < (3, 7, 0):
     raise Exception(
         "autogator requires Python 3.7+ (version "

@@ -352,7 +352,17 @@ class KeyReleaseEventFilter(QtCore.QObject):
         if event.type() == QtCore.QEvent.KeyRelease and not event.isAutoRepeat():
             self.callback()
         return super().eventFilter(obj, event)
-    
+
+class CloseEventFilter(QtCore.QObject):
+    def __init__(self, window, callback):
+        super().__init__(window)
+        self.callback = callback
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Close:
+            self.callback()
+        return super().eventFilter(obj, event)
+        
 class KeyboardGUIBindings(BaseSettings):
     '''
     Sets default keyboard bindings for KeyboardControlGUI controller.
@@ -384,6 +394,7 @@ class KeyboardControlGUI:
         self.bindings = bindings
         self.stage = stage
         self.buttonPressed = Value('b', False)
+        self.stopEvent = threading.Event()
 
         self.axes = {
             'X': threading.Semaphore(), 
@@ -391,11 +402,16 @@ class KeyboardControlGUI:
             'Z': threading.Semaphore(), 
             'PSI': threading.Semaphore()
         }
-        self.app = QtWidgets.QApplication(sys.argv)
+        if QtWidgets.QApplication.instance() is not None:
+            self.app = QtWidgets.QApplication.instance()
+        else:
+            self.app = QtWidgets.QApplication(sys.argv)
         self._loadWindow()
 
         eventFilter = KeyReleaseEventFilter(self.w, self._setButtonPressedFalse)
         self.w.installEventFilter(eventFilter)
+        closeEventFilter = CloseEventFilter(self.w, self.close)
+        self.w.installEventFilter(closeEventFilter)
 
         self.bindingPairs = self._mapBindings(bindings)
         self.mainWindowSetup()
@@ -411,7 +427,9 @@ class KeyboardControlGUI:
         self.app.exec()
 
     def close(self):
+        self.stopEvent.set()
         self.w.close()
+        self.app.quit()
     
     def _mapBindings(self, bindings):
         bindingNames = [attr for attr in dir(bindings) if not attr.startswith('_') and attr.isupper() and '_' in attr]
@@ -448,6 +466,7 @@ class KeyboardControlGUI:
 
         # See if we need to move continuous or not
         semaphore = self.axes[axis]
+        axisPos = eval(f'self.w.{axis}_POS')
         axis = eval(f'self.stage.{axis.lower()}')
         if semaphore.acquire(timeout=0.1):
             if self.w.stepRadio.isChecked():
@@ -456,12 +475,19 @@ class KeyboardControlGUI:
                     motionValue = motionValue * -1
                 axis.move_by(motionValue)
                 semaphore.release()
+                # Update the position on the gui
+                pos = axis.get_position()
+                axisPos.display(pos)
             else:
                 motionValue = self.w.velocitySpinBox.value()
                 while buttonPressed.value:
                     axis.move_cont(direction)
+                    pos = axis.get_position()
+                    axisPos.display(pos)
                     time.sleep(0.2)
                 axis.stop()
+                pos = axis.get_position()
+                axisPos.display(pos)
                 semaphore.release()
 
     def mainWindowSetup(self):
@@ -472,6 +498,10 @@ class KeyboardControlGUI:
         for button, bindingName in self.bindingPairs:
             binding = getattr(self.bindings, bindingName)
             self._setupButton(binding, button, self._moveEventThreader)
+
+        for axis in self.axes.keys():
+            pos = eval(f'self.stage.{axis.lower()}').get_position()
+            eval(f'self.w.{axis}_POS.display({pos})')
 
     def _setupButton(self, key, button, function):
         shortcut = QShortcut(QKeySequence(key), self.w)
@@ -564,7 +594,7 @@ if __name__ == '__main__':
     from autogator.api import load_default_configuration
     config = load_default_configuration()
     stage = config.get_stage()
-    keyboardObj = FullControl(stage)
+    keyboardObj = KeyboardControlGUI(stage)
     try:
         keyboardObj.loop()
     except Exception as e:

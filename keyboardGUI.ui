@@ -13,6 +13,11 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">QLCDNumber{
+    background-color: rgb(0, 0, 0);
+}</string>
+  </property>
   <property name="moveHome" stdset="0">
    <string>H</string>
   </property>
@@ -219,61 +224,6 @@
        </item>
       </layout>
      </item>
-     <item row="2" column="1">
-      <layout class="QGridLayout" name="gridLayout_5">
-       <item row="0" column="0" colspan="2">
-        <widget class="QLabel" name="label_16">
-         <property name="text">
-          <string>Current Position</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QLCDNumber" name="lcdNumber"/>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_20">
-         <property name="text">
-          <string>X</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_2"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_18">
-         <property name="text">
-          <string>Z</string>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_3">
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QLabel" name="label_17">
-         <property name="text">
-          <string>Rotate</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_19">
-         <property name="text">
-          <string>Y</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QLCDNumber" name="lcdNumber_4"/>
-       </item>
-      </layout>
-     </item>
      <item row="0" column="4" rowspan="2" colspan="2">
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0" colspan="2">
@@ -408,6 +358,67 @@
           <string>X/Y Velocity</string>
          </property>
         </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="2" column="1">
+      <layout class="QGridLayout" name="positionLayout">
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_19">
+         <property name="text">
+          <string>Y</string>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_17">
+         <property name="text">
+          <string>Rotate</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_20">
+         <property name="text">
+          <string>X</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_18">
+         <property name="text">
+          <string>Z</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0" colspan="2">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>Current Position</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="QLCDNumber" name="Z_POS">
+         <property name="styleSheet">
+          <string notr="true"/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLCDNumber" name="X_POS">
+         <property name="styleSheet">
+          <string notr="true">QLCDNumber{
+    color: rgb(248, 120, 120);    
+}</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLCDNumber" name="Y_POS"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLCDNumber" name="PSI_POS"/>
        </item>
       </layout>
      </item>
