@@ -86,8 +86,7 @@ import time
 import numpy as np
 from pathlib import Path
 from typing import Any, Dict, NamedTuple, Tuple, Union, List
-from gdstk import Polygon, any_inside
-from math import sqrt
+from gdstk import Polygon
 from collections import defaultdict
 import matplotlib.pyplot as plt
 

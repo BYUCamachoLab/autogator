@@ -14,3 +14,4 @@ pyrolab==0.2.1
 pynput==1.7.6
 PyVISA==1.13.0
 PyVISA-py==0.7.0
+gdstk==0.9.42
