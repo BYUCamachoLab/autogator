@@ -15,3 +15,4 @@ pynput==1.7.6
 PyVISA==1.13.0
 PyVISA-py==0.7.0
 gdstk==0.9.42
+gdsfactory==6.108.1
