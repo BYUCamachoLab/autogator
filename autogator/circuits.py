@@ -582,18 +582,14 @@ class CircuitMap:
         box = ((minX, minY),(maxX, maxY))
         
         print('')
-        startTime = time.time()
         # Simplify the self.allPolygons into a variable called simplifiedPolys that contains the polygons that are 
         # within 1500 units of the box
         simplifiedPolys = [(poly, index) for index, poly in enumerate(self.allPolygons)
                         if poly.bounding_box()[1][0] <= maxX+400
                         and poly.bounding_box()[0][0] >= minX - 400
                         and poly.bounding_box()[0][1] >= minY-50]
-        endTime = time.time()
-        print(f'Simplified polygons in {endTime - startTime} seconds')
         # See what polygons are inside the box and then continuously find the bounding box of those 
         # polygons until changing the bounding box stops adding polygons to the circuit
-        startTime = time.time()
         while True:
             maxX = box[1][0]
             minX = box[0][0]
@@ -619,24 +615,13 @@ class CircuitMap:
             if newBox == box:
                 break
             box = newBox
-        endTime = time.time()
-        print(f'Found polygons in {endTime - startTime} seconds')
-
-        # startTime = time.time()
-        # self.graphCircuit(circuitPolygons)
-        # endTime = time.time()
-        # print(f'Graphed polygons in {endTime - startTime} seconds')
         return circuitPolygons
 
     @classmethod
     def _deletePolygons(self, polygons):
-        startTime = time.time()
         indexes = set([poly[1] for poly in polygons])
         self.allPolygons = [poly for index, poly in enumerate(self.allPolygons) if index not in indexes]
-        endTime = time.time()
-        print(f'Deleted polygons in {endTime - startTime} seconds')
 
-        print('\nLength of allPolygons: ', len(self.allPolygons))
 
 
     @classmethod
@@ -662,8 +647,6 @@ class CircuitMap:
                 if len(circuitPolygons) == len(secondCircuitPolygons):
                     separate = False
                 if separate:
-                    print('graphing new circuit')
-                    self.graphCircuit(secondCircuitPolygons)
                     circuits.append(self._createNewCircuit(vGroveSpacing, vGrovePorts, circuitCouplers[1:-1], secondCircuitPolygons))
                     for coupler in circuitCouplers[1:-1]:
                         circuitCouplers.remove(coupler)
