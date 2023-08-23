@@ -581,7 +581,6 @@ class CircuitMap:
         # And 5000 units above and to the left of that point
         box = ((minX, minY),(maxX, maxY))
         
-        print('')
         # Simplify the self.allPolygons into a variable called simplifiedPolys that contains the polygons that are 
         # within 1500 units of the box
         simplifiedPolys = [(poly, index) for index, poly in enumerate(self.allPolygons)
