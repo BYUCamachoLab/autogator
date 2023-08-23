@@ -33,7 +33,7 @@ from typing import Callable, List, Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 
-from autogator.circuits import Circuit
+from autogator.circuits import Circuit, Input, Output, NotUsed
 from autogator.hardware import DataAcquisitionUnitBase, Stage, LaserBase
 from autogator.controllers import KeyboardControl
 
@@ -76,12 +76,41 @@ def auto_calibration_callback(
             do_scan = True
     print("DONE")
 
-def setupScopeWithCircuit(scope: DataAcquisitionUnitBase, circuit: Circuit):
-    
-    scope.set_channel()
-    scope.set_auto_measurement(source=f'C{4}W1')
+def setupScopeWithCircuit(
+        scope: DataAcquisitionUnitBase, 
+        circuit: Circuit,
+        channelRange: float,
+        coupling: str,
+        position: float,
+        triggerChannel: int = 1,
+        ):
+    SAMPLE_RATE = 1e12
+    DURATION = 1e-8
+    scope = scope.driver
+    # Set the scope to look at the first output channel
+    for index, port in enumerate(circuit.ports):
+        if isinstance(port, Output):
+            break
+    channel = index + 1
+    scope.set_channel(channel, range=channelRange, coupling=coupling, position=position)
+    scope.set_auto_measurement(source=f'C{channel}W1')
     scope.wait_for_device()
 
+    scope.edge_trigger(triggerChannel, 0, 'AUTO')
+    scope.acquisition_settings(SAMPLE_RATE, DURATION)
+    scope.acquire(run="continuous")
+    time.sleep(5)
+
+def configure_scope_single_measure(self, channel):
+        """
+        The scope needs to be alternately configured to record a long sweep and
+        a single-shot measurement. This function reconfigures for a single
+        measurement.
+        """
+        self.scope.set_auto_measurement(source=f'C{channel}W1')
+        self.scope.wait_for_device()
+
+        self.scope.set_timescale(10e-10)
 def calibrate(
     stage: Stage, 
     daq: DataAcquisitionUnitBase,
@@ -128,6 +157,9 @@ def calibrate(
         The affine transformation matrix that converts from hardware coordinates
         to GDS coordinates.
     """
+    RANGE = 0.6
+    COUPLING = "DCLimit"
+    POSITION = -2.0
     # Is this the implementation?
     # https://stackoverflow.com/q/2755771/11530613
     log.debug("Starting calibration")
@@ -146,7 +178,7 @@ def calibrate(
     gds_coords = []
     stage_coords = []
     for i, circuit in enumerate(circuits):
-        setupScopeWithCircuit(daq, circuit)
+        setupScopeWithCircuit(daq, circuit, RANGE, COUPLING, POSITION)
         log.debug("Calibrating circuit %s", str(i+1))
         callback(stage, daq, circuit, controller=controller)
         gds_coords.append(circuit.loc)

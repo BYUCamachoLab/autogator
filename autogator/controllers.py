@@ -474,9 +474,9 @@ class KeyboardControlGUI:
                 if direction == 'backward':
                     motionValue = motionValue * -1
                 axis.move_by(motionValue)
+                pos = axis.get_position()
                 semaphore.release()
                 # Update the position on the gui
-                pos = axis.get_position()
                 axisPos.display(pos)
             else:
                 motionValue = self.w.velocitySpinBox.value()

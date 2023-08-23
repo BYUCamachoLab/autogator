@@ -86,7 +86,9 @@ import time
 import numpy as np
 from pathlib import Path
 from typing import Any, Dict, NamedTuple, Tuple, Union, List
+from gdstk import Polygon, any_inside
 from math import sqrt
+from collections import defaultdict
 import matplotlib.pyplot as plt
 
 from autogator.errors import CircuitMapUniqueKeyError
@@ -151,6 +153,18 @@ class Location(NamedTuple):
     def __deepcopy__(self, memodict: Dict[Any, Any]) -> Location:
         return Location(self.x, self.y)
 
+class PortType:
+    def __init__(self, location: Location) -> None:
+        self.loc = location
+
+class Input(PortType):
+    pass
+
+class Output(PortType):
+    pass
+
+class NotUsed(PortType):
+    pass
 
 class Circuit:
     """
@@ -195,7 +209,7 @@ class Circuit:
             raise TypeError("Parameter name must be a string")
         return self.params[key]
 
-    def __setitem__(self, name: str, value: str) -> None:
+    def __setitem__(self, name: str, value: Any) -> None:
         if not isinstance(name, str):
             raise TypeError("Parameter name must be a string")
         self.params[name] = value
@@ -380,27 +394,116 @@ class CircuitMap:
         with path.open("w") as f:
             f.write(str(self))
 
-    def polygonsBoundingBox(self, polygons):
-        allPoints = np.concatenate([poly.points for poly in polygons])
+    @staticmethod
+    def polygonsBoundingBox(polygons):
+        allPoints = np.concatenate([poly[0].points for poly in polygons])
         xMin, yMin = np.min(allPoints, axis=0)
         xMax, yMax = np.max(allPoints, axis=0)
         return ((xMin, yMin), (xMax, yMax))
     
-    def isInside(self, polygon, boundingBox):
-        point1, point2 = boundingBox
-        xMin, yMin = point1
-        xMax, yMax = point2
-        return np.all((polygon.points[:, 0] >= xMin) & (polygon.points[:, 0] <= xMax) & (polygon.points[:, 1] >= yMin) & (polygon.points[:, 1] <= yMax))
+    @staticmethod
+    def isInside(polygon, boundingBox):
+        # Find the polygon's and a bounding box and see if any part of the polygon's bounding box 
+        # is inside the bounding box using a list comprehension
+        return any(boundingBox[0][0] <= point[0] <= boundingBox[1][0] and boundingBox[0][1] <= point[1] <= boundingBox[1][1] for point in polygon.bounding_box())
 
-    def _sidewaySearch(self, startGrate, vGroveSeparation, vGrovePorts):
+    @classmethod
+    def _setCircuitPorts(self, circuit: Circuit, vGroveSpacing: int, vGrovePorts: int, outputs: List[Location]) -> None:
+        inputPort = circuit.loc
+        ports = [Input(inputPort)]
+        # Find the distances from the inputPort to the outputs
+        for index in range(1, vGrovePorts):
+            portPoint = vGroveSpacing*index
+            result = NotUsed(portPoint)
+            for output in outputs:
+                if round(output.x + portPoint) == round(inputPort.x):
+                    del result
+                    result = Output(output)
+                    break
+            ports.append(result)
+
+        if not any(isinstance(port, Output) for port in ports):
+            raise RuntimeError(f'No outputs found in this circuit {circuit} at location {inputPort}. At least one output is needed.')
+        circuit['ports'] = tuple(ports)
+
+
+    
+    @classmethod
+    def _walkBack(self, startPoly, allGrates, pastComponents=[]):
+        output = None
+        if len(pastComponents) > 7:
+            return output, pastComponents
+        # if len(pastComponents) == 0:
+            # plt.ion()
+            # plt.show()
+            # plt.clf()
+            # plt.plot(*zip(*startPoly.points))
+
+        allPolygons = self.allPolygons
+        set1 = set(allPolygons)
+        set2 = set(pastComponents)
+        set3 = set([startPoly])
+        allPolygons = list(set1-set2-set3)
+        simplifiedPolygons = [poly for poly in allPolygons
+                        if abs(poly.bounding_box()[0][0] - startPoly.bounding_box()[0][0]) <= 1500
+                        and abs(poly.bounding_box()[0][1] - startPoly.bounding_box()[0][1]) <= 1500]
+
+        # Find a line that we want to attach polygons to
+        sharedPolys = [poly for poly in simplifiedPolygons if startPoly.contain_any(*poly.points)]
+        sharedPoints = [point for poly in sharedPolys for point, isContained in zip(poly.points, startPoly.contain(*poly.points)) if isContained]
+
+        for index, startPoint in enumerate(startPoly.points):
+            if len(sharedPoints) == 0:
+                break
+            if not (startPoint == sharedPoints).any():
+                continue
+            if index >= len(startPoly.points):
+                # Backup a polygon
+                break
+            if index == len(startPoly.points)-1:
+                index = -1
+            line1Distance = np.linalg.norm(startPoint - startPoly.points[index+1])
+            line2Distance = np.linalg.norm(startPoint - startPoly.points[index-1])
+            if line1Distance < .4 and line2Distance < .4:
+                continue
+            if line1Distance > 11 and line2Distance > 11:
+                continue
+            if len(pastComponents) > 0:
+                if any(np.array_equal(startPoint, pastPoint) for pastPoint in pastComponents[-1].points):
+                    continue
+
+            for index, componentPoly in enumerate(sharedPolys):
+                # plt.clf()
+                # for item in pastComponents:
+                #     plt.plot(*zip(*item.points))
+                # plt.plot(*zip(*componentPoly.points))
+                # plt.draw()
+                # plt.pause(0.001)
+
+                pastComponents.append(startPoly)
+                if componentPoly in allGrates:
+                    output = componentPoly
+                    # plt.close()
+                    break
+                result, _ = self._walkBack(componentPoly, allGrates, pastComponents)
+                if result is None:
+                    if len(pastComponents) > 7:
+                        break
+                    continue
+                pastComponents.append(result)
+                output = result
+                break
+        return output, pastComponents
+
+
+    @classmethod
+    def _sidewaySearch(self, startGrate, vGroveSeparation) -> List[Polygon]:
         """Will look to the next grating coupler in self.gratingCouplers and then see if the spacing is correct 
         to create a circuit.
 
         Args:
             startGrate (_type_): One grating coupler from a circuit.
 
-        Returns:
-            Circuit: The completed circuit
 
         """        
         # Find the grating couplers at the same y height as startGrate
@@ -409,18 +512,20 @@ class CircuitMap:
                       if self.boundingBoxCenter(grate)[1] == startGrateCenter[1]
                       and grate is not startGrate]
         circuitCouplers = [startGrate]
+        maxSeparation = 0
         for grate in sameHeight:
             nextGrateCenter = self.boundingBoxCenter(grate)
-            for x in range(1,vGrovePorts):
+            for x in range(1,len(sameHeight)+1):
                 if (round(startGrateCenter[0]) + (vGroveSeparation * x) == round(nextGrateCenter[0])
                 or round(startGrateCenter[0]) - (vGroveSeparation * x) == round(nextGrateCenter[0])):
                     # Remove any duplicate polygons
                     if any(poly for poly in circuitCouplers if round(self.boundingBoxCenter(poly)[0]) == round(nextGrateCenter[0])):
                         self.gratingCouplers.remove(grate)
                     else:
+                        maxSeparation = x
                         circuitCouplers.append(grate)
-                    break
-        return circuitCouplers    
+                    break        
+        return circuitCouplers, maxSeparation    
 
     def polygonSearchGDS(self, polygonPoints: int) -> list:
         """Takes a GDS component and searches for polygons of a specific number of points.
@@ -432,7 +537,7 @@ class CircuitMap:
             list: A list of polygons that match the search criteria.
         """        
         matches = []
-        for index, polygon in enumerate(self.chip.parent.polygons):
+        for index, polygon in enumerate(self.allPolygons):
             if len(polygon.points) != polygonPoints:
                 continue
             x, y = zip(*polygon.points)
@@ -443,48 +548,139 @@ class CircuitMap:
             matches.append(polygon)
         return matches
 
-    def boundingBoxCenter(self, polygon):
+    @staticmethod
+    def boundingBoxCenter(polygon):
         box = polygon.bounding_box()
         return ((box[1][0] + box[0][0])/2, (box[1][1] + box[0][1])/2)
     
+    @classmethod
     def graphCircuit(self, circuitPolys):
         plt.ion()
         plt.show()
-        # Get a bounding box
-        box = list(self.polygonsBoundingBox(circuitPolys))
-        newBox = ((box[0][0]-150,box[0][1]),(box[1][0],box[1][1]+100))
-        # Get the circuits in the box
-        for poly in self.chip.parent.polygons:
-            if self.isInside(poly, newBox):
-                plt.plot(*zip(*poly.points))
-                plt.draw()
-        plt.pause(0.001)
+        plt.clf()
+        
+        for poly in circuitPolys:
+            plt.plot(*zip(*poly[0].points))
+            plt.draw()
+        plt.pause(0.01)
+    
+    @classmethod
+    def _createNewCircuit(self, vGroveSpacing, vGrovePorts, circuitCouplers, circuitPolygons=[]) -> Circuit:
+        newCircuit = Circuit(self.boundingBoxCenter(circuitCouplers[0]), {'polygons': circuitPolygons})
+        outputs = [Location(*self.boundingBoxCenter(poly)) for poly in circuitCouplers[1:]]
+        self._setCircuitPorts(newCircuit, vGroveSpacing, vGrovePorts, outputs)
+        return newCircuit
+    
+    @classmethod
+    def _getCircuitPolygons(self, circuitCouplers) -> List[Polygon]:
+        # Get all the points of the bounding boxes of every coupler
+        circuitPoints = [point for poly in circuitCouplers for point in poly.bounding_box()]
+        # Find minX minY maxX and maxY
+        minX, minY = np.min(circuitPoints, axis=0)
+        maxX, maxY = np.max(circuitPoints, axis=0)
+        # Create a box: (min x, min y), (max x, max y) that contains the bottom right point of the right most coupler
+        # And 5000 units above and to the left of that point
+        box = ((minX, minY),(maxX, maxY))
+        
+        print('')
+        startTime = time.time()
+        # Simplify the self.allPolygons into a variable called simplifiedPolys that contains the polygons that are 
+        # within 1500 units of the box
+        simplifiedPolys = [(poly, index) for index, poly in enumerate(self.allPolygons)
+                        if poly.bounding_box()[1][0] <= maxX+400
+                        and poly.bounding_box()[0][0] >= minX - 400
+                        and poly.bounding_box()[0][1] >= minY-50]
+        endTime = time.time()
+        print(f'Simplified polygons in {endTime - startTime} seconds')
+        # See what polygons are inside the box and then continuously find the bounding box of those 
+        # polygons until changing the bounding box stops adding polygons to the circuit
+        startTime = time.time()
+        while True:
+            maxX = box[1][0]
+            minX = box[0][0]
+            maxY = box[1][1]
+            minY = box[0][1]
+            circuitPolygons = [poly for poly in simplifiedPolys 
+                                if (poly[0].bounding_box()[1][0] <= maxX
+                                and poly[0].bounding_box()[1][1] <= maxY
+                                and poly[0].bounding_box()[1][0] >= minX
+                                and poly[0].bounding_box()[1][1] >= minY)
+                                
+                                or (poly[0].bounding_box()[0][0] >= minX
+                                and poly[0].bounding_box()[0][1] >= minY
+                                and poly[0].bounding_box()[0][0] <= maxX
+                                and poly[0].bounding_box()[0][1] <= maxY)
+                                ]
+            # test = [(poly, index) for index, poly in enumerate(self.allPolygons) if self.isInside(poly, box)]
+            # if len(test) != len(circuitPolygons):
+            #     print('no')
+            if len(circuitPolygons) == 0:
+                return []
+            newBox = self.polygonsBoundingBox(circuitPolygons)
+            if newBox == box:
+                break
+            box = newBox
+        endTime = time.time()
+        print(f'Found polygons in {endTime - startTime} seconds')
 
-    def getNextCircuit(self, circuitProperties={}) -> Union(Circuit, None):  
+        # startTime = time.time()
+        # self.graphCircuit(circuitPolygons)
+        # endTime = time.time()
+        # print(f'Graphed polygons in {endTime - startTime} seconds')
+        return circuitPolygons
+
+    @classmethod
+    def _deletePolygons(self, polygons):
+        startTime = time.time()
+        indexes = set([poly[1] for poly in polygons])
+        self.allPolygons = [poly for index, poly in enumerate(self.allPolygons) if index not in indexes]
+        endTime = time.time()
+        print(f'Deleted polygons in {endTime - startTime} seconds')
+
+        print('\nLength of allPolygons: ', len(self.allPolygons))
+
+
+    @classmethod
+    def _getNextCircuit(self, vGroveSpacing, vGrovePorts) -> Union(List[Circuit], None):  
         if len(self.gratingCouplers) == 0:
             return None
         startingCoupler = self.gratingCouplers[0]
-        # plt.plot(*zip(*startingCoupler.points))
-        # plt.draw()
-        # plt.pause(0.001)
-        circuitCouplers = self._sidewaySearch(startingCoupler, 127, 4)
+        circuitCouplers, maxUnits = self._sidewaySearch(startingCoupler, vGroveSpacing)
+        # circuitPolygons = self._getCircuitPolygons(circuitCouplers)
+        circuitPolygons = []
+        if maxUnits > vGrovePorts-1:
+            for poly in circuitCouplers: self.gratingCouplers.remove(poly)
+            return self._getNextCircuit(vGroveSpacing, vGrovePorts)
+        circuits = []
         if len(circuitCouplers) > 1:
             # Sort the couplers so the right most coupler is the first in the list
             circuitCouplers = sorted(circuitCouplers, key=lambda poly: self.boundingBoxCenter(poly)[0], reverse=True)
-            circuitProperties['outputs'] = str(len(circuitCouplers)-1)
-            # Return circuit
-            # self.graphCircuit(circuitCouplers)
-            newCircuit = Circuit(self.boundingBoxCenter(circuitCouplers[0]), circuitProperties)
-            self.circuits.append(newCircuit)
-            for poly in circuitCouplers:
+            if len(circuitCouplers) > 3:
+                circuitPolygons = self._getCircuitPolygons(circuitCouplers)
+                secondCircuitPolygons = self._getCircuitPolygons(circuitCouplers[1:-1])
+                separate = True
+                # set separate to false if secondCircuitPolygons has any polygon that are in circuit polygons
+                if len(circuitPolygons) == len(secondCircuitPolygons):
+                    separate = False
+                if separate:
+                    print('graphing new circuit')
+                    self.graphCircuit(secondCircuitPolygons)
+                    circuits.append(self._createNewCircuit(vGroveSpacing, vGrovePorts, circuitCouplers[1:-1], secondCircuitPolygons))
+                    for coupler in circuitCouplers[1:-1]:
+                        circuitCouplers.remove(coupler)
+                        self.gratingCouplers.remove(coupler)
+            circuits.append(self._createNewCircuit(vGroveSpacing, vGrovePorts, circuitCouplers, circuitPolygons))
+            for poly in circuitCouplers: 
                 self.gratingCouplers.remove(poly)
-                
-            return newCircuit
+            self._deletePolygons(circuitPolygons)
+            return circuits
         else:
             self.gratingCouplers.remove(startingCoupler)
-            return self.getNextCircuit(circuitProperties)
+            self._deletePolygons(circuitPolygons)
+            return self._getNextCircuit(vGroveSpacing, vGrovePorts)
     
-    def loadGDS(self, filename: Union[str, Path]) -> None:
+    @classmethod
+    def loadGDS(self, vGroveSpacing: int, vGrovePorts: int, filename: Union[str, Path]) -> None:
         """Pass in a GDS file and this will build a circuit map from by looking for grating couplers in the file.
 
         Args:
@@ -504,12 +700,56 @@ class CircuitMap:
              
         c = gf.Component()
         self.chip = c << gf.read.import_gds(filepath)
-        self.gratingCouplers = self.polygonSearchGDS(126)
-        self.gratingCouplers.extend(self.polygonSearchGDS(124))
-        self.gratingCouplers.extend(self.polygonSearchGDS(166))
-        self.gratingCouplers.extend(self.polygonSearchGDS(228))
+        
+        self.allPolygons = []
+        seen = set()
+        for poly in self.chip.parent.polygons:
+            center = (self.boundingBoxCenter(poly)[0], self.boundingBoxCenter(poly)[1])
+            if center in seen:
+                continue
+            seen.add(center)
+            self.allPolygons.append(poly)
+        # TODO maybe ??? look into shooting algo but it probably wont work
+        # I think you'll have to either make a separate file or you need to go through circuits one by one
+        # Or put this code into a generate file converter thing but even then files can vary a lot 
+
+        # Sort polygons into a 2d array with rows being the same y value and columns being the x values
+        # Have the y rows go from top to bottom and the x columns go from left to right
+        # self.allPolygons = sorted(self.allPolygons, key=lambda poly: (-self.boundingBoxCenter(poly)[1], self.boundingBoxCenter(poly)[0]))
+        # top = self.boundingBoxCenter(self.allPolygons[0])[1]
+        # topToBottom = []
+        # nextRow = []
+        # for poly in self.allPolygons:
+        #     polyTop = self.boundingBoxCenter(poly)[1]
+        #     if polyTop == top:
+        #         nextRow.append(poly)
+        #     else:
+        #         topToBottom.append(nextRow)
+        #         top = polyTop
+        #         nextRow = [poly]
+
+        # left = self.boundingBoxCenter(self.allPolygons[0])[0]
+        # leftToRight = []
+        # nextRow = []
+        # for poly in self.allPolygons:
+        #     polyLeft = self.boundingBoxCenter(poly)[0]
+        #     if polyLeft == left:
+        #         nextRow.append(poly)
+        #     else:
+        #         leftToRight.append(nextRow)
+        #         top = polyLeft
+        #         nextRow = [poly]
+
+            
+
+        
+        self.gratingCouplers = self.polygonSearchGDS(self, 126)
+        self.gratingCouplers.extend(self.polygonSearchGDS(self, 124))
+        self.gratingCouplers.extend(self.polygonSearchGDS(self, 166))
+        self.gratingCouplers.extend(self.polygonSearchGDS(self, 228))
         # Sort polygons from top to bottom left to right
-        self.gratingCouplers = sorted(self.gratingCouplers, key=lambda poly: (-poly.bounding_box()[0][1], poly.bounding_box()[0][0]))
+        self.gratingCouplers = sorted(self.gratingCouplers, key=lambda poly: (-self.boundingBoxCenter(poly)[1], self.boundingBoxCenter(poly)[0]))
+        
         # Remove any overlapping polygons
         removeIndexes = []
         for index, poly in enumerate(self.gratingCouplers):
@@ -522,9 +762,18 @@ class CircuitMap:
                 and round(polyCenter[1]) == round(nextPolyCenter[1])):
                 removeIndexes.append(self.gratingCouplers.index(nextPoly))
         self.gratingCouplers = [self.gratingCouplers[i] for i in range(len(self.gratingCouplers)) if i not in removeIndexes]
+        
+        print('Getting circuits')
+        startTime = time.time()
+        circuits = []
         while True:
-            if self.getNextCircuit() is None:
+            newCircuits = self._getNextCircuit(vGroveSpacing, vGrovePorts)
+            if newCircuits is None:
                 break
+            circuits.extend(newCircuits)
+        endTime = time.time()
+        print(f'Found {len(circuits)} circuits in {endTime - startTime} seconds')
+        
 
         # Get calibration circuits
         boundingBoxPoints = self.chip.get_bounding_box()
@@ -535,12 +784,13 @@ class CircuitMap:
             (boundingBoxPoints[1][0], boundingBoxPoints[0][1]),
             ]
         # Find the polygons that are closest to the corners of the bounding box
-        for point in boundingBoxPoints:
-            distances = [(circuit, np.linalg.norm(np.array(circuit.loc) - np.array(point))) for circuit in self.circuits]
+        for index, point in enumerate(boundingBoxPoints):
+            distances = [(circuit, np.linalg.norm(np.array(circuit.loc) - np.array(point))) for circuit in circuits]
             closestCircuit = min(distances, key=lambda x: x[1])[0]
-            closestCircuit.params['calibration_circuit'] = 'True'
+            closestCircuit['calibration_circuit'] = 'True'
             if index == 2:
                 break
+        return CircuitMap(circuits)
 
     @classmethod
     def loadtxt(self, filename: Union[str, Path]) -> CircuitMap:
