@@ -33,7 +33,7 @@ y = HardwareConfiguration(
     }
 )
 scope = HardwareConfiguration(
-    classname="RohdeSchwarzOscilliscope",
+    classname="RohdeSchwarzOscilloscope",
     parameters={
         "name": "oscope",
         "address": "1.2.3.4",
