@@ -9,15 +9,21 @@
 
 AutoGator can be commanded by a variety of different controllers. The default
 is a keyboard controller, but you can also use a joystick or a mouse, or even
-an XBox controller. More controllers may be implmemented here in the future.
+an XBox controller. More controllers may be implemented here in the future.
 """
 
 import logging
 import threading
 import time
-
+import sys, os
 import keyboard
-from pydantic import BaseModel, BaseSettings
+from multiprocessing import Value
+import cv2
+
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtUiTools import QUiLoader
+from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent, QPixmap
+from pydantic import BaseSettings
 
 from autogator.hardware import Stage
 
@@ -57,7 +63,7 @@ class KeyloopKeyboardBindings(BaseSettings):
 
 class KeyboardControl:
     """
-    Implmements functions for the keyboard controller.
+    Implements functions for the keyboard controller.
 
     Debounces key presses to make sure that the stage does not get placed 
     into a deadlocked or unrecoverable state.
@@ -329,10 +335,271 @@ class KeyboardControl:
             run_flagged()
             time.sleep(0.1)
         
-        # Disconnect from the motors
-        for axis in self.stage.motors:
-            if axis is not None:
-                axis.close()
 
         # else:
         # clean up all current running actions, make sure all semaphores are freed
+    
+class KeyReleaseEventFilter(QtCore.QObject):
+    '''
+    This is used to detect when a key shortcut was released. 
+    '''
+    def __init__(self, obj, callback):
+        super().__init__(obj)
+        self.callback = callback
+        self.released = False
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.KeyRelease and not event.isAutoRepeat():
+            self.callback()
+        return super().eventFilter(obj, event)
+
+class CloseEventFilter(QtCore.QObject):
+    def __init__(self, window, callback):
+        super().__init__(window)
+        self.callback = callback
+
+    def eventFilter(self, obj, event):
+        if event.type() == QtCore.QEvent.Close:
+            self.callback()
+        return super().eventFilter(obj, event)
+        
+class KeyboardGUIBindings(BaseSettings):
+    '''
+    Sets default keyboard bindings for KeyboardControlGUI controller.
+
+    Because settings are implemented using Pydantic, environmental variables
+    can be used to override the default settings.
+
+    Motor axis must begin with "POS" or "MINUS" and be separated by a underscore and then the 
+    motor axis
+    '''
+    POS_Y: str = 'w'
+    MINUS_Y: str = 's'
+    POS_X: str = 'd'
+    MINUS_X: str = 'a'
+    POS_Z: str = 'e'
+    MINUS_Z: str = 'q'
+    POS_PSI: str = 'c'
+    MINUS_PSI: str = 'z'
+    HOME: str = 'h'
+    
+class KeyboardControlGUI:
+    '''
+    A GUI version of the keyboard controller.
+    '''
+
+    def __init__(self, stage: Stage, bindings: KeyboardGUIBindings = None):
+        if bindings is None:
+            bindings = KeyboardGUIBindings()
+        self.bindings = bindings
+        self.stage = stage
+        self.buttonPressed = Value('b', False)
+        self.stopEvent = threading.Event()
+
+        self.axes = {
+            'X': threading.Semaphore(), 
+            'Y': threading.Semaphore(),
+            'Z': threading.Semaphore(), 
+            'PSI': threading.Semaphore()
+        }
+        if QtWidgets.QApplication.instance() is not None:
+            self.app = QtWidgets.QApplication.instance()
+        else:
+            self.app = QtWidgets.QApplication(sys.argv)
+        self._loadWindow()
+
+        eventFilter = KeyReleaseEventFilter(self.w, self._setButtonPressedFalse)
+        self.w.installEventFilter(eventFilter)
+        closeEventFilter = CloseEventFilter(self.w, self.close)
+        self.w.installEventFilter(closeEventFilter)
+
+        self.bindingPairs = self._mapBindings(bindings)
+        self.mainWindowSetup()
+    
+    def _loadWindow(self):
+        loader = QUiLoader()
+        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
+        filePath = os.path.join(parentDir, 'keyboardGUI.ui')
+        self.w = loader.load(filePath, None)
+        
+    def loop(self):
+        self.w.show()
+        self.app.exec()
+
+    def close(self):
+        self.stopEvent.set()
+        self.w.close()
+        self.app.quit()
+    
+    def _mapBindings(self, bindings):
+        bindingNames = [attr for attr in dir(bindings) if not attr.startswith('_') and attr.isupper() and '_' in attr]
+        buttons = self.w.motionControls.buttons()
+        bindingTups = []
+        for button in buttons:
+            for binding in bindingNames:
+                if button.objectName() == binding:
+                    bindingTups.append((button, binding))
+                    break
+
+        if len(bindingTups) != len(self.axes.keys())*2:
+            raise RuntimeError('Number of bindings doesn\'t match the number of motion buttons.')
+        return bindingTups
+
+    def _moveEventThreader(self, button):
+        if not self.buttonPressed.value:
+            self.buttonPressed.value = True
+            t = threading.Thread(target=self._moveEvent, daemon=True, args=[button, self.buttonPressed])
+            t.start()
+
+    def _moveEvent(self, button, buttonPressed):
+        buttonName = button.objectName()
+        # Get the axis of direction
+        axis = None
+        for axis in self.axes.keys(): 
+            if axis in buttonName:
+                break
+
+        # Get the direction of the button
+        direction = 'forward'
+        if 'MINUS' in buttonName:
+            direction = 'backward'
+
+        # See if we need to move continuous or not
+        semaphore = self.axes[axis]
+        axisPos = eval(f'self.w.{axis}_POS')
+        axis = eval(f'self.stage.{axis.lower()}')
+        if semaphore.acquire(timeout=0.1):
+            if self.w.stepRadio.isChecked():
+                motionValue = self.w.stepSpinBox.value()
+                if direction == 'backward':
+                    motionValue = motionValue * -1
+                axis.move_by(motionValue)
+                pos = axis.get_position()
+                semaphore.release()
+                # Update the position on the gui
+                axisPos.display(pos)
+            else:
+                motionValue = self.w.velocitySpinBox.value()
+                while buttonPressed.value:
+                    axis.move_cont(direction)
+                    pos = axis.get_position()
+                    axisPos.display(pos)
+                    time.sleep(0.2)
+                axis.stop()
+                pos = axis.get_position()
+                axisPos.display(pos)
+                semaphore.release()
+
+    def mainWindowSetup(self):
+        self.w.setWindowTitle('Keyboard Control')
+        self.w.continuousRadio.setChecked(True)
+
+        # Setup motion controls
+        for button, bindingName in self.bindingPairs:
+            binding = getattr(self.bindings, bindingName)
+            self._setupButton(binding, button, self._moveEventThreader)
+
+        for axis in self.axes.keys():
+            pos = eval(f'self.stage.{axis.lower()}').get_position()
+            eval(f'self.w.{axis}_POS.display({pos})')
+
+    def _setupButton(self, key, button, function):
+        shortcut = QShortcut(QKeySequence(key), self.w)
+        shortcut.setAutoRepeat(False)
+        shortcut.activated.connect(button.pressed)
+        button.pressed.connect(lambda checked=True, b=button: function(b))
+        button.released.connect(self._setButtonPressedFalse)
+
+    def _setButtonPressedFalse(self):
+        self.buttonPressed.value = False
+
+class FullControl(KeyboardControlGUI):
+    '''
+    A GUI control that have movement, scope, and camera views.
+    '''
+    def __init__(self, stage: Stage, bindings: KeyboardGUIBindings = None):
+        super().__init__(stage, bindings)
+        self.cam = None
+        # self.setupCamera()
+        if self.cam is not None:
+            self.startCamLoop()
+        self.startScopeLoop()
+        
+
+    def _loadWindow(self):
+        loader = QUiLoader()
+        parentDir = os.path.join(os.path.dirname(__file__), os.pardir)
+        filePath = os.path.join(parentDir, 'fullControl.ui')
+        self.w = loader.load(filePath, None)
+    
+    def setupCamera(self) -> None:
+        if not 'camera' in self.stage.auxiliaries.keys():
+            return
+        self.cam = self.stage.auxiliaries['camera']
+    
+    def startScopeLoop(self):
+        label = self.w.findChild(QtWidgets.QLabel, "scopeView")
+        t = threading.Thread(target=self._showScopeFeed, daemon=True, args=[label, self.stage.scope])
+        t.start()
+    
+    def _showScopeFeed(self, label, scope):
+        while True:
+            framePath = os.getcwd() + '/temp.png'
+            scope.driver.screenshot(framePath)
+            pixmap = QPixmap(framePath)
+            pixmap = pixmap.scaled(label.size(), QtCore.Qt.KeepAspectRatio)
+            label.setPixmap(pixmap)
+
+    def startCamLoop(self):
+        self.cam.startStream()
+        t = threading.Thread(target=self._showCamVideo, daemon=True, args=[self.cam])
+        t.start()
+    
+    def _showCamVideo(self, cam):
+        graphics_view = self.w.findChild(QtWidgets.QGraphicsView, "cameraView")
+
+        # Create a scene and add an image to it
+        scene = QtWidgets.QGraphicsScene()
+        
+
+        # Set the scene on the graphics view
+        graphics_view.setScene(scene)
+        try:
+            while True:
+                frame = cam.get_frame()
+                if frame is not None:
+                    height, width, _ = frame.shape
+                    bytesPerLine = width * 3
+
+
+                    frame = QtGui.QImage(frame.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
+                    pixmap = QtGui.QPixmap(frame)
+                    scene = QtWidgets.QGraphicsScene()
+                    scene.addPixmap(pixmap)
+                    graphics_view.setScene(scene)
+                else:
+                    raise RuntimeError('The camera isn\'t connecting. Usually this happens when another stream is open')
+        except KeyboardInterrupt:
+            pass
+        except Exception as e:
+            raise e
+        finally:
+            cam.endStream()
+            time.sleep(1)
+            cam.close()
+
+
+
+if __name__ == '__main__':
+    from autogator.api import load_default_configuration
+    config = load_default_configuration()
+    stage = config.get_stage()
+    keyboardObj = KeyboardControlGUI(stage)
+    try:
+        keyboardObj.loop()
+    except Exception as e:
+        raise e
+    finally:
+        stage.auxiliaries['camera'].end_stream()
+        stage.auxiliaries['camera'].close()
+

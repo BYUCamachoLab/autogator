@@ -66,6 +66,19 @@ uv sync --only-group docs
 uv run --no-project zensical build
 ```
 
+Note that the whole API reference under ``docs/api`` is generated from the
+docstrings in ``autogator/`` by mkdocstrings, and Zensical's build cache keys on
+the Markdown files rather than on those Python sources. After editing a
+docstring, pass ``--clean`` to rebuild the API pages:
+
+```
+uv run zensical build --clean
+```
+
+Read the Docs builds from a fresh checkout every time, so this only affects
+local builds. Also note that classes and functions without a docstring are
+omitted from the reference entirely.
+
 ## Uninstallation
 
 PyroLab creates data and configuration directories that aren't deleted when pip

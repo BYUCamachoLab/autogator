@@ -190,7 +190,7 @@ class WavelengthSweepExperiment(Experiment):
         self.configure_laser_measure()
 
         # Maximize signal
-        auto_scan(stage=self.stage, daq=self.stage.scope, settle=0.0, plot=self.MANUAL)
+        # auto_scan(stage=self.stage, daq=self.stage.scope, settle=0.0, plot=self.MANUAL)
 
         self.configure_scope_sweep()
         self.configure_laser_sweep()

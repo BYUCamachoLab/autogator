@@ -39,6 +39,10 @@ if sys.version_info < (3, 10, 0):
         + " detected)."
     )
 
+# Imported after the version guard so that an unsupported interpreter reports
+# the message above rather than failing on a dependency import first.
+from .circuits import CircuitMap
+
 __name__ = "AutoGator"
 __author__ = "CamachoLab"
 __copyright__ = "Copyright 2022, CamachoLab"
