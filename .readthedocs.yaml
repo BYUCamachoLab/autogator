@@ -5,18 +5,27 @@
 # Required
 version: 2
 
-# Zensical is not one of Read the Docs' built-in builders, so the build is
-# driven explicitly. Zensical requires Python 3.10+.
+# Zensical is not one of Read the Docs' built-in builders, and the docs
+# environment needs `uv sync --only-group`, which the native `python.install:
+# method: uv` shorthand does not accept, so the build is driven explicitly.
+# Zensical requires Python 3.10+.
 build:
   os: ubuntu-24.04
   tools:
     python: "3.12"
   jobs:
     install:
-      - pip install -r docs/requirements.txt
+      - pip install uv
+      # --only-group keeps this environment to Zensical and mkdocstrings alone.
+      # mkdocstrings reads the autogator source statically through griffe, so
+      # neither the package nor its runtime dependencies (numpy, scipy,
+      # matplotlib, pyvisa, ...) have to be installed to render the API pages.
+      - uv sync --frozen --only-group docs
     build:
       html:
-        - zensical build
+        # Called directly rather than through `uv run`, which would re-sync the
+        # environment and pull the project and its dependencies back in.
+        - .venv/bin/zensical build
     post_build:
       - mkdir -p $READTHEDOCS_OUTPUT/html/
       - cp --recursive site/* $READTHEDOCS_OUTPUT/html/

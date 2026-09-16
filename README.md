@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-<img alt="Development version" src="https://img.shields.io/badge/master-v0.3.0-informational">
+<a href="https://github.com/BYUCamachoLab/autogator/tags"><img alt="Development version" src="https://img.shields.io/github/v/tag/BYUCamachoLab/autogator?label=master&color=informational"></a>
 <a href="https://pypi.python.org/pypi/autogator"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/autogator.svg"></a>
 <img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/autogator">
 <a href="https://autogator.readthedocs.io/"><img alt="Documentation Status" src="https://readthedocs.org/projects/autogator/badge/?version=latest"></a>
@@ -36,9 +36,35 @@ pip install autogator
 ```
 
 You can also clone the repository, navigate to the toplevel, and install in
-editable mode (make sure you have pip >= 21.1):
+editable mode:
 
+```
 pip install -e .
+```
+
+For development, [uv](https://docs.astral.sh/uv/) will create a virtual
+environment and install the project along with the development and
+documentation dependency groups, all pinned by ``uv.lock``:
+
+```
+uv sync
+```
+
+Useful commands from there:
+
+```
+uv run pytest             # run the test suite
+uv run isort .            # sort imports
+uv run zensical serve     # preview the documentation at localhost:8000
+```
+
+To build only the documentation, without the package or its runtime
+dependencies:
+
+```
+uv sync --only-group docs
+uv run --no-project zensical build
+```
 
 ## Uninstallation
 
@@ -58,24 +84,34 @@ Make sure you have committed a changelog file under ``docs/changelog`` titled
 ``<major>.<minor>.<patch>-changelog.md`` before bumping version. Also, the git
 directory should be clean (no uncommitted changes).
 
+The version is declared in exactly one place, the ``version`` field of
+``pyproject.toml``. ``autogator.__version__`` reads it back from the installed
+distribution metadata, so there is nothing else to keep in sync.
+
 To bump version prior to a release, run one of the following commands:
 
 ```
-bumpversion major
-bumpversion minor
-bumpversion patch
+uv version --bump major
+uv version --bump minor
+uv version --bump patch
 ```
 
-This will automatically create a git tag in the repository with the 
-corrresponding version number and commit the modified files (where version
-numbers were updated). Pushing the tags (a manual process) to the remote will 
-automatically create a new release. Releases are automatically published to 
-PyPI and GitHub when git tags matching the "v*" pattern are created 
-(e.g. "v0.2.1"), as bumpversion does.
+Unlike bumpversion, which this project used previously, ``uv version`` only
+edits ``pyproject.toml`` (and refreshes ``uv.lock``); it does not commit or tag.
+Commit the change and tag it yourself:
 
-After bumping version, you can view the tags on the local machine by running 
-``git tag``. To push the tags to the remote server and trigger the release
-workflow, you can run ``git push origin <tagname>``.
+```
+git commit -am "Bump version to $(uv version --short)"
+git tag "v$(uv version --short)"
+```
+
+Releases are automatically published to PyPI and GitHub when git tags matching
+the "v*" pattern are pushed (e.g. "v0.2.1"), so push the tag to trigger the
+release workflow:
+
+```
+git push origin master --follow-tags
+```
 
 For code quality, please run isort and black before committing (note that the
 latest release of isort may not work through VSCode's integrated terminal, and

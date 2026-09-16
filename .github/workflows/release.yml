@@ -6,49 +6,71 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    name: Create Release
+    name: Build distributions
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/checkout@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
         with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade setuptools wheel twine build
-          pip install -r requirements.txt
-      - name: Build
-        run: |
-          python -m build
-      - name: Get version number
-        id: get_version
-        run: echo ::set-output name=VERSION::$(python3 -c "import autogator; print(autogator.__version__)")
-      - name: Load Release text
-        id: get_text
-        run: |
-          BODY=$(cat ./docs/changelog/${{ steps.get_version.outputs.VERSION }}-changelog.md)
-          BODY="${BODY//'%'/'%25'}"
-          BODY="${BODY//$'\n'/'%0A'}"
-          BODY="${BODY//$'\r'/'%0D'}"
-          echo "::set-output name=BODY::$BODY"
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.5.0
+          enable-cache: true
+      - name: Build sdist and wheel
+        run: uv build
+      - name: Upload distributions
+        uses: actions/upload-artifact@v4
         with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+          name: dist
+          path: dist/
+
+  pypi:
+    name: Publish to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    # Publishes via PyPI trusted publishing, so no API token is needed. This
+    # requires a publisher for this workflow to be configured once at
+    # https://pypi.org/manage/project/autogator/settings/publishing/
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: Create GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+      - name: Download distributions
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      # Taken from the tag rather than by importing autogator, which would
+      # need the full dependency set installed just to read a version string.
+      - name: Resolve version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      - name: Create release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: AutoGator ${{ steps.get_version.outputs.VERSION }}
-          body: ${{ steps.get_text.outputs.BODY }}
-          draft: false
-          prerelease: false
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "AutoGator ${{ steps.version.outputs.version }}" \
+            --notes-file "docs/changelog/${{ steps.version.outputs.version }}-changelog.md" \
+            dist/*

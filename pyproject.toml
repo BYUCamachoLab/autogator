@@ -1,24 +1,114 @@
 [build-system]
-requires = [
-    "setuptools>=51",
-    "wheel"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "AutoGator"
+version = "0.3.0"
+description = "A software package for camera-assisted motion control of PIC chip interrogation platforms."
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [
+    { name = "Sequoia Ploeg", email = "sequoia.ploeg@byu.edu" },
 ]
-build-backend = "setuptools.build_meta"
+maintainers = [
+    { name = "Sequoia Ploeg", email = "sequoia.ploeg@byu.edu" },
+]
+keywords = [
+    "PIC",
+    "photonic integrated circuit",
+    "Pyro",
+    "Pyro5",
+    "PyroLab",
+    "framework",
+    "hardware",
+    "instrument",
+    "instrumentation",
+    "integration",
+    "lab",
+    "laboratory",
+    "network",
+    "remote",
+    "resources",
+    "science",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "appdirs",
+    "keyboard",
+    "matplotlib",
+    "numpy",
+    # hardware.py uses pydantic.BaseSettings, which moved to the separate
+    # pydantic-settings package in pydantic 2. Migrating is a code change, not
+    # a metadata one, so stay on 1.x until that happens. 1.10 is the first
+    # release with wheels for Python 3.11+.
+    "pydantic>=1.10,<2",
+    # The `rto` extra supplies pyvisa, which hardware.py needs to construct a
+    # pyrolab RTO driver directly. pyrolab 0.2.1 depended on pyvisa outright;
+    # 0.4.0 moved the per-instrument drivers behind extras, so it must be asked
+    # for explicitly now.
+    "pyrolab[rto]",
+    "scipy",
+]
+
+[project.urls]
+Homepage = "https://github.com/BYUCamachoLab/autogator"
+Documentation = "https://autogator.readthedocs.io/"
+Source = "https://github.com/BYUCamachoLab/autogator"
+Tracker = "https://github.com/BYUCamachoLab/autogator/issues"
+"Research Group" = "https://camacholab.byu.edu/"
+
+# [project.scripts]
+# autogator = "autogator.cli:app"
+
+[dependency-groups]
+docs = [
+    "zensical",
+    "mkdocstrings-python",
+]
+dev = [
+    { include-group = "docs" },
+    "isort>=5.10",
+    "pytest>=7",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["autogator"]
 
 [tool.isort]
 profile = "black"
 extend_skip_glob = "api.py"
+known_first_party = ["autogator"]
 known_third_party = [
-    "Pyro5",
+    "appdirs",
+    "keyboard",
     "matplotlib",
     "numpy",
+    "pydantic",
+    "pyrolab",
     "pytest",
     "scipy",
-    "setuptools",
-    "typer",
-    "tabulate",
-    "pyrolab",
-    "keyboard",
-    "pydantic",
 ]
-known_first_party = ["autogator"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

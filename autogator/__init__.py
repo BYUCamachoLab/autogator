@@ -29,10 +29,12 @@ import pathlib
 import platform
 import sys
 from datetime import date
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
 
-if sys.version_info < (3, 7, 0):
+if sys.version_info < (3, 10, 0):
     raise Exception(
-        "autogator requires Python 3.7+ (version "
+        "autogator requires Python 3.10+ (version "
         + platform.python_version()
         + " detected)."
     )
@@ -40,7 +42,12 @@ if sys.version_info < (3, 7, 0):
 __name__ = "AutoGator"
 __author__ = "CamachoLab"
 __copyright__ = "Copyright 2022, CamachoLab"
-__version__ = "0.3.0"
+try:
+    # The version is declared once, in pyproject.toml; read it back from the
+    # installed distribution metadata rather than duplicating it here.
+    __version__ = _version("AutoGator")
+except PackageNotFoundError:  # not installed, e.g. a bare source checkout
+    __version__ = "0.0.0.dev0"
 __license__ = "GPLv3+"
 __maintainer__ = "Sequoia Ploeg"
 __maintainer_email__ = "sequoia.ploeg@byu.edu"
