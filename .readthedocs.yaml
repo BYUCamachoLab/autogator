@@ -5,16 +5,18 @@
 # Required
 version: 2
 
-# Set the version of Python and other tools you might need
+# Zensical is not one of Read the Docs' built-in builders, so the build is
+# driven explicitly. Zensical requires Python 3.10+.
 build:
-  os: ubuntu-20.04
+  os: ubuntu-24.04
   tools:
-    python: "3.9"
-
-mkdocs:
-  configuration: mkdocs.yml
-
-# Optionally declare the Python requirements required to build your docs
-python:
-   install:
-   - requirements: docs/requirements.txt
+    python: "3.12"
+  jobs:
+    install:
+      - pip install -r docs/requirements.txt
+    build:
+      html:
+        - zensical build
+    post_build:
+      - mkdir -p $READTHEDOCS_OUTPUT/html/
+      - cp --recursive site/* $READTHEDOCS_OUTPUT/html/

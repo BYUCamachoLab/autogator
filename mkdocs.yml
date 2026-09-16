@@ -14,6 +14,7 @@ copyright: Copyright © 2022 Sequoia Ploeg
 # Theming (light and dark mode)
 theme:
   name: material
+  variant: modern
   icon:
     logo: material/lan-connect
   features:
@@ -45,9 +46,11 @@ plugins:
   - search
   - mkdocstrings:
       handlers:
-          python:
-            selection:
-              docstring_style: "numpy"
+        python:
+          options:
+            docstring_style: numpy
+            show_root_heading: false
+            show_source: false
  
 # Extensions
 markdown_extensions:
@@ -70,8 +73,8 @@ markdown_extensions:
   - pymdownx.caret
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+      emoji_index: !!python/name:zensical.extensions.emoji.twemoji
+      emoji_generator: !!python/name:zensical.extensions.emoji.to_svg
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.keys
@@ -88,7 +91,6 @@ markdown_extensions:
 # Injected javascript
 extra_javascript:
   # - javascripts/mathjax.js
-  - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
  
 extra_css:
