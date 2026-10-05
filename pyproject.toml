@@ -55,9 +55,9 @@ classifiers = [
 ]
 dependencies = [
     "appdirs",
-    # circuits.py imports gdsfactory and gdstk at module scope, and
-    # autogator/__init__.py imports circuits, so these are needed to import the
-    # package at all. gdsfactory 7 moved to pydantic 2; see the pydantic note.
+    # circuits.py reads GDS files with gdstk at module scope, and
+    # autogator/__init__.py imports circuits, so it is needed to import the
+    # package at all.
     "gdstk",
     "keyboard",
     "matplotlib",
@@ -67,10 +67,8 @@ dependencies = [
     "opencv-python",
     # controllers.py imports PySide6 at module scope.
     "PySide6",
-    # hardware.py uses pydantic.BaseSettings, which moved to the separate
-    # pydantic-settings package in pydantic 2. Migrating is a code change, not
-    # a metadata one, so stay on 1.x until that happens. 1.10 is the first
-    # release with wheels for Python 3.11+.
+    # controllers.py uses BaseSettings, which pydantic 2 moved to the separate
+    # pydantic-settings package.
     "pydantic>=2.8,<3",
     "pydantic-settings>=2,<3",
     # The `rto` extra supplies pyvisa, which hardware.py needs to construct a
@@ -113,12 +111,12 @@ known_third_party = [
     "PySide6",
     "appdirs",
     "cv2",
-    "gdsfactory",
     "gdstk",
     "keyboard",
     "matplotlib",
     "numpy",
     "pydantic",
+    "pydantic_settings",
     "pyrolab",
     "pytest",
     "scipy",
