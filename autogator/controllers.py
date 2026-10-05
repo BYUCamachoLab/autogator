@@ -23,7 +23,7 @@ import cv2
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtUiTools import QUiLoader
 from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent, QPixmap
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from autogator.hardware import Stage
 
@@ -35,9 +35,13 @@ class KeyloopKeyboardBindings(BaseSettings):
     """
     Sets default keyboard bindings for the KeyboardControl controller.
 
-    Because settings are implemented using Pydantic, environmental variables
-    can be used to override the default settings.
+    Any binding can be overridden with an environment variable named
+    ``AUTOGATOR_KEYBOARD_<BINDING>``, e.g. ``AUTOGATOR_KEYBOARD_HOME=o``.
+    (Without a prefix, the ``HOME`` binding picked up the ``HOME``
+    environment variable, which is always set on Linux and macOS.)
     """
+    model_config = SettingsConfigDict(env_prefix="AUTOGATOR_KEYBOARD_", extra="forbid")
+
     MOVE_LEFT: str = "left arrow"
     MOVE_RIGHT: str = "right arrow"
     MOVE_UP: str = "up arrow"
@@ -275,8 +279,8 @@ class KeyboardControl:
         running = threading.Event()
         running.set()
 
-        actions = list(self.bindings.dict().keys())
-        keys = list(self.bindings.dict().values())
+        actions = list(self.bindings.model_dump().keys())
+        keys = list(self.bindings.model_dump().values())
         funcs = {
             "MOVE_LEFT": self._move_left,
             "MOVE_RIGHT": self._move_right,
@@ -367,12 +371,14 @@ class KeyboardGUIBindings(BaseSettings):
     '''
     Sets default keyboard bindings for KeyboardControlGUI controller.
 
-    Because settings are implemented using Pydantic, environmental variables
-    can be used to override the default settings.
+    Any binding can be overridden with an environment variable named
+    ``AUTOGATOR_GUI_<BINDING>``, e.g. ``AUTOGATOR_GUI_HOME=h``.
 
     Motor axis must begin with "POS" or "MINUS" and be separated by a underscore and then the 
     motor axis
     '''
+    model_config = SettingsConfigDict(env_prefix="AUTOGATOR_GUI_", extra="forbid")
+
     POS_Y: str = 'w'
     MINUS_Y: str = 's'
     POS_X: str = 'd'
