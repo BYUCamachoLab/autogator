@@ -41,7 +41,7 @@ pip install autogator
 ```
 
 For other options or more detailed instructions, see the [User
-Guide](/userguide/install.md).
+Guide](userguide/install.md).
 
 ## Requirements
 

@@ -54,5 +54,5 @@ enable automated. In this way, physical connections can be made (such as fiber
 inputs and outputs), one set of automated tests run, a new physical connection
 configured, and a different set of automated tests run.
 
-See the [experiment example](/examples/experiment) for a basic Python
+See the [experiment example](../examples/experiment.md) for a basic Python
 implementation.
