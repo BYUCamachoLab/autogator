@@ -47,11 +47,13 @@ class _ConfigurationRegistry(BaseModel):
         Always saves to the same registry file in the profiles directory.
         """
         with _REGISTRY_FILE.open("w") as f:
-            f.write(self.json())
+            f.write(self.model_dump_json())
 
 
 try:
-    _cfg_registry = _ConfigurationRegistry.parse_file(_REGISTRY_FILE)
+    _cfg_registry = _ConfigurationRegistry.model_validate_json(
+        _REGISTRY_FILE.read_text()
+    )
 except FileNotFoundError:
     _cfg_registry = _ConfigurationRegistry()
     _cfg_registry.save()
@@ -153,7 +155,7 @@ def update_configuration(name: str, config: StageConfiguration) -> None:
         raise ValueError("Names cannot begin with an underscore.")
     profile_path = PROFILES_DIR / f"{name}.json"
     with profile_path.open("w") as f:
-        f.write(config.json())
+        f.write(config.model_dump_json())
 
 
 def load_configuration(name: str) -> StageConfiguration:
@@ -172,7 +174,7 @@ def load_configuration(name: str) -> StageConfiguration:
     """
     profile_path = PROFILES_DIR / f"{name}.json"
     if profile_path.is_file():
-        return StageConfiguration.parse_file(profile_path)
+        return StageConfiguration.model_validate_json(profile_path.read_text())
     else:
         raise ValueError(f"Profile '{name}' does not exist.")
 
