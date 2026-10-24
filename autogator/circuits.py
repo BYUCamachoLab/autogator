@@ -86,13 +86,12 @@ import time
 import numpy as np
 from pathlib import Path
 from typing import Any, Dict, NamedTuple, Tuple, Union, List
+import gdstk
 from gdstk import Polygon
 from collections import defaultdict
 import matplotlib.pyplot as plt
 
 from autogator.errors import CircuitMapUniqueKeyError
-import gdsfactory as gf
-from gdsfactory import Component
 
 log = logging.getLogger(__name__)
 
@@ -679,12 +678,20 @@ class CircuitMap:
         if not filepath.exists():
             raise FileNotFoundError(f"File '{filename}' does not exist")
              
-        c = gf.Component()
-        self.chip = c << gf.read.import_gds(filepath)
-        
+        # Read with gdstk directly: gdsfactory was used only to load the
+        # file, and its result was gdstk's own top cell and polygons.
+        top_cells = gdstk.read_gds(str(filepath)).top_level()
+        if len(top_cells) != 1:
+            names = ", ".join(cell.name for cell in top_cells)
+            raise ValueError(
+                f"Expected one top-level cell in '{filepath}', found "
+                f"{len(top_cells)}: {names}"
+            )
+        self.chip = top_cells[0]
+
         self.allPolygons = []
         seen = set()
-        for poly in self.chip.parent.polygons:
+        for poly in self.chip.polygons:
             center = (self.boundingBoxCenter(poly)[0], self.boundingBoxCenter(poly)[1])
             if center in seen:
                 continue
@@ -757,7 +764,7 @@ class CircuitMap:
         
 
         # Get calibration circuits
-        boundingBoxPoints = self.chip.get_bounding_box()
+        boundingBoxPoints = self.chip.bounding_box()
         boundingBoxPoints = [
             boundingBoxPoints[0], 
             (boundingBoxPoints[0][0], boundingBoxPoints[1][1]),

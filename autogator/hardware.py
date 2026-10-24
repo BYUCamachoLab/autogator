@@ -24,10 +24,10 @@ import importlib
 import logging
 from pathlib import Path
 import time
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Dict, List, Optional, Tuple, Type, Union
 
 import numpy as np
-from pydantic import BaseModel, BaseSettings
+from pydantic import BaseModel, ConfigDict
 try:
     from pyrolab.api import locate_ns, Proxy, NameServerConfiguration
     from pyrolab.drivers.scopes.rohdeschwarz import RTO
@@ -726,7 +726,7 @@ class Stage:
         self.set_position(*self.unloaded_position)
 
 
-class HardwareConfiguration(BaseSettings):
+class HardwareConfiguration(BaseModel):
     """
     A class for storing the hardware configurations of an arbitrary driver.
 
@@ -744,6 +744,11 @@ class HardwareConfiguration(BaseSettings):
         It is therefore best for drivers to have keyword-only initialization
         parameters.
     """
+    # Unknown keys are errors, as they were with pydantic 1's BaseSettings.
+    # (A plain model, not BaseSettings: these are saved to and loaded from
+    # profile files, and must not pick up same-named environment variables.)
+    model_config = ConfigDict(extra="forbid")
+
     module: str = "autogator.hardware"
     classname: str = ""
     parameters: Dict[str, Any] = {}
@@ -770,7 +775,7 @@ class HardwareConfiguration(BaseSettings):
         return obj(**self.parameters)
 
 
-class StageConfiguration(BaseSettings):
+class StageConfiguration(BaseModel):
     """
     The persisted stage configuration. Typically stored as a JSON file.
 
@@ -797,12 +802,15 @@ class StageConfiguration(BaseSettings):
     auxiliaries : Dict[str, HardwareConfiguration]
         A dictionary of auxiliary hardware devices.
     """
-    x: HardwareConfiguration = None
-    y: HardwareConfiguration = None
-    z: HardwareConfiguration = None
-    theta: HardwareConfiguration = None
-    phi: HardwareConfiguration = None
-    psi: HardwareConfiguration = None
+    model_config = ConfigDict(extra="forbid")
+
+    # Optional: an axis without hardware is saved as null.
+    x: Optional[HardwareConfiguration] = None
+    y: Optional[HardwareConfiguration] = None
+    z: Optional[HardwareConfiguration] = None
+    theta: Optional[HardwareConfiguration] = None
+    phi: Optional[HardwareConfiguration] = None
+    psi: Optional[HardwareConfiguration] = None
     calibration_matrix: str = ""
     loaded_position: List[Any] = [None, None, None, None, None, None]
     unloaded_position: List[Any] = [None, None, None, None, None, None]

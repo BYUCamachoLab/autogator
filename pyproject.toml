@@ -9,7 +9,7 @@ description = "A software package for camera-assisted motion control of PIC chip
 readme = "README.md"
 license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [
     { name = "Sequoia Ploeg", email = "sequoia.ploeg@byu.edu" },
 ]
@@ -43,9 +43,9 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Scientific/Engineering",
@@ -55,10 +55,9 @@ classifiers = [
 ]
 dependencies = [
     "appdirs",
-    # circuits.py imports gdsfactory and gdstk at module scope, and
-    # autogator/__init__.py imports circuits, so these are needed to import the
-    # package at all. gdsfactory 7 moved to pydantic 2; see the pydantic note.
-    "gdsfactory<7",
+    # circuits.py reads GDS files with gdstk at module scope, and
+    # autogator/__init__.py imports circuits, so it is needed to import the
+    # package at all.
     "gdstk",
     "keyboard",
     "matplotlib",
@@ -68,16 +67,16 @@ dependencies = [
     "opencv-python",
     # controllers.py imports PySide6 at module scope.
     "PySide6",
-    # hardware.py uses pydantic.BaseSettings, which moved to the separate
-    # pydantic-settings package in pydantic 2. Migrating is a code change, not
-    # a metadata one, so stay on 1.x until that happens. 1.10 is the first
-    # release with wheels for Python 3.11+.
-    "pydantic>=1.10,<2",
+    # controllers.py uses BaseSettings, which pydantic 2 moved to the separate
+    # pydantic-settings package.
+    "pydantic>=2.8,<3",
+    "pydantic-settings>=2,<3",
     # The `rto` extra supplies pyvisa, which hardware.py needs to construct a
     # pyrolab RTO driver directly. pyrolab 0.2.1 depended on pyvisa outright;
     # 0.4.0 moved the per-instrument drivers behind extras, so it must be asked
     # for explicitly now.
-    "pyrolab[rto]",
+    # 0.5 is the first release on pydantic 2.
+    "pyrolab[rto]>=0.5",
     "scipy",
 ]
 
@@ -113,12 +112,12 @@ known_third_party = [
     "PySide6",
     "appdirs",
     "cv2",
-    "gdsfactory",
     "gdstk",
     "keyboard",
     "matplotlib",
     "numpy",
     "pydantic",
+    "pydantic_settings",
     "pyrolab",
     "pytest",
     "scipy",
