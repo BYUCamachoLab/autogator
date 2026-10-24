@@ -75,7 +75,7 @@ requires-dist = [
     { name = "opencv-python" },
     { name = "pydantic", specifier = ">=2.8,<3" },
     { name = "pydantic-settings", specifier = ">=2,<3" },
-    { name = "pyrolab", extras = ["rto"], git = "https://github.com/BYUCamachoLab/pyrolab?rev=914f9717128fe7296736e9ca9e22f4cbac958a34" },
+    { name = "pyrolab", extras = ["rto"], specifier = ">=0.5" },
     { name = "pyside6" },
     { name = "scipy" },
 ]
@@ -4531,8 +4531,8 @@ wheels = [
 
 [[package]]
 name = "pyrolab"
-version = "0.4.0"
-source = { git = "https://github.com/BYUCamachoLab/pyrolab?rev=914f9717128fe7296736e9ca9e22f4cbac958a34#914f9717128fe7296736e9ca9e22f4cbac958a34" }
+version = "0.5.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama" },
     { name = "deprecation" },
@@ -4548,6 +4548,10 @@ dependencies = [
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "tabulate" },
     { name = "typer" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/52/29/ee20a3fded732cf18b34b82d3559ecf1532f166589fc94646becd177c8ec/pyrolab-0.5.0.tar.gz", hash = "sha256:0b66366fa5b7e910acf9ec78eff045d01556839452e10ece547b3f075750f9b9", size = 195660, upload-time = "2026-10-24T00:48:49.829Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/23/6d/83b188ad47a91962a8ba39840bb0e8c4ac4445a2adeb275f29edc6832e2f/pyrolab-0.5.0-py3-none-any.whl", hash = "sha256:72d54f8c0e3be0cad06d8aa4d066002338b57ccd704887f33185948998f53e0d", size = 178884, upload-time = "2026-10-24T00:48:48.342Z" },
 ]
 
 [package.optional-dependencies]

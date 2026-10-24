@@ -75,7 +75,8 @@ dependencies = [
     # pyrolab RTO driver directly. pyrolab 0.2.1 depended on pyvisa outright;
     # 0.4.0 moved the per-instrument drivers behind extras, so it must be asked
     # for explicitly now.
-    "pyrolab[rto]",
+    # 0.5 is the first release on pydantic 2.
+    "pyrolab[rto]>=0.5",
     "scipy",
 ]
 
@@ -124,10 +125,3 @@ known_third_party = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-
-# TEMPORARY, until pyrolab is released with pydantic 2 (BYUCamachoLab/pyrolab#96):
-# resolve pyrolab from git so this can be developed and tested now. PyPI users
-# never see this; remove it (and require that pyrolab release) before releasing
-# AutoGator, or installs from PyPI would get pyrolab 0.4.0, which needs pydantic 1.
-[tool.uv.sources]
-pyrolab = { git = "https://github.com/BYUCamachoLab/pyrolab", rev = "914f9717128fe7296736e9ca9e22f4cbac958a34" }
