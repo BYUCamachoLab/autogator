@@ -11,6 +11,7 @@ A series of convenience functions for processing raw data.
 """
 
 from typing import NamedTuple
+
 import numpy as np
 from scipy.signal import find_peaks
 

@@ -106,7 +106,7 @@ packages = ["autogator"]
 
 [tool.isort]
 profile = "black"
-extend_skip_glob = "api.py"
+extend_skip_glob = "autogator/api.py"
 known_first_party = ["autogator"]
 known_third_party = [
     "PySide6",

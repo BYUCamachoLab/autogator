@@ -32,9 +32,9 @@ from datetime import date
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _version
 
-if sys.version_info < (3, 10, 0):
+if sys.version_info < (3, 11, 0):
     raise Exception(
-        "autogator requires Python 3.10+ (version "
+        "autogator requires Python 3.11+ (version "
         + platform.python_version()
         + " detected)."
     )
@@ -43,7 +43,6 @@ if sys.version_info < (3, 10, 0):
 # the message above rather than failing on a dependency import first.
 from .circuits import CircuitMap
 
-__name__ = "AutoGator"
 __author__ = "CamachoLab"
 __copyright__ = "Copyright 2022, CamachoLab"
 try:
@@ -62,11 +61,15 @@ __website_url__ = "https://camacholab.byu.edu/"
 
 
 import warnings
+
 warnings.filterwarnings("default", category=DeprecationWarning)
 
 from appdirs import AppDirs
 
-_dirs = AppDirs(__name__, __author__)
+# Name the data directory explicitly. It used to be derived from a __name__
+# override, which broke submodule imports; keep the old name so existing
+# profiles and configuration are still found.
+_dirs = AppDirs("AutoGator", __author__)
 AUTOGATOR_DATA_DIR = pathlib.Path(_dirs.user_data_dir)
 AUTOGATOR_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -75,12 +78,6 @@ AUTOGATOR_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 print("Welcome to AutoGator!")
 print("© 2019-{}, CamachoLab".format(date.today().year))
-
-import logging
-logging.basicConfig(
-    level=logging.INFO,
-
-)
 
 import logging
 import logging.handlers
@@ -92,24 +89,25 @@ def get_loglevel() -> int:
         loglevel = getattr(logging, loglevel.upper())
     except AttributeError:
         loglevel = logging.INFO
-    loglevel = logging.DEBUG
     return loglevel
 
 
 AUTOGATOR_LOGFILE = AUTOGATOR_DATA_DIR / "autogator.log"
 logfile = os.getenv("AUTOGATOR_LOGFILE", AUTOGATOR_LOGFILE)
 
+# Configure only the "autogator" logger, and only if the application has not
+# already set up logging itself; a library must not configure the root logger.
 if len(logging.root.handlers) == 0:
-    root = logging.getLogger(__name__)
-    h = logging.handlers.RotatingFileHandler(logfile, 'a', 30000, 10)
+    _log = logging.getLogger(__name__)
     f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+
+    h = logging.handlers.RotatingFileHandler(logfile, 'a', 30000, 10)
     h.setFormatter(f)
-    root.addHandler(h)
+    _log.addHandler(h)
 
     h = logging.StreamHandler()
-    f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
     h.setFormatter(f)
-    root.addHandler(h)
+    _log.addHandler(h)
 
-    root.setLevel(get_loglevel())
-    root.debug("Autogator logging configured")
+    _log.setLevel(get_loglevel())
+    _log.debug("Autogator logging configured")

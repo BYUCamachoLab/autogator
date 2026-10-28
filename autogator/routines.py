@@ -30,13 +30,12 @@ import logging
 import time
 from typing import Callable, List, Tuple
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 
-from autogator.circuits import Circuit, Input, Output, NotUsed
-from autogator.hardware import DataAcquisitionUnitBase, Stage, LaserBase
+from autogator.circuits import Circuit, Input, NotUsed, Output
 from autogator.controllers import KeyboardControl
-
+from autogator.hardware import DataAcquisitionUnitBase, LaserBase, Stage
 
 log = logging.getLogger(__name__)
 

@@ -22,22 +22,26 @@ This module serves the following purposes:
 import concurrent.futures
 import importlib
 import logging
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 from pydantic import BaseModel, BaseSettings
+
+# isort: off
+# The bare except skips every import after the first one that fails, so the
+# order here decides which names exist when a driver cannot be imported.
 try:
     from pyrolab.api import locate_ns, Proxy, NameServerConfiguration
     from pyrolab.drivers.scopes.rohdeschwarz import RTO
     from pyrolab.drivers.cameras.thorcam import ThorCamClient
 except:
     pass
+# isort: on
 
-from autogator.errors import UncalibratedStageError
 from autogator.circuits import CircuitMap
-
+from autogator.errors import UncalibratedStageError
 
 log = logging.getLogger(__name__)
 
