@@ -61,6 +61,7 @@ __website_url__ = "https://camacholab.byu.edu/"
 
 
 import warnings
+
 warnings.filterwarnings("default", category=DeprecationWarning)
 
 from appdirs import AppDirs

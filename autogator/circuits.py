@@ -80,19 +80,21 @@ in automated tests.
 ```
 """
 from __future__ import annotations
+
 import copy
 import logging
 import time
-import numpy as np
-from pathlib import Path
-from typing import Any, Dict, NamedTuple, Tuple, Union, List
-from gdstk import Polygon
 from collections import defaultdict
+from pathlib import Path
+from typing import Any, Dict, List, NamedTuple, Tuple, Union
+
+import gdsfactory as gf
 import matplotlib.pyplot as plt
+import numpy as np
+from gdsfactory import Component
+from gdstk import Polygon
 
 from autogator.errors import CircuitMapUniqueKeyError
-import gdsfactory as gf
-from gdsfactory import Component
 
 log = logging.getLogger(__name__)
 

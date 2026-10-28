@@ -13,20 +13,20 @@ an XBox controller. More controllers may be implemented here in the future.
 """
 
 import logging
+import os
+import sys
 import threading
 import time
-import sys, os
-import keyboard
 from multiprocessing import Value
-import cv2
 
-from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtUiTools import QUiLoader
-from PySide6.QtGui import QKeySequence, QShortcut, QShortcutEvent, QKeyEvent, QPixmap
+import cv2
+import keyboard
 from pydantic import BaseSettings
+from PySide6 import QtCore, QtGui, QtWidgets
+from PySide6.QtGui import QKeyEvent, QKeySequence, QPixmap, QShortcut, QShortcutEvent
+from PySide6.QtUiTools import QUiLoader
 
 from autogator.hardware import Stage
-
 
 log = logging.getLogger(__name__)
 

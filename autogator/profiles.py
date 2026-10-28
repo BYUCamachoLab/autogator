@@ -23,7 +23,6 @@ from pydantic import BaseModel
 from autogator import AUTOGATOR_DATA_DIR
 from autogator.hardware import StageConfiguration
 
-
 PROFILES_DIR = AUTOGATOR_DATA_DIR / "profiles"
 PROFILES_DIR.mkdir(parents=True, exist_ok=True)
 CALIBRATION_DIR = AUTOGATOR_DATA_DIR / "calibration"

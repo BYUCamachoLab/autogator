@@ -35,8 +35,8 @@ Using this module, you can
 """
 
 from autogator.circuits import CircuitMap
-from autogator.profiles import load_default_configuration
 from autogator.hardware import Stage
+from autogator.profiles import load_default_configuration
 
 
 class Experiment:
