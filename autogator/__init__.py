@@ -43,7 +43,6 @@ if sys.version_info < (3, 10, 0):
 # the message above rather than failing on a dependency import first.
 from .circuits import CircuitMap
 
-__name__ = "AutoGator"
 __author__ = "CamachoLab"
 __copyright__ = "Copyright 2022, CamachoLab"
 try:
@@ -66,7 +65,10 @@ warnings.filterwarnings("default", category=DeprecationWarning)
 
 from appdirs import AppDirs
 
-_dirs = AppDirs(__name__, __author__)
+# Name the data directory explicitly. It used to be derived from a __name__
+# override, which broke submodule imports; keep the old name so existing
+# profiles and configuration are still found.
+_dirs = AppDirs("AutoGator", __author__)
 AUTOGATOR_DATA_DIR = pathlib.Path(_dirs.user_data_dir)
 AUTOGATOR_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
