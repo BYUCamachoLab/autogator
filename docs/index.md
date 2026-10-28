@@ -45,4 +45,4 @@ Guide](userguide/install.md).
 
 ## Requirements
 
-* Python 3.7+
+* Python 3.11+
