@@ -32,9 +32,9 @@ from datetime import date
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _version
 
-if sys.version_info < (3, 10, 0):
+if sys.version_info < (3, 11, 0):
     raise Exception(
-        "autogator requires Python 3.10+ (version "
+        "autogator requires Python 3.11+ (version "
         + platform.python_version()
         + " detected)."
     )
