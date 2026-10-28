@@ -79,12 +79,6 @@ print("Welcome to AutoGator!")
 print("© 2019-{}, CamachoLab".format(date.today().year))
 
 import logging
-logging.basicConfig(
-    level=logging.INFO,
-
-)
-
-import logging
 import logging.handlers
 
 
@@ -94,24 +88,25 @@ def get_loglevel() -> int:
         loglevel = getattr(logging, loglevel.upper())
     except AttributeError:
         loglevel = logging.INFO
-    loglevel = logging.DEBUG
     return loglevel
 
 
 AUTOGATOR_LOGFILE = AUTOGATOR_DATA_DIR / "autogator.log"
 logfile = os.getenv("AUTOGATOR_LOGFILE", AUTOGATOR_LOGFILE)
 
+# Configure only the "autogator" logger, and only if the application has not
+# already set up logging itself; a library must not configure the root logger.
 if len(logging.root.handlers) == 0:
-    root = logging.getLogger(__name__)
-    h = logging.handlers.RotatingFileHandler(logfile, 'a', 30000, 10)
+    _log = logging.getLogger(__name__)
     f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
+
+    h = logging.handlers.RotatingFileHandler(logfile, 'a', 30000, 10)
     h.setFormatter(f)
-    root.addHandler(h)
+    _log.addHandler(h)
 
     h = logging.StreamHandler()
-    f = logging.Formatter('%(asctime)s.%(msecs)03d %(process)-5s %(processName)-10s %(name)-12s %(levelname)-8s %(message)s', datefmt="%Y-%m-%d %H:%M:%S")
     h.setFormatter(f)
-    root.addHandler(h)
+    _log.addHandler(h)
 
-    root.setLevel(get_loglevel())
-    root.debug("Autogator logging configured")
+    _log.setLevel(get_loglevel())
+    _log.debug("Autogator logging configured")
